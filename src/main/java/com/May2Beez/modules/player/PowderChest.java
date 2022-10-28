@@ -120,6 +120,7 @@ public class PowderChest extends Module {
         if (event.packet instanceof S02PacketChat) {
             String message = ((S02PacketChat) event.packet).getChatComponent().getUnformattedText();
             if (message.toLowerCase().contains("successfully picked the lock") || message.toLowerCase().contains("remaining contents of this treasure chest")) {
+                // Sometimes doesnt delete solved chests?? idk
                 allChests = (ArrayList<TreasureChest>) allChests.stream().filter(chest -> {
                     IBlockState blockState = mc.theWorld.getBlockState(chest.pos);
                     return blockState.getBlock() == Blocks.chest;
@@ -149,6 +150,7 @@ public class PowderChest extends Module {
                 }
                 if (closestChest.progress >= 5) {
                     closestChest.particle = null;
+                    // Please delete solved chest, holy moly
                     if (!solvedChests.contains(closestChest)) {
                         solvedChests.add(closestChest);
                     }
