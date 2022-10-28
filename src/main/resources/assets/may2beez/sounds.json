@@ -1,0 +1,11 @@
+{
+    "alarm": {
+        "category": "master",
+        "sounds": [
+            {
+            "name": "alarm",
+            "stream": false
+        }
+        ]
+    }
+}

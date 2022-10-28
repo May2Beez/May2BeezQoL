@@ -1,0 +1,10 @@
+[
+{
+  "modid": "May2BeezQoL",
+  "name": "May2BeezQoL",
+  "description": "QOL changes that enhances your Hypixel Skyblock experience.",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "authorList": ["May2Beez"]
+}
+]

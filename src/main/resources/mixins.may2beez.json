@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "package": "com.May2Beez.mixins",
+  "refmap": "mixins.may2beez.refmap.json",
+  "compatibilityLevel": "JAVA_8",
+  "mixins": [
+    "ChunkMixin",
+    "NetworkManagerMixin"
+  ],
+  "client": [
+    "EntityPlayerSPMixin"
+  ]
+}
