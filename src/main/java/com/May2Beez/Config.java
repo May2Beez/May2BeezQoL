@@ -140,6 +140,9 @@ public class Config extends Vigilant {
     @Property(type = PropertyType.SWITCH, name = "Powder chest solver server rotation", category = MINING)
     public boolean solvePowderChestServerRotation = false;
 
+    @Property(type = PropertyType.SWITCH, name = "Draw lines to every powder chest", category = MINING)
+    public boolean drawLinesToPowderChests = true;
+
 
     public Config() {
         super(new File("./config/may2beez/config.toml"), "May2Beez QoL", (PropertyCollector)new JVMAnnotationPropertyCollector(), new ConfigSorting());

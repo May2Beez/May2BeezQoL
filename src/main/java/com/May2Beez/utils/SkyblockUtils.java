@@ -187,6 +187,14 @@ public class SkyblockUtils {
         }
     }
 
+    public static void SendInfo(String message) {
+        SendInfo(message, true);
+    }
+
+    public static void SendInfo(String message, boolean enable) {
+        SendInfo(message, enable, "");
+    }
+
     public static void SendInfo(String message, boolean enable, String moduleName) {
         if (Minecraft.getMinecraft().thePlayer == null) return;
 

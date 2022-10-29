@@ -7,11 +7,9 @@ import com.May2Beez.events.PlayerMoveEvent;
 import com.May2Beez.events.ReceivePacketEvent;
 import com.May2Beez.utils.RenderUtils;
 import com.May2Beez.utils.RotationUtils;
-import net.minecraft.block.state.BlockState;
-import net.minecraft.block.state.IBlockState;
+import com.May2Beez.utils.SkyblockUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
-import net.minecraft.network.play.server.S02PacketChat;
 import net.minecraft.network.play.server.S29PacketSoundEffect;
 import net.minecraft.network.play.server.S2APacketParticles;
 import net.minecraft.util.*;
@@ -30,24 +28,26 @@ import static com.May2Beez.utils.SkyblockUtils.isBlockVisible;
 public class PowderChest extends Module {
 
     private TreasureChest closestChest = null;
-    private final ArrayList<TreasureChest> solvedChests = new ArrayList<>();
-    private ArrayList<TreasureChest> allChests = new ArrayList<>();
+    private final ArrayList<TreasureChest> allChests = new ArrayList<>();
     private final Minecraft mc = Minecraft.getMinecraft();
 
     private static class TreasureChest {
         public BlockPos pos;
         public int progress = 0;
-        public long time = System.currentTimeMillis();
+        public long time;
         public Vec3 particle = null;
         public AxisAlignedBB box;
         public TreasureChest(BlockPos pos) {
             this.pos = pos;
             this.box = new AxisAlignedBB(pos.getX(), pos.getY(), pos.getZ(), pos.getX() + 1, pos.getY() + 1, pos.getZ() + 1);
+            this.time = System.currentTimeMillis();
         }
 
-        public double distance(double x, double y, double z) {
-            return pos.distanceSqToCenter(x, y, z);
-        };
+        public double distance(double x, double y, double z) { return pos.distanceSqToCenter(x, y, z);}
+        public boolean isExpired() {
+            return (System.currentTimeMillis() - time) >= 60000;
+        }
+        public boolean isSolved = false;
     }
 
     public PowderChest() {
@@ -79,15 +79,10 @@ public class PowderChest extends Module {
     public void onBlockChange(BlockChangeEvent event) {
         if (mc.thePlayer == null || mc.theWorld == null) return;
 
-        if (((event.old.getBlock() == Blocks.air || event.old.getBlock() == Blocks.stone) && event.update.getBlock() == Blocks.chest)) {
+        if (((event.old.getBlock() == Blocks.air || event.old.getBlock() == Blocks.stone) && (event.update.getBlock() == Blocks.chest || event.update.getBlock() == Blocks.trapped_chest))) {
             if (mc.thePlayer.getEntityBoundingBox().expand(8, 8, 8).isVecInside(new Vec3(event.pos))) {
-                if (solvedChests.stream().noneMatch(solved -> new Vec3(solved.pos).equals(new Vec3(event.pos)))) {
-                    allChests.add(new TreasureChest(event.pos));
-                }
+                allChests.add(new TreasureChest(event.pos));
             }
-        } else if (event.old.getBlock() == Blocks.chest && event.update.getBlock() == Blocks.air) {
-            Optional<TreasureChest> chest = allChests.stream().filter(chestT -> chestT.pos == event.pos).findFirst();
-            chest.ifPresent(allChests::remove);
         }
     }
 
@@ -99,34 +94,29 @@ public class PowderChest extends Module {
 
     @SubscribeEvent
     public void onWorldLastRender(RenderWorldLastEvent event) {
-        if (!isToggled()) return;
-        allChests.forEach(chest -> {
-            RenderUtils.drawBlockBox(chest.pos, Color.green, 5, event.partialTicks);
-        });
+        if (!isToggled() || mc.thePlayer == null) return;
+        if (allChests.size() > 0) {
+            for (TreasureChest allChest : allChests) {
+                if (allChest.isSolved || allChest.isExpired()) continue;
+
+                RenderUtils.drawBlockBox(allChest.pos, Color.green, 5, event.partialTicks);
+                if (SkyblockMod.config.drawLinesToPowderChests)
+                    RenderUtils.drawLineBetweenPoints(new Vec3(mc.thePlayer.getPosition()), allChest.pos, event);
+            }
+        }
         if (closestChest == null) return;
         RenderUtils.drawBlockBox(closestChest.pos, Color.ORANGE, 5, event.partialTicks);
     }
 
     @SubscribeEvent
     public void onWorldLoad(WorldEvent.Load event) {
-        solvedChests.clear();
+        allChests.clear();
         closestChest = null;
     }
 
     @SubscribeEvent
     public void onPacketReceive(ReceivePacketEvent event) {
         if (!isToggled() || closestChest == null) return;
-
-        if (event.packet instanceof S02PacketChat) {
-            String message = ((S02PacketChat) event.packet).getChatComponent().getUnformattedText();
-            if (message.toLowerCase().contains("successfully picked the lock") || message.toLowerCase().contains("remaining contents of this treasure chest")) {
-                // Sometimes doesnt delete solved chests?? idk
-                allChests = (ArrayList<TreasureChest>) allChests.stream().filter(chest -> {
-                    IBlockState blockState = mc.theWorld.getBlockState(chest.pos);
-                    return blockState.getBlock() == Blocks.chest;
-                }).collect(Collectors.toList());
-            }
-        }
 
         if (event.packet instanceof S2APacketParticles) {
             if (((S2APacketParticles) event.packet).getParticleType() == EnumParticleTypes.CRIT && ((S2APacketParticles) event.packet).isLongDistance() && ((S2APacketParticles) event.packet).getParticleCount() == 1 && ((S2APacketParticles) event.packet).getParticleSpeed() == 0.0f && ((S2APacketParticles) event.packet).getXOffset() == 0 && ((S2APacketParticles) event.packet).getYOffset() == 0 && ((S2APacketParticles) event.packet).getZOffset() == 0) {
@@ -150,13 +140,7 @@ public class PowderChest extends Module {
                 }
                 if (closestChest.progress >= 5) {
                     closestChest.particle = null;
-                    // Please delete solved chest, holy moly
-                    if (!solvedChests.contains(closestChest)) {
-                        solvedChests.add(closestChest);
-                    }
-                    if (allChests.contains(closestChest)) {
-                        allChests.remove(closestChest);
-                    }
+                    closestChest.isSolved = true;
                     closestChest = null;
                 }
             }
@@ -164,16 +148,17 @@ public class PowderChest extends Module {
     }
 
     private TreasureChest getClosestChest() {
-        double smallest = 9999;
-        TreasureChest closest = null;
+        ArrayList<TreasureChest> notSolved = (ArrayList<TreasureChest>) allChests.stream().filter(chest -> !chest.isSolved).collect(Collectors.toList());
+        ArrayList<TreasureChest> notSolvedAndNotExpired = (ArrayList<TreasureChest>) notSolved.stream().filter(chest -> !chest.isExpired()).collect(Collectors.toList());
+        ArrayList<TreasureChest> notSolvedNotExpiredAndVisible = (ArrayList<TreasureChest>) notSolvedAndNotExpired.stream().filter(chest -> isBlockVisible(chest.pos)).collect(Collectors.toList());
+        if (notSolvedNotExpiredAndVisible.size() == 0) return null;
+        TreasureChest closest = notSolvedNotExpiredAndVisible.get(0);
 
-        for (TreasureChest chest : allChests) {
-            if (isBlockVisible(chest.pos)) {
-                double dist = new Vec3(chest.pos).distanceTo(mc.thePlayer.getPositionVector());
-                if (dist < smallest) {
-                    smallest = dist;
-                    closest = chest;
-                }
+        if (notSolvedNotExpiredAndVisible.size() == 1) return closest;
+
+        for (TreasureChest chest : notSolvedNotExpiredAndVisible) {
+            if (mc.thePlayer.getDistanceSq(chest.pos) < mc.thePlayer.getDistanceSq(closest.pos)) {
+                closest = chest;
             }
         }
         return closest;
