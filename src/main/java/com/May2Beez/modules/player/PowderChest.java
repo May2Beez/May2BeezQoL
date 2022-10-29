@@ -7,7 +7,6 @@ import com.May2Beez.events.PlayerMoveEvent;
 import com.May2Beez.events.ReceivePacketEvent;
 import com.May2Beez.utils.RenderUtils;
 import com.May2Beez.utils.RotationUtils;
-import com.May2Beez.utils.SkyblockUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
 import net.minecraft.network.play.server.S29PacketSoundEffect;
