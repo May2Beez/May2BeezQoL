@@ -151,7 +151,6 @@ public class PowderChest extends Module {
     private TreasureChest getClosestChest() {
         ArrayList<TreasureChest> notSolved = (ArrayList<TreasureChest>) allChests.stream().filter(chest -> !chest.isSolved).collect(Collectors.toList());
         ArrayList<TreasureChest> notSolvedAndNotExpired = (ArrayList<TreasureChest>) notSolved.stream().filter(chest -> !chest.isExpired()).collect(Collectors.toList());
-//        ArrayList<TreasureChest> notSolvedNotExpiredAndVisible = (ArrayList<TreasureChest>) notSolvedAndNotExpired.stream().filter(chest -> isBlockVisible(chest.pos)).collect(Collectors.toList());
         if (notSolvedAndNotExpired.size() == 0) return null;
         TreasureChest closest = notSolvedAndNotExpired.get(0);
 

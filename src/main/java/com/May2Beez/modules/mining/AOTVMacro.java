@@ -35,6 +35,8 @@ public class AOTVMacro extends Module {
 
     private final Timer stuckTimer = new Timer();
     private final Timer searchingTimer = new Timer();
+    private final Timer stuckTimer2 = new Timer();
+    private BlockPos blockToIgnoreBecauseOfStuck = null;
 
     public enum State {
         SEARCHING,
@@ -103,6 +105,7 @@ public class AOTVMacro extends Module {
         currentState = State.SEARCHING;
         stuckTimer.reset();
         searchingTimer.reset();
+        stuckTimer2.reset();
         RotationUtils.resetRotation();
         KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), false);
         KeyBinding.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), false);
@@ -146,9 +149,14 @@ public class AOTVMacro extends Module {
                     break;
                 }
 
+                if (blockToIgnoreBecauseOfStuck != null && !stuckTimer2.hasReached(500)) {
+                    break;
+                }
+
                 KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), true);
                 KeyBinding.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), false);
                 target = getClosestGemstone();
+                blockToIgnoreBecauseOfStuck = null;
                 if (target != null) {
                     currentState = State.MINING;
                     int miningTool = SkyblockUtils.findItemInHotbar("Drill", "Pickaxe", "Gauntlet");
@@ -192,10 +200,15 @@ public class AOTVMacro extends Module {
                 KeyBinding.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), lookingAtTarget);
 
                 if (stuckTimer.hasReached(SkyblockMod.config.aotvStuckTimeThreshold) && !RotationUtils.running) {
+                    KeyBinding.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), false);
                     SkyblockUtils.SendInfo("Stuck for " + SkyblockMod.config.aotvStuckTimeThreshold + " ms, restarting.", false, name);
                     stuckTimer.reset();
                     currentState = State.SEARCHING;
                     searchingTimer.reset();
+                    blockToIgnoreBecauseOfStuck = target.getPos();
+                    target = null;
+                    oldTarget = null;
+                    stuckTimer2.reset();
                 }
 
                 break;
@@ -216,8 +229,6 @@ public class AOTVMacro extends Module {
                 BlockPos waypoint = new BlockPos(Waypoints.get(currentWaypoint).x, Waypoints.get(currentWaypoint).y, Waypoints.get(currentWaypoint).z);
                 RotationUtils.smoothLook(RotationUtils.getRotationToBlock(waypoint), SkyblockMod.config.aotvCameraSpeed);
 
-                if (RotationUtils.running) return;
-
                 MovingObjectPosition movingObjectPosition = mc.thePlayer.rayTrace(55, 1);
 
                 if (movingObjectPosition != null && movingObjectPosition.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
@@ -227,14 +238,14 @@ public class AOTVMacro extends Module {
                         currentState = State.SEARCHING;
                         searchingTimer.reset();
                         oldTarget = null;
-                    } else {
-                        if (stuckTimer.hasReached(2000) && !RotationUtils.running) {
-                            SkyblockUtils.SendInfo("Path is not cleared. Block: " + movingObjectPosition.getBlockPos().toString() + " is on the way.", false, name);
-                            this.toggle();
-                            break;
-                        }
+                        break;
                     }
-                } else if (movingObjectPosition != null) {
+                    if (stuckTimer.hasReached(2000) && !RotationUtils.running) {
+                        SkyblockUtils.SendInfo("Path is not cleared. Block: " + movingObjectPosition.getBlockPos().toString() + " is on the way.", false, name);
+                        this.toggle();
+                        break;
+                    }
+                } else if (movingObjectPosition != null && !RotationUtils.running && stuckTimer.hasReached(3000)) {
                     SkyblockUtils.SendInfo("Something is on the way!", false, name);
                     this.toggle();
                 }
@@ -257,6 +268,8 @@ public class AOTVMacro extends Module {
                 if (SkyblockMod.config.aotvGemstoneType > 0) {
                     if (!IsThisAGoodGemstone(blockPos1)) continue;
                 }
+
+                if (blockPos1.equals(blockToIgnoreBecauseOfStuck)) continue;
 
                 mc.playerController.getBlockReachDistance();
                 if (mc.thePlayer.getDistanceSq(blockPos1) < 4.3f * 4.3f) {
@@ -337,13 +350,13 @@ public class AOTVMacro extends Module {
 
         RenderUtils.preDraw();
         if (target != null) {
-            RenderUtils.drawBlockBox(target.getPos(), new Color(0, 255, 0, 100), 2f, event.partialTicks);
+            RenderUtils.drawBlockBox(target.getPos(), new Color(0, 255, 0, 100), 4f, event.partialTicks);
         }
 
         if (SkyblockMod.config.showRouteBlocks) {
             for (AOTVWaypointsGUI.Waypoint waypoint : Waypoints) {
                 BlockPos pos = new BlockPos(waypoint.x, waypoint.y, waypoint.z);
-                RenderUtils.drawBlockBox(pos, SkyblockMod.config.routeBlockColor, 2f, event.partialTicks);
+                RenderUtils.drawBlockBox(pos, SkyblockMod.config.routeBlockColor, 4f, event.partialTicks);
             }
 
             if (SkyblockMod.config.showRouteLines) {

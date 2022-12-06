@@ -173,7 +173,7 @@ public class SkyblockUtils {
     public static void SendInfo(String message, boolean enable, String moduleName) {
         if (Minecraft.getMinecraft().thePlayer == null) return;
 
-        Minecraft.getMinecraft().thePlayer.addChatMessage(new ChatComponentText(String.format("§d[QoL] §%s§l%s§r§%s%s ", enable ? "2" : "c", moduleName, enable ? "2" : "c", message)));
+        Minecraft.getMinecraft().thePlayer.addChatMessage(new ChatComponentText(String.format("§d[QoL] §%s§l%s§r§%s %s", enable ? "2" : "c", moduleName, enable ? "2" : "c", message)));
     }
 
     public static int findItemInHotbar(String ...name) {

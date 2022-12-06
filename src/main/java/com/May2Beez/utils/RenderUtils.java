@@ -211,10 +211,6 @@ public class RenderUtils {
         GL11.glEnable(2929);
         GL11.glDepthMask(true);
         GL11.glDisable(3042);
-//        glEnable(GL_DEPTH_TEST);
-//        glEnable(GL_TEXTURE_2D);
-//        glDisable(GL_BLEND);
-//        glDisable(GL_LINE_SMOOTH);
     }
 
     public static void drawText(String text, double x, double y, double z, Color color) {
@@ -292,15 +288,15 @@ public class RenderUtils {
             bb = new AxisAlignedBB(blockPos, blockPos.add(1, 1, 1));
         }
 
-        glColor4f(color.getRed() / 255f, color.getGreen() / 255f, color.getBlue() / 255f, (Math.min(color.getAlpha() > 175 ? 75 : color.getAlpha() - 100, 30)) / 255f);
+        glColor4f(color.getRed() / 255f, color.getGreen() / 255f, color.getBlue() / 255f, (Math.max(color.getAlpha() - 100, 75)) / 255f);
         drawSolidBox(bb);
 
-        glColor4f(color.getRed() / 255f, color.getGreen() / 255f, color.getBlue() / 255f, (Math.min(color.getAlpha(), 175)) / 255f);
+        glColor4f(color.getRed() / 255f, color.getGreen() / 255f, color.getBlue() / 255f, (Math.max(color.getAlpha(), 175)) / 255f);
         drawOutlinedBox(bb);
     }
 
     public static void drawLineBetweenPoints(BlockPos pos1, BlockPos pos2, Color color) {
-        GL11.glLineWidth(5f);
+        GL11.glLineWidth(4f);
 
         GL11.glBegin(GL11.GL_LINE_STRIP);
         GL11.glColor4f(Color.green.getRed() / 255f, Color.green.getGreen() / 255f, Color.green.getBlue() / 255f, 120 / 255f);
