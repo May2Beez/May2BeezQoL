@@ -8,22 +8,21 @@ import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.inventory.GuiChest;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.item.EntityArmorStand;
+import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.ContainerChest;
 import net.minecraft.item.ItemStack;
 import net.minecraft.scoreboard.*;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.ChatComponentText;
-import net.minecraft.util.MovingObjectPosition;
-import net.minecraft.util.Vec3;
+import net.minecraft.util.*;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class SkyblockUtils {
     private static final Minecraft mc = Minecraft.getMinecraft();
@@ -133,30 +132,6 @@ public class SkyblockUtils {
         return (entity.getUniqueID().version() == 2 && entityLivingBase.getHealth() == 20.0F);
     }
 
-    public static Vec3 getRandomVisibilityLine(BlockPos pos) {
-        List<Vec3> lines = new ArrayList<>();
-        for (int x = 0; x < SkyblockMod.config.accuracyChecks; x++) {
-            for (int y = 0; y < SkyblockMod.config.accuracyChecks; y++) {
-                for (int z = 0; z < SkyblockMod.config.accuracyChecks; z++) {
-                    Vec3 target = new Vec3(pos.getX() + x / (float) SkyblockMod.config.accuracyChecks, pos.getY() + y / (float) SkyblockMod.config.accuracyChecks, pos.getZ() + z / (float) SkyblockMod.config.accuracyChecks);
-                    BlockPos test = new BlockPos(target.xCoord, target.yCoord, target.zCoord);
-                    MovingObjectPosition movingObjectPosition = Minecraft.getMinecraft().theWorld.rayTraceBlocks(Minecraft.getMinecraft().thePlayer.getPositionEyes(0.0F), target, true, false, true);
-                    if (movingObjectPosition != null) {
-                        BlockPos obj = movingObjectPosition.getBlockPos();
-                        if (obj.equals(test) && Minecraft.getMinecraft().thePlayer.getDistance(target.xCoord, target.yCoord - Minecraft.getMinecraft().thePlayer.getEyeHeight(), target.zCoord) < 4.5D && (
-                                SkyblockMod.config.under || Math.abs(Minecraft.getMinecraft().thePlayer.posY - target.yCoord) > 1.3D))
-                            lines.add(target);
-                    }
-                }
-            }
-        }
-        return lines.isEmpty() ? null : lines.get((new Random()).nextInt(lines.size()));
-    }
-
-    public static boolean isBlockVisible(BlockPos pos) {
-        return (getRandomVisibilityLine(pos) != null);
-    }
-
     public static void rightClick() {
         try {
             Method rightClickMouse;
@@ -198,15 +173,15 @@ public class SkyblockUtils {
     public static void SendInfo(String message, boolean enable, String moduleName) {
         if (Minecraft.getMinecraft().thePlayer == null) return;
 
-        Minecraft.getMinecraft().thePlayer.addChatMessage(new ChatComponentText(String.format("§d[QoL] §%s§l%s§r§%s %s", enable ? "2" : "c", moduleName, enable ? "2" : "c", message)));
+        Minecraft.getMinecraft().thePlayer.addChatMessage(new ChatComponentText(String.format("§d[QoL] §%s§l%s§r§%s%s ", enable ? "2" : "c", moduleName, enable ? "2" : "c", message)));
     }
 
-    public static int findItemInHotbar(String name) {
+    public static int findItemInHotbar(String ...name) {
         InventoryPlayer inv = Minecraft.getMinecraft().thePlayer.inventory;
         for (int i = 0; i < 9; i++) {
             ItemStack curStack = inv.getStackInSlot(i);
             if (curStack != null) {
-                if (curStack.getDisplayName().contains(name)) {
+                if (Arrays.stream(name).anyMatch(curStack.getDisplayName()::contains)) {
                     return i;
                 }
             }
@@ -219,5 +194,41 @@ public class SkyblockUtils {
             return ((ContainerChest) ((GuiChest) gui).inventorySlots).getLowerChestInventory().getDisplayName().getUnformattedText();
         }
         return "";
+    }
+
+    public static Entity getEntityCuttingOtherEntity(Entity e, Class<?> entityType) {
+        List<Entity> possible = mc.theWorld.getEntitiesInAABBexcluding(e, e.getEntityBoundingBox().expand(0.3D, 2.0D, 0.3D), a -> {
+            boolean flag1 = (!a.isDead && !a.equals(mc.thePlayer));
+            boolean flag2 = !(a instanceof EntityArmorStand);
+            boolean flag3 = !(a instanceof net.minecraft.entity.projectile.EntityFireball);
+            boolean flag4 = !(a instanceof net.minecraft.entity.projectile.EntityFishHook);
+            boolean flag5 = (entityType != null ? entityType.isInstance(a) : true);
+            return flag1 && flag2 && flag3 && flag4 && flag5;
+        });
+        if (!possible.isEmpty())
+            return Collections.min(possible, Comparator.comparing(e2 -> e2.getDistanceToEntity(e)));
+        return null;
+    }
+
+    public static String stripString(String s) {
+        char[] nonValidatedString = StringUtils.stripControlCodes(s).toCharArray();
+        StringBuilder validated = new StringBuilder();
+        for (char a : nonValidatedString) {
+            if (a < '' && a > '\024')
+                validated.append(a);
+        }
+        return validated.toString();
+    }
+
+    public static int getMobHp(EntityArmorStand aStand) {
+        double mobHp = -1.0D;
+        Pattern pattern = Pattern.compile(".+? ([.\\d]+)[Mk]?/[.\\d]+[Mk]?");
+        String stripped = stripString(aStand.getName());
+        Matcher mat = pattern.matcher(stripped);
+        if (mat.matches())
+            try {
+                mobHp = Double.parseDouble(mat.group(1));
+            } catch (NumberFormatException numberFormatException) {}
+        return (int)Math.ceil(mobHp);
     }
 }

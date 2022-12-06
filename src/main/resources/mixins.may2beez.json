@@ -5,9 +5,12 @@
   "compatibilityLevel": "JAVA_8",
   "mixins": [
     "ChunkMixin",
+    "ModListMixing",
+    "NetHandlerPlayClientMixin",
     "NetworkManagerMixin"
   ],
   "client": [
-    "EntityPlayerSPMixin"
+    "EntityPlayerSPMixin",
+    "ChunkMixin"
   ]
 }

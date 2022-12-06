@@ -36,7 +36,7 @@ public class ForagingAlert extends Module {
     private static long axeCooldown = 0;
     private static STATES state = STATES.PLANTING;
     public ForagingAlert() {
-        super("Foraging Macro", Keyboard.KEY_SEMICOLON);
+        super("Foraging Macro", new KeyBinding("Foraging Macro", Keyboard.KEY_SECTION, SkyblockMod.MODID + " - Farming"));
     }
     private int idleTicks = 0;
 
@@ -134,7 +134,7 @@ public class ForagingAlert extends Module {
                                 targets = null;
                                 return;
                             } else {
-                                RotationUtils.smoothLook(RotationUtils.vec3ToRotation(new Vec3(ForagingAlert.targets.get(placedSaplings).xCoord + 0.5f, ForagingAlert.targets.get(placedSaplings).yCoord + 1, ForagingAlert.targets.get(placedSaplings).zCoord + 0.5)), SkyblockMod.config.cameraSpeed, () -> {});
+                                RotationUtils.smoothLook(RotationUtils.vec3ToRotation(new Vec3(ForagingAlert.targets.get(placedSaplings).xCoord + 0.5f, ForagingAlert.targets.get(placedSaplings).yCoord + 1, ForagingAlert.targets.get(placedSaplings).zCoord + 0.5)), SkyblockMod.config.cameraSpeed);
 
                                 if (Minecraft.getMinecraft().objectMouseOver != null && Minecraft.getMinecraft().objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK && Objects.equals(Minecraft.getMinecraft().objectMouseOver.getBlockPos(), new BlockPos(ForagingAlert.targets.get(placedSaplings)))) {
                                     Minecraft.getMinecraft().thePlayer.inventory.currentItem = sapling;
@@ -231,7 +231,7 @@ public class ForagingAlert extends Module {
             for (Vec3 dirt : dirts) {
                 IBlockState blockAbove = Minecraft.getMinecraft().theWorld.getBlockState(new BlockPos(dirt.xCoord, dirt.yCoord + y, dirt.zCoord));
                 if (blockAbove.getBlock() == Blocks.log || blockAbove.getBlock() == Blocks.log2) {
-                    RotationUtils.smoothLook(RotationUtils.vec3ToRotation(new Vec3(dirt.xCoord + 0.5, dirt.yCoord + y + 0.5, dirt.zCoord + 0.5)), SkyblockMod.config.cameraSpeed, () -> {});
+                    RotationUtils.smoothLook(RotationUtils.vec3ToRotation(new Vec3(dirt.xCoord + 0.5, dirt.yCoord + y + 0.5, dirt.zCoord + 0.5)), SkyblockMod.config.cameraSpeed);
                     Thread.sleep(new Random().nextInt(50) + 100);
                     KeyBinding.setKeyBindState(Minecraft.getMinecraft().gameSettings.keyBindAttack.getKeyCode(), true);
                     Thread.sleep(new Random().nextInt(250) + 200);
@@ -239,7 +239,7 @@ public class ForagingAlert extends Module {
                     lastAxeUse = System.currentTimeMillis();
                 }
                 if (blockAbove.getBlock() == Blocks.sapling) {
-                    RotationUtils.smoothLook(RotationUtils.vec3ToRotation(new Vec3(dirt.xCoord + 0.5, dirt.yCoord + y + 0.5, dirt.zCoord + 0.5)), SkyblockMod.config.cameraSpeed, () -> {});
+                    RotationUtils.smoothLook(RotationUtils.vec3ToRotation(new Vec3(dirt.xCoord + 0.5, dirt.yCoord + y + 0.5, dirt.zCoord + 0.5)), SkyblockMod.config.cameraSpeed);
                     Thread.sleep(new Random().nextInt(50) + 100);
                     click();
                 }

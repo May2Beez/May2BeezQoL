@@ -8,6 +8,7 @@ import com.May2Beez.events.ReceivePacketEvent;
 import com.May2Beez.utils.RenderUtils;
 import com.May2Beez.utils.RotationUtils;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.init.Blocks;
 import net.minecraft.network.play.server.S29PacketSoundEffect;
 import net.minecraft.network.play.server.S2APacketParticles;
@@ -21,8 +22,6 @@ import org.lwjgl.input.Keyboard;
 import java.awt.*;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static com.May2Beez.utils.SkyblockUtils.isBlockVisible;
 
 public class PowderChest extends Module {
 
@@ -50,7 +49,7 @@ public class PowderChest extends Module {
     }
 
     public PowderChest() {
-        super("Powder Chest Macro", Keyboard.KEY_NONE);
+        super("Powder Chest Macro", new KeyBinding("Powder Chest Macro", Keyboard.KEY_NONE, SkyblockMod.MODID + " - Player"));
     }
 
     @SubscribeEvent
@@ -70,7 +69,7 @@ public class PowderChest extends Module {
     @SubscribeEvent
     public void onUpdatePre(PlayerMoveEvent.Pre event) {
         if (isToggled() && SkyblockMod.config.solvePowderChestServerRotation && closestChest != null && closestChest.particle != null) {
-            RotationUtils.smoothLook(RotationUtils.vec3ToRotation(closestChest.particle), 0, () -> {});
+            RotationUtils.smoothLook(RotationUtils.vec3ToRotation(closestChest.particle), 0);
         }
     }
 
@@ -88,23 +87,26 @@ public class PowderChest extends Module {
     private void normalRotation() {
         if (closestChest.particle == null) return;
 
-        RotationUtils.smoothLook(RotationUtils.vec3ToRotation(closestChest.particle), SkyblockMod.config.cameraSpeed, () -> {});
+        RotationUtils.smoothLook(RotationUtils.vec3ToRotation(closestChest.particle), SkyblockMod.config.cameraSpeed);
     }
 
     @SubscribeEvent
     public void onWorldLastRender(RenderWorldLastEvent event) {
         if (!isToggled() || mc.thePlayer == null) return;
+        RenderUtils.preDraw();
         if (allChests.size() > 0) {
             for (TreasureChest allChest : allChests) {
                 if (allChest.isSolved || allChest.isExpired()) continue;
 
-                RenderUtils.drawBlockBox(allChest.pos, Color.green, 5, event.partialTicks);
+                RenderUtils.drawBlockBox(allChest.pos, new Color(Color.green.getRed(), Color.green.getGreen(), Color.green.getBlue(), 150), 5, event.partialTicks);
                 if (SkyblockMod.config.drawLinesToPowderChests)
-                    RenderUtils.drawLineBetweenPoints(new Vec3(mc.thePlayer.getPosition()), allChest.pos, event);
+                    RenderUtils.drawLineBetweenPoints(mc.thePlayer.getPosition(), allChest.pos, new Color(Color.green.getRed(), Color.green.getGreen(), Color.green.getBlue(), 120));
             }
         }
-        if (closestChest == null) return;
-        RenderUtils.drawBlockBox(closestChest.pos, Color.ORANGE, 5, event.partialTicks);
+        if (closestChest != null) {
+            RenderUtils.drawBlockBox(closestChest.pos, new Color(Color.orange.getRed(), Color.orange.getGreen(), Color.orange.getBlue(), 150), 5, event.partialTicks);
+        }
+        RenderUtils.postDraw();
     }
 
     @SubscribeEvent

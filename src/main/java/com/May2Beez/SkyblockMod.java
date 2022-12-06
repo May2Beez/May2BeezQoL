@@ -1,21 +1,31 @@
 package com.May2Beez;
 
+import com.May2Beez.Config.Config;
+import com.May2Beez.Config.CoordsConfig;
+import com.May2Beez.commands.AOTVWaypoints;
+import com.May2Beez.commands.OpenSettings;
 import com.May2Beez.commands.UseCooldown;
 import com.May2Beez.modules.combat.GhostGrinder;
 import com.May2Beez.modules.farming.AutoPlantCrops;
 import com.May2Beez.modules.farming.CropNuker;
 import com.May2Beez.modules.farming.FarmingMacro;
 import com.May2Beez.modules.farming.ForagingAlert;
+import com.May2Beez.modules.mining.AOTVMacro;
 import com.May2Beez.modules.mining.HardstoneNuker;
 import com.May2Beez.modules.mining.MithrilMiner;
 import com.May2Beez.modules.player.AutoMelody;
 import com.May2Beez.modules.player.CustomItemMacro;
+import com.May2Beez.modules.player.FishingMacro;
 import com.May2Beez.modules.player.PowderChest;
 import com.May2Beez.utils.RotationUtils;
 import com.May2Beez.utils.SkyblockUtils;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.util.StringUtils;
 import net.minecraftforge.client.ClientCommandHandler;
+import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -34,21 +44,68 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class SkyblockMod
 {
     public static final String MODID = "May2BeezQoL";
+    private static final Minecraft mc = Minecraft.getMinecraft();
     public static final String VERSION = "1.0.0";
     public static Config config = new Config();
     public static GuiScreen display = null;
     public static CopyOnWriteArrayList<Module> modules = new CopyOnWriteArrayList<>();
+    public static Gson gson = new GsonBuilder().setPrettyPrinting().create();
+    public static CoordsConfig coordsConfig;
 
-    @EventHandler
-    public void onFMLInitialization(FMLPreInitializationEvent event) {
+    public static boolean miningSpeedReady = true;
+
+    private void initConfigs(FMLPreInitializationEvent event) {
         File directory = new File(event.getModConfigurationDirectory(), "may2beez");
         if (!directory.exists()) {
             directory.mkdirs();
         }
+
+        File coordsFile = new File(directory, "aotv_coords.json");
+        File rcmacrosFile = new File(directory, "rcmacros.json");
+        File lcmacrosFile = new File(directory, "lcmacros.json");
+
+        if (!coordsFile.exists()) {
+            try {
+                Files.createFile(Paths.get(coordsFile.getPath()));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        if (!rcmacrosFile.exists()) {
+            try {
+                Files.createFile(Paths.get(rcmacrosFile.getPath()));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        if (!lcmacrosFile.exists()) {
+            try {
+                Files.createFile(Paths.get(lcmacrosFile.getPath()));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        try {
+            Reader reader = Files.newBufferedReader(Paths.get("./config/may2beez/aotv_coords.json"));
+            coordsConfig = gson.fromJson(reader, CoordsConfig.class);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        if (coordsConfig != null) {
+            System.out.println(coordsConfig.getRoutes());
+        } else {
+            System.out.println("coordsConfig is null");
+            System.out.println("Creating new CoordsConfig");
+            coordsConfig = new CoordsConfig();
+            System.out.println(coordsConfig.getRoutes());
+        }
     }
 
-    private void LoadCooldownMacros()
-    {
+    private void LoadCooldownMacros() {
         try {
             Reader reader = Files.newBufferedReader(Paths.get("./config/may2beez/rcmacros.json"));
             int data = reader.read();
@@ -84,13 +141,18 @@ public class SkyblockMod
             e.printStackTrace();
         }
     }
-    
+
     @EventHandler
     public void preInit(FMLPreInitializationEvent event)
     {
+        AOTVWaypoints aotvWaypoints = new AOTVWaypoints();
+        OpenSettings openSettings = new OpenSettings();
+        initConfigs(event);
         LoadCooldownMacros();
         MinecraftForge.EVENT_BUS.register(this);
         MinecraftForge.EVENT_BUS.register(new RotationUtils());
+        MinecraftForge.EVENT_BUS.register(aotvWaypoints);
+        MinecraftForge.EVENT_BUS.register(openSettings);
         modules.add(new MithrilMiner());
         modules.add(new ForagingAlert());
         modules.add(new GhostGrinder());
@@ -101,10 +163,16 @@ public class SkyblockMod
         modules.add(new PowderChest());
         modules.add(new AutoPlantCrops());
         modules.add(new AutoMelody());
+        modules.add(new FishingMacro());
+        modules.add(new AOTVMacro());
+
         for (Module m : modules)
             MinecraftForge.EVENT_BUS.register(m);
-        ClientCommandHandler.instance.registerCommand(new OpenSettings());
+
+        ClientCommandHandler.instance.registerCommand(aotvWaypoints);
+        ClientCommandHandler.instance.registerCommand(openSettings);
         ClientCommandHandler.instance.registerCommand(new UseCooldown());
+        mc.gameSettings.gammaSetting = 100;
     }
 
     @SubscribeEvent
@@ -130,5 +198,18 @@ public class SkyblockMod
             }
             display = null;
         }
+    }
+
+    @SubscribeEvent
+    public void onChat(ClientChatReceivedEvent event) {
+        try {
+            String message = StringUtils.stripControlCodes(event.message.getUnformattedText());
+            if (message.contains(":") || message.contains(">")) return;
+            if(message.startsWith("You used your")) {
+                miningSpeedReady = false;
+            } else if(message.endsWith("is now available!")) {
+                miningSpeedReady = true;
+            }
+        } catch (Exception ignored) {}
     }
 }

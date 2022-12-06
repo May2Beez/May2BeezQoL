@@ -1,9 +1,11 @@
 package com.May2Beez.modules.player;
 
 import com.May2Beez.Module;
+import com.May2Beez.SkyblockMod;
 import com.May2Beez.utils.SkyblockUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiChest;
+import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.init.Blocks;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemBlock;
@@ -13,7 +15,7 @@ import org.lwjgl.input.Keyboard;
 
 public class AutoMelody extends Module {
     public AutoMelody() {
-        super("Auto Melody", Keyboard.KEY_NONE);
+        super("Auto Melody", new KeyBinding("Auto Melody", Keyboard.KEY_NONE, SkyblockMod.MODID + " - Player"));
     }
 
     @SubscribeEvent

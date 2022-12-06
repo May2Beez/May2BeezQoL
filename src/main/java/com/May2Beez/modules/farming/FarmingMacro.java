@@ -17,8 +17,8 @@ import static com.May2Beez.SkyblockMod.MODID;
 import static com.May2Beez.SkyblockMod.modules;
 
 public class FarmingMacro extends Module {
-    private final KeyBinding startLeft = new KeyBinding("Farming macro left", Keyboard.KEY_COMMA, MODID);
-    private final KeyBinding startRight = new KeyBinding("Farming macro right", Keyboard.KEY_PERIOD, MODID);
+    private final KeyBinding startLeft = new KeyBinding("Farming macro left", Keyboard.KEY_COMMA, MODID + " - Farming");
+    private final KeyBinding startRight = new KeyBinding("Farming macro right", Keyboard.KEY_PERIOD, MODID + " - Farming");
     private Direction direction;
     private Direction lastDirection;
     private long startGoingForward = 0;
@@ -55,39 +55,39 @@ public class FarmingMacro extends Module {
         switch (SkyblockMod.config.lookingDirection) {
             case 0: return;
             case 1: {
-                RotationUtils.smoothLook(new RotationUtils.Rotation(pitch, 0f), SkyblockMod.config.cameraSpeed, () -> {});
+                RotationUtils.smoothLook(new RotationUtils.Rotation(pitch, 0f), SkyblockMod.config.cameraSpeed);
                 break;
             }
             case 2: {
-                RotationUtils.smoothLook(new RotationUtils.Rotation(pitch, 45f), SkyblockMod.config.cameraSpeed, () -> {});
+                RotationUtils.smoothLook(new RotationUtils.Rotation(pitch, 45f), SkyblockMod.config.cameraSpeed);
                 break;
             }
             case 3: {
-                RotationUtils.smoothLook(new RotationUtils.Rotation(pitch, 90f), SkyblockMod.config.cameraSpeed, () -> {});
+                RotationUtils.smoothLook(new RotationUtils.Rotation(pitch, 90f), SkyblockMod.config.cameraSpeed);
                 break;
             }
             case 4: {
-                RotationUtils.smoothLook(new RotationUtils.Rotation(pitch, 135f), SkyblockMod.config.cameraSpeed, () -> {});
+                RotationUtils.smoothLook(new RotationUtils.Rotation(pitch, 135f), SkyblockMod.config.cameraSpeed);
                 break;
             }
             case 5: {
-                RotationUtils.smoothLook(new RotationUtils.Rotation(pitch, 180f), SkyblockMod.config.cameraSpeed, () -> {});
+                RotationUtils.smoothLook(new RotationUtils.Rotation(pitch, 180f), SkyblockMod.config.cameraSpeed);
                 break;
             }
             case 6: {
-                RotationUtils.smoothLook(new RotationUtils.Rotation(pitch, -45f), SkyblockMod.config.cameraSpeed, () -> {});
+                RotationUtils.smoothLook(new RotationUtils.Rotation(pitch, -45f), SkyblockMod.config.cameraSpeed);
                 break;
             }
             case 7: {
-                RotationUtils.smoothLook(new RotationUtils.Rotation(pitch, -90f), SkyblockMod.config.cameraSpeed, () -> {});
+                RotationUtils.smoothLook(new RotationUtils.Rotation(pitch, -90f), SkyblockMod.config.cameraSpeed);
                 break;
             }
             case 8: {
-                RotationUtils.smoothLook(new RotationUtils.Rotation(pitch, -135f), SkyblockMod.config.cameraSpeed, () -> {});
+                RotationUtils.smoothLook(new RotationUtils.Rotation(pitch, -135f), SkyblockMod.config.cameraSpeed);
                 break;
             }
             case 9: {
-                RotationUtils.smoothLook(new RotationUtils.Rotation(pitch, -180f), SkyblockMod.config.cameraSpeed, () -> {});
+                RotationUtils.smoothLook(new RotationUtils.Rotation(pitch, -180f), SkyblockMod.config.cameraSpeed);
                 break;
             }
         }

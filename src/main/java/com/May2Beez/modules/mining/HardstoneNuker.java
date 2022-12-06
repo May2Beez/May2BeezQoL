@@ -8,6 +8,7 @@ import net.minecraft.block.BlockStainedGlassPane;
 import net.minecraft.block.BlockStone;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.EnumDyeColor;
 import net.minecraft.network.play.client.C07PacketPlayerDigging;
@@ -23,7 +24,7 @@ import java.util.ArrayList;
 // RGA Nuker ported
 public class HardstoneNuker extends Module {
     public HardstoneNuker() {
-        super("Hardstone Nuker", Keyboard.KEY_NONE);
+        super("Hardstone Nuker", new KeyBinding("Hardstone Nuker", Keyboard.KEY_NONE, SkyblockMod.MODID + " - Mining"));
     }
 
     private ArrayList<BlockPos> broken = new ArrayList<>();
@@ -89,6 +90,7 @@ public class HardstoneNuker extends Module {
     @SubscribeEvent
     public void renderWorld(RenderWorldLastEvent event) {
         if (!isToggled()) return;
+        RenderUtils.preDraw();
         closestStone = closestStone();
         if (closestStone != null) {
             RenderUtils.drawBlockBox(closestStone, new Color(128, 128, 128), SkyblockMod.config.lineWidth, event.partialTicks);
@@ -120,6 +122,7 @@ public class HardstoneNuker extends Module {
             }
             RenderUtils.drawBlockBox(gemstone, color, SkyblockMod.config.lineWidth, event.partialTicks);
         }
+        RenderUtils.postDraw();
     }
 
     private BlockPos closestStone() {

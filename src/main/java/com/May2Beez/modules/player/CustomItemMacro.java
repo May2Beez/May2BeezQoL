@@ -1,8 +1,10 @@
 package com.May2Beez.modules.player;
 
 import com.May2Beez.Module;
+import com.May2Beez.SkyblockMod;
 import com.May2Beez.commands.UseCooldown;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.settings.KeyBinding;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.lwjgl.input.Keyboard;
@@ -15,7 +17,7 @@ public class CustomItemMacro extends Module {
     private boolean working = false;
 
     public CustomItemMacro() {
-        super("Custom Item Macro", Keyboard.KEY_V);
+        super("Custom Item Macro", new KeyBinding("Custom Item Macro", Keyboard.KEY_NONE, SkyblockMod.MODID + " - Player"));
     }
 
     @SubscribeEvent

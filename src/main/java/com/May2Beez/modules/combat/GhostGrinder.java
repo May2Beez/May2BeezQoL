@@ -25,7 +25,7 @@ public class GhostGrinder extends Module {
 
     private Entity creeper;
     public GhostGrinder() {
-        super("Ghost Grinder", Keyboard.KEY_COMMA);
+        super("Ghost Grinder", new KeyBinding("Ghost Grinder", Keyboard.KEY_COMMA, SkyblockMod.MODID + " - Combat"));
     }
 
     @Override
@@ -54,7 +54,7 @@ public class GhostGrinder extends Module {
             KeyBinding.setKeyBindState(Minecraft.getMinecraft().gameSettings.keyBindForward.getKeyCode(), false);
             return;
         }
-        RotationUtils.smoothLook(RotationUtils.vec3ToRotation(new Vec3(creeper.getPositionVector().xCoord, creeper.getPositionVector().yCoord + 1.4, creeper.getPositionVector().zCoord)), SkyblockMod.config.cameraSpeed, () -> {});
+        RotationUtils.smoothLook(RotationUtils.vec3ToRotation(new Vec3(creeper.getPositionVector().xCoord, creeper.getPositionVector().yCoord + 1.4, creeper.getPositionVector().zCoord)), SkyblockMod.config.cameraSpeed);
 
         double dist = creeper.getDistance(Minecraft.getMinecraft().thePlayer.posX, Minecraft.getMinecraft().thePlayer.posY, Minecraft.getMinecraft().thePlayer.posZ);
         if (lastClick-- <= 0) {

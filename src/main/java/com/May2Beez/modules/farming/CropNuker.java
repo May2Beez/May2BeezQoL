@@ -5,6 +5,7 @@ import com.May2Beez.SkyblockMod;
 import com.May2Beez.utils.RenderUtils;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.init.Blocks;
 import net.minecraft.network.play.client.C07PacketPlayerDigging;
 import net.minecraft.util.*;
@@ -22,7 +23,7 @@ public class CropNuker extends Module {
     private static int ticks = 0;
 
     public CropNuker() {
-        super("Crop Nuker", Keyboard.KEY_Z);
+        super("Crop Nuker", new KeyBinding("Crop Nuker", Keyboard.KEY_Z, SkyblockMod.MODID + " - Farming"));
     }
 
     @SubscribeEvent
@@ -55,7 +56,9 @@ public class CropNuker extends Module {
     public void onRender(RenderWorldLastEvent event) {
         if (!isToggled()) return;
         if(crop != null) {
+            RenderUtils.preDraw();
             RenderUtils.drawBlockBox(crop, new Color(255, 0, 0), SkyblockMod.config.lineWidth, event.partialTicks);
+            RenderUtils.postDraw();
         }
     }
 

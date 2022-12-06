@@ -3,6 +3,7 @@ package com.May2Beez;
 import com.May2Beez.utils.SkyblockUtils;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -26,12 +27,17 @@ public class Module {
 
     private KeyBinding keyBinding;
 
-    private boolean devOnly;
-
     public Module(String name, int keycode) {
         this.name = name;
         this.keycode = keycode;
         this.keyBinding = new KeyBinding(name, getKeycode(), MODID);
+        ClientRegistry.registerKeyBinding(keyBinding);
+    }
+
+    public Module(String name, KeyBinding keyBinding) {
+        this.name = name;
+        this.keycode = keyBinding.getKeyCode();
+        this.keyBinding = keyBinding;
         ClientRegistry.registerKeyBinding(keyBinding);
     }
 
@@ -61,7 +67,7 @@ public class Module {
     }
 
     public void onEnable() {
-        SkyblockUtils.SendInfo(" §r§2is enabled!", true, getName());
+        SkyblockUtils.SendInfo("§r§2is enabled!", true, getName());
     }
 
     public boolean isKeybind() {
@@ -89,14 +95,18 @@ public class Module {
     }
 
     public void onDisable() {
-        SkyblockUtils.SendInfo(" §r§cis disabled!", false, getName());
+        SkyblockUtils.SendInfo("§r§cis disabled!", false, getName());
     }
 
-    public void setDevOnly(boolean devOnly) {
-        this.devOnly = devOnly;
-    }
+    protected void useMiningSpeedBoost() {
+        if (!SkyblockMod.config.useMiningSpeed) return;
 
-    public boolean isDevOnly() {
-        return this.devOnly;
+        if (SkyblockMod.miningSpeedReady) {
+            KeyBinding.setKeyBindState((Minecraft.getMinecraft()).gameSettings.keyBindAttack.getKeyCode(), false);
+            if(Minecraft.getMinecraft().thePlayer.inventory.getStackInSlot(Minecraft.getMinecraft().thePlayer.inventory.currentItem) != null) {
+                Minecraft.getMinecraft().playerController.sendUseItem(Minecraft.getMinecraft().thePlayer, Minecraft.getMinecraft().theWorld, Minecraft.getMinecraft().thePlayer.inventory.getStackInSlot(Minecraft.getMinecraft().thePlayer.inventory.currentItem));
+                SkyblockMod.miningSpeedReady = false;
+            }
+        }
     }
 }

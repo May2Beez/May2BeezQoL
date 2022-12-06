@@ -2,9 +2,11 @@ package com.May2Beez.modules.mining;
 
 import com.May2Beez.Module;
 import com.May2Beez.SkyblockMod;
+import com.May2Beez.utils.BlockUtils;
 import com.May2Beez.utils.RenderUtils;
 import com.May2Beez.utils.RotationUtils;
 import com.May2Beez.utils.SkyblockUtils;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockColored;
 import net.minecraft.block.BlockStone;
 import net.minecraft.block.properties.IProperty;
@@ -53,12 +55,11 @@ public class MithrilMiner extends Module {
     private static volatile boolean waitTime = false;
     private int lastKey = -1;
     private int timeLeft = 0;
-    private boolean miningSpeedAbilityReady = true;
 
     private final String[] modes = {"Wool", "Clay", "Prismarine", "Gold", "Blue"};
 
     public MithrilMiner() {
-        super("Mithril Miner", Keyboard.KEY_I);
+        super("Mithril Miner", new KeyBinding("Mithril Miner", Keyboard.KEY_I, SkyblockMod.MODID + " - Mining"));
     }
 
     @Override
@@ -77,19 +78,6 @@ public class MithrilMiner extends Module {
         super.onDisable();
         KeyBinding.setKeyBindState((Minecraft.getMinecraft()).gameSettings.keyBindAttack.getKeyCode(), false);
         KeyBinding.setKeyBindState((Minecraft.getMinecraft()).gameSettings.keyBindSneak.getKeyCode(), false);
-    }
-
-    @SubscribeEvent
-    public void onChat(ClientChatReceivedEvent event) {
-        try {
-            String message = StringUtils.stripControlCodes(event.message.getUnformattedText());
-            if (message.contains(":") || message.contains(">")) return;
-            if(message.startsWith("You used your")) {
-                miningSpeedAbilityReady = false;
-            } else if(message.endsWith("is now available!")) {
-                miningSpeedAbilityReady = true;
-            }
-        } catch (Exception ignored) {}
     }
 
     @SubscribeEvent
@@ -185,13 +173,7 @@ public class MithrilMiner extends Module {
                     return;
                 }
 
-                if (miningSpeedAbilityReady) {
-                    KeyBinding.setKeyBindState((Minecraft.getMinecraft()).gameSettings.keyBindAttack.getKeyCode(), false);
-                    if(Minecraft.getMinecraft().thePlayer.inventory.getStackInSlot(Minecraft.getMinecraft().thePlayer.inventory.currentItem) != null) {
-                        Minecraft.getMinecraft().playerController.sendUseItem(Minecraft.getMinecraft().thePlayer, Minecraft.getMinecraft().theWorld, Minecraft.getMinecraft().thePlayer.inventory.getStackInSlot(Minecraft.getMinecraft().thePlayer.inventory.currentItem));
-                        miningSpeedAbilityReady = false;
-                    }
-                }
+                useMiningSpeedBoost();
 
                 KeyBinding.setKeyBindState((Minecraft.getMinecraft()).gameSettings.keyBindAttack.getKeyCode(), true);
                 if (this.mc.objectMouseOver != null && this.mc.objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK &&
@@ -200,12 +182,12 @@ public class MithrilMiner extends Module {
                 if (this.yaw != null) {
                     this.movingCursor = true;
 
-                    RotationUtils.smoothLook(RotationUtils.vec3ToRotation(targetRotation), SkyblockMod.config.cameraSpeed, () -> {});
+                    RotationUtils.smoothLook(RotationUtils.vec3ToRotation(targetRotation), SkyblockMod.config.cameraSpeed);
 
                     this.yaw = RotationUtils.yawDifference;
                     this.pitch = RotationUtils.pitchDifference;
 
-                    if (this.yaw < 0.3 && this.pitch < 0.3) {
+                    if (!RotationUtils.running) {
                         this.movingCursor = false;
                     }
                     getRotations(false);
@@ -260,7 +242,6 @@ public class MithrilMiner extends Module {
 
     private boolean findTarget() {
 
-        System.out.println("Nowy cel");
 
         ArrayList<BlockPos> blocks = new ArrayList<>();
 
@@ -270,23 +251,22 @@ public class MithrilMiner extends Module {
                     blocks.add(new BlockPos(this.mc.thePlayer.getPosition().getX() + x, this.mc.thePlayer.getPosition().getY() + y, this.mc.thePlayer.getPosition().getZ() + z));
             }
         }
-//        blocks = blocks.stream().filter(this::isBlockVisible).collect(Collectors.toCollection(ArrayList::new));
 
         BlockPos sortingCenter = (this.target != null) ? this.target : this.mc.thePlayer.getPosition();
         Optional<BlockPos> any = blocks.stream().filter(pos -> !pos.equals(this.target)).filter(this::matchesMode).filter(pos -> {
             System.out.println(pos);
             return
                     (this.mc.thePlayer.getDistance(pos.getX(), (pos.getY() - this.mc.thePlayer.getEyeHeight()), pos.getZ()) < 5.5D);
-        }).filter(this::isBlockVisible).min(Comparator.comparingDouble(pos -> (isTitanium(pos) && SkyblockMod.config.prioTitanium) ? 0.0D : getDistance(pos, sortingCenter)));
+        }).filter(BlockUtils::isBlockVisible).min(Comparator.comparingDouble(pos -> (isTitanium(pos) && SkyblockMod.config.prioTitanium) ? 0.0D : getDistance(pos, sortingCenter)));
         if (any.isPresent()) {
             this.target = any.get();
-            this.targetRotation = getRandomVisibilityLine(any.get());
+            this.targetRotation = BlockUtils.getRandomVisibilityLine(any.get());
             getRotations(true);
         } else {
-            any = blocks.stream().filter(pos -> !pos.equals(this.target)).filter(this::matchesAny).filter(pos -> (this.mc.thePlayer.getDistance(pos.getX(), (pos.getY() - this.mc.thePlayer.getEyeHeight()), pos.getZ()) < 5.5D)).filter(this::isBlockVisible).min(Comparator.comparingDouble(pos -> (isTitanium(pos) && SkyblockMod.config.prioTitanium) ? 0.0D : getDistance(pos, sortingCenter)));
+            any = blocks.stream().filter(pos -> !pos.equals(this.target)).filter(this::matchesAny).filter(pos -> (this.mc.thePlayer.getDistance(pos.getX(), (pos.getY() - this.mc.thePlayer.getEyeHeight()), pos.getZ()) < 5.5D)).filter(BlockUtils::isBlockVisible).min(Comparator.comparingDouble(pos -> (isTitanium(pos) && SkyblockMod.config.prioTitanium) ? 0.0D : getDistance(pos, sortingCenter)));
             if (any.isPresent()) {
                 this.target = any.get();
-                this.targetRotation = getRandomVisibilityLine(any.get());
+                this.targetRotation = BlockUtils.getRandomVisibilityLine(any.get());
                 getRotations(true);
             }
         }
@@ -322,30 +302,6 @@ public class MithrilMiner extends Module {
         double deltaY = (pos1.getY() - pos2.getY()) * 0.6;
         double deltaZ = (pos1.getZ() - pos2.getZ());
         return Math.sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ);
-    }
-
-    private boolean isBlockVisible(BlockPos pos) {
-        return (getRandomVisibilityLine(pos) != null);
-    }
-
-    private Vec3 getRandomVisibilityLine(BlockPos pos) {
-        List<Vec3> lines = new ArrayList<>();
-        for (int x = 0; x < SkyblockMod.config.accuracyChecks; x++) {
-            for (int y = 0; y < SkyblockMod.config.accuracyChecks; y++) {
-                for (int z = 0; z < SkyblockMod.config.accuracyChecks; z++) {
-                    Vec3 target = new Vec3(pos.getX() + x / (float) SkyblockMod.config.accuracyChecks, pos.getY() + y / (float) SkyblockMod.config.accuracyChecks, pos.getZ() + z / (float) SkyblockMod.config.accuracyChecks);
-                    BlockPos test = new BlockPos(target.xCoord, target.yCoord, target.zCoord);
-                    MovingObjectPosition movingObjectPosition = this.mc.theWorld.rayTraceBlocks(this.mc.thePlayer.getPositionEyes(0.0F), target, true, false, true);
-                    if (movingObjectPosition != null) {
-                        BlockPos obj = movingObjectPosition.getBlockPos();
-                        if (obj.equals(test) && this.mc.thePlayer.getDistance(target.xCoord, target.yCoord - this.mc.thePlayer.getEyeHeight(), target.zCoord) < 4.5D && (
-                                SkyblockMod.config.under || Math.abs(this.mc.thePlayer.posY - target.yCoord) > 1.3D))
-                            lines.add(target);
-                    }
-                }
-            }
-        }
-        return lines.isEmpty() ? null : lines.get((new Random()).nextInt(lines.size()));
     }
 
     private boolean isTitanium(BlockPos pos) {

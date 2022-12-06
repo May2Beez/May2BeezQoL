@@ -2,6 +2,7 @@ package com.May2Beez.modules.farming;
 
 import com.May2Beez.Module;
 import com.May2Beez.SkyblockMod;
+import com.May2Beez.utils.BlockUtils;
 import com.May2Beez.utils.RenderUtils;
 import com.May2Beez.utils.RotationUtils;
 import com.May2Beez.utils.SkyblockUtils;
@@ -29,7 +30,7 @@ public class AutoPlantCrops extends Module {
     private BlockPos closestBlock;
 
     public AutoPlantCrops() {
-        super("Auto Plant Crops", Keyboard.KEY_NONE);
+        super("Auto Plant Crops", new KeyBinding("Auto Plant Crops", Keyboard.KEY_NONE, SkyblockMod.MODID + " - Farming"));
     }
 
     @Override
@@ -51,8 +52,7 @@ public class AutoPlantCrops extends Module {
         if (closestBlock == null) {
             closestBlock = getClosestBlock();
         } else {
-            RotationUtils.smoothLook(RotationUtils.vec3ToRotation(new Vec3(closestBlock.getX() + 0.5, closestBlock.getY() + 0.5, closestBlock.getZ() + 0.5)), SkyblockMod.config.cameraSpeed, () -> {
-            });
+            RotationUtils.smoothLook(RotationUtils.vec3ToRotation(new Vec3(closestBlock.getX() + 0.5, closestBlock.getY() + 0.5, closestBlock.getZ() + 0.5)), SkyblockMod.config.cameraSpeed);
             int indexOfCrop = -1;
             switch (SkyblockMod.config.cropTypeIndex) {
                 case 0: {
@@ -83,7 +83,9 @@ public class AutoPlantCrops extends Module {
         if (!isToggled()) return;
 
         if(closestBlock != null) {
+            RenderUtils.preDraw();
             RenderUtils.drawBlockBox(closestBlock, new Color(255, 0, 0), SkyblockMod.config.lineWidth, event.partialTicks);
+            RenderUtils.postDraw();
         }
     }
 
@@ -104,7 +106,7 @@ public class AutoPlantCrops extends Module {
                     IBlockState blockState = Minecraft.getMinecraft().theWorld.getBlockState(blockPos);
 
                     if (blockState.getBlock() == Blocks.log) {
-                        if (NoCropAround(blockPos, Blocks.cocoa) && isBlockVisible(blockPos)) {
+                        if (NoCropAround(blockPos, Blocks.cocoa) && BlockUtils.isBlockVisible(blockPos)) {
                             blocks.add(new Vec3(blockPos));
                         }
                     }
@@ -116,7 +118,7 @@ public class AutoPlantCrops extends Module {
                     IBlockState blockState = Minecraft.getMinecraft().theWorld.getBlockState(blockPos);
 
                     if (blockState.getBlock() == Blocks.sand) {
-                        if (NoCropAround(blockPos, Blocks.cactus) && Objects.equals(Minecraft.getMinecraft().theWorld.getBlockState(new BlockPos(blockPos.getX(), blockPos.getY() + 1, blockPos.getZ())).getBlock(), Blocks.air) && NoCropAround(new BlockPos(blockPos.getX(), blockPos.getY() + 1, blockPos.getZ()), Blocks.cactus) && isBlockVisible(blockPos)) {
+                        if (NoCropAround(blockPos, Blocks.cactus) && Objects.equals(Minecraft.getMinecraft().theWorld.getBlockState(new BlockPos(blockPos.getX(), blockPos.getY() + 1, blockPos.getZ())).getBlock(), Blocks.air) && NoCropAround(new BlockPos(blockPos.getX(), blockPos.getY() + 1, blockPos.getZ()), Blocks.cactus) && BlockUtils.isBlockVisible(blockPos)) {
                             blocks.add(new Vec3(blockPos));
                         }
                     }
