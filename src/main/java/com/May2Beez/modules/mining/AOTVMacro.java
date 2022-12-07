@@ -6,17 +6,18 @@ import com.May2Beez.SkyblockMod;
 import com.May2Beez.events.BlockChangeEvent;
 import com.May2Beez.utils.*;
 import net.minecraft.block.Block;
-import net.minecraft.block.state.BlockState;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.init.Blocks;
+import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
+import org.lwjgl.Sys;
 import org.lwjgl.input.Keyboard;
 
 import java.awt.*;
@@ -37,6 +38,8 @@ public class AOTVMacro extends Module {
     private final Timer searchingTimer = new Timer();
     private final Timer stuckTimer2 = new Timer();
     private BlockPos blockToIgnoreBecauseOfStuck = null;
+
+    private final ArrayList<BlockPos> blocksBlockingVision = new ArrayList<>();
 
     public enum State {
         SEARCHING,
@@ -229,29 +232,105 @@ public class AOTVMacro extends Module {
                 BlockPos waypoint = new BlockPos(Waypoints.get(currentWaypoint).x, Waypoints.get(currentWaypoint).y, Waypoints.get(currentWaypoint).z);
                 RotationUtils.smoothLook(RotationUtils.getRotationToBlock(waypoint), SkyblockMod.config.aotvCameraSpeed);
 
+                if (RotationUtils.running) return;
+
                 MovingObjectPosition movingObjectPosition = mc.thePlayer.rayTrace(55, 1);
 
                 if (movingObjectPosition != null && movingObjectPosition.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
-                    if (movingObjectPosition.getBlockPos().equals(new BlockPos(Waypoints.get(currentWaypoint).x, Waypoints.get(currentWaypoint).y, Waypoints.get(currentWaypoint).z))) {
+                    if (movingObjectPosition.getBlockPos().equals(waypoint)) {
                         mc.playerController.sendUseItem(mc.thePlayer, mc.theWorld, mc.thePlayer.getHeldItem());
                         SkyblockUtils.SendInfo("Teleported to waypoint " + currentWaypoint, true, name);
                         currentState = State.SEARCHING;
                         searchingTimer.reset();
                         oldTarget = null;
-                        break;
+                    } else {
+                        if (stuckTimer.hasReached(2000) && !RotationUtils.running) {
+                            SkyblockUtils.SendInfo("Path is not cleared. Block: " + movingObjectPosition.getBlockPos().toString() + " is on the way.", false, name);
+                            this.toggle();
+                            break;
+                        }
                     }
-                    if (stuckTimer.hasReached(2000) && !RotationUtils.running) {
-                        SkyblockUtils.SendInfo("Path is not cleared. Block: " + movingObjectPosition.getBlockPos().toString() + " is on the way.", false, name);
-                        this.toggle();
-                        break;
-                    }
-                } else if (movingObjectPosition != null && !RotationUtils.running && stuckTimer.hasReached(3000)) {
+                } else if (movingObjectPosition != null) {
                     SkyblockUtils.SendInfo("Something is on the way!", false, name);
                     this.toggle();
                 }
                 break;
             }
         }
+    }
+
+    @SubscribeEvent
+    public void onTick2(TickEvent.ClientTickEvent event) {
+        if (event.phase == TickEvent.Phase.END) return;
+        if (mc.thePlayer == null || mc.theWorld == null) return;
+        if (isToggled()) return;
+
+        if (!blocksBlockingVision.isEmpty())
+            blocksBlockingVision.clear();
+
+        if (!SkyblockMod.config.drawBlocksBlockingAOTV) return;
+
+        if (Waypoints.size() > 1) {
+
+            for (int i = 0; i < Waypoints.size() - 1; i++) {
+                BlockPos pos1 = new BlockPos(Waypoints.get(i).x, Waypoints.get(i).y, Waypoints.get(i).z);
+                BlockPos pos2 = new BlockPos(Waypoints.get(i + 1).x, Waypoints.get(i + 1).y, Waypoints.get(i + 1).z);
+
+                GetAllBlocksInline(pos1, pos2);
+            }
+
+            BlockPos pos1 = new BlockPos(Waypoints.get(Waypoints.size() - 1).x, Waypoints.get(Waypoints.size() - 1).y, Waypoints.get(Waypoints.size() - 1).z);
+            BlockPos pos2 = new BlockPos(Waypoints.get(0).x, Waypoints.get(0).y, Waypoints.get(0).z);
+
+            GetAllBlocksInline(pos1, pos2);
+        }
+    }
+
+    private void GetAllBlocksInline(BlockPos pos1, BlockPos pos2) {
+        Vec3 startPos = new Vec3(pos1.getX() + 0.5, pos1.getY() + 1 + 1.6 - 0.125, pos1.getZ() + 0.5);
+        Vec3 endPos = new Vec3(pos2.getX() + 0.5, pos2.getY() + 0.5, pos2.getZ() + 0.5);
+
+        Vec3 direction = new Vec3(endPos.xCoord - startPos.xCoord, endPos.yCoord - startPos.yCoord, endPos.zCoord - startPos.zCoord);
+
+        double maxDistance = startPos.distanceTo(endPos);
+
+        double increment = SkyblockMod.config.aotvVisionBlocksAccuracy;
+
+        Vec3 currentPos = startPos;
+
+        while (currentPos.distanceTo(startPos) < maxDistance) {
+            // Get the current block position
+//            BlockPos pos = new BlockPos(currentPos);
+
+            ArrayList<BlockPos> blocks = AnyBlockAroundVec3(currentPos, 0.3f);
+
+            for (BlockPos pos : blocks) {
+
+                // Add the block to the list if it hasn't been added already
+                if (!blocksBlockingVision.contains(pos) && !mc.theWorld.isAirBlock(pos) && !pos.equals(pos1) && !pos.equals(pos2)) {
+                    blocksBlockingVision.add(pos);
+                }
+            }
+
+            // Move along the line by the specified increment
+            Vec3 scaledDirection = new Vec3(direction.xCoord * increment, direction.yCoord * increment, direction.zCoord * increment);
+            currentPos = currentPos.add(scaledDirection);
+        }
+    }
+
+    private ArrayList<BlockPos> AnyBlockAroundVec3(Vec3 pos, float around) {
+        ArrayList<BlockPos> blocks = new ArrayList<>();
+        for (double x = (pos.xCoord - around); x < pos.xCoord + around; x += around) {
+            for (double y = (pos.yCoord - around); y < pos.yCoord + around; y += around) {
+                for (double z = (pos.zCoord - around); z < pos.zCoord + around; z += around) {
+                    BlockPos blockPos = new BlockPos(x, y, z);
+                    if (!blocks.contains(blockPos)) {
+                        blocks.add(blockPos);
+                    }
+                }
+            }
+        }
+        return blocks;
     }
 
     private BlockData getClosestGemstone() {
@@ -350,13 +429,13 @@ public class AOTVMacro extends Module {
 
         RenderUtils.preDraw();
         if (target != null) {
-            RenderUtils.drawBlockBox(target.getPos(), new Color(0, 255, 0, 100), 4f, event.partialTicks);
+            RenderUtils.drawBlockBox(target.getPos(), new Color(0, 255, 0, 100), 4f);
         }
 
         if (SkyblockMod.config.showRouteBlocks) {
             for (AOTVWaypointsGUI.Waypoint waypoint : Waypoints) {
                 BlockPos pos = new BlockPos(waypoint.x, waypoint.y, waypoint.z);
-                RenderUtils.drawBlockBox(pos, SkyblockMod.config.routeBlockColor, 4f, event.partialTicks);
+                RenderUtils.drawBlockBox(pos, SkyblockMod.config.routeBlockColor, 4f);
             }
 
             if (SkyblockMod.config.showRouteLines) {
@@ -373,6 +452,15 @@ public class AOTVMacro extends Module {
                 }
             }
         }
+
+        if (SkyblockMod.config.drawBlocksBlockingAOTV && !isToggled()) {
+            if (!blocksBlockingVision.isEmpty()) {
+                for (BlockPos pos : blocksBlockingVision) {
+                    RenderUtils.drawBlockBox(pos, SkyblockMod.config.aotvVisionBlocksColor, 4f);
+                }
+            }
+        }
+
         RenderUtils.postDraw();
 
         for (AOTVWaypointsGUI.Waypoint waypoint : Waypoints) {

@@ -84,7 +84,7 @@ public class AutoPlantCrops extends Module {
 
         if(closestBlock != null) {
             RenderUtils.preDraw();
-            RenderUtils.drawBlockBox(closestBlock, new Color(255, 0, 0), SkyblockMod.config.lineWidth, event.partialTicks);
+            RenderUtils.drawBlockBox(closestBlock, new Color(255, 0, 0), SkyblockMod.config.lineWidth);
             RenderUtils.postDraw();
         }
     }

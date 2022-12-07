@@ -93,7 +93,7 @@ public class HardstoneNuker extends Module {
         RenderUtils.preDraw();
         closestStone = closestStone();
         if (closestStone != null) {
-            RenderUtils.drawBlockBox(closestStone, new Color(128, 128, 128), SkyblockMod.config.lineWidth, event.partialTicks);
+            RenderUtils.drawBlockBox(closestStone, new Color(128, 128, 128), SkyblockMod.config.lineWidth);
         }
         if (gemstone != null) {
             IBlockState blockState = Minecraft.getMinecraft().theWorld.getBlockState(gemstone);
@@ -120,7 +120,7 @@ public class HardstoneNuker extends Module {
             } else if (dyeColor == EnumDyeColor.MAGENTA) {
                 color = new Color(214, 15, 150);
             }
-            RenderUtils.drawBlockBox(gemstone, color, SkyblockMod.config.lineWidth, event.partialTicks);
+            RenderUtils.drawBlockBox(gemstone, color, SkyblockMod.config.lineWidth);
         }
         RenderUtils.postDraw();
     }

@@ -91,7 +91,7 @@ public class RotationUtils {
 
         running = true;
 
-        if (Math.abs(pitchDifference) < 0.1 && Math.abs(yawDifference) < 0.1) {
+        if (Math.abs(pitchDifference) < 0.06 && Math.abs(yawDifference) < 0.06) {
             resetRotation();
             System.out.println("Stopping smooth look");
             return;

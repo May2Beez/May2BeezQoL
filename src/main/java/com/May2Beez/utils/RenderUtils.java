@@ -277,7 +277,7 @@ public class RenderUtils {
         glPopMatrix();
     }
 
-    public static void drawBlockBox(BlockPos blockPos, Color color, float lineWidth, float partialTicks) {
+    public static void drawBlockBox(BlockPos blockPos, Color color, float lineWidth) {
         glLineWidth(lineWidth);
 
         AxisAlignedBB bb;

@@ -172,7 +172,6 @@ public class SkyblockMod
         ClientCommandHandler.instance.registerCommand(aotvWaypoints);
         ClientCommandHandler.instance.registerCommand(openSettings);
         ClientCommandHandler.instance.registerCommand(new UseCooldown());
-        mc.gameSettings.gammaSetting = 100;
     }
 
     @SubscribeEvent

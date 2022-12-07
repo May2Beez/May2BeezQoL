@@ -1,5 +1,6 @@
 package com.May2Beez;
 
+import com.May2Beez.Config.CoordsConfig;
 import com.May2Beez.utils.BlockUtils;
 import gg.essential.elementa.ElementaVersion;
 import gg.essential.elementa.UIComponent;
@@ -71,6 +72,7 @@ public class AOTVWaypointsGUI extends WindowScreen {
     public AOTVWaypointsGUI() {
         super(ElementaVersion.V2, false, true, true);
         getWindow().clearChildren();
+        LoadWaypoints();
         ShowGUI();
     }
 
@@ -79,6 +81,16 @@ public class AOTVWaypointsGUI extends WindowScreen {
         String json = SkyblockMod.gson.toJson(SkyblockMod.coordsConfig);
         try {
             Files.write(Paths.get("./config/may2beez/aotv_coords.json"), json.getBytes(StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void LoadWaypoints() {
+        // Load waypoints from config file
+        try {
+            String json = new String(Files.readAllBytes(Paths.get("./config/may2beez/aotv_coords.json")), StandardCharsets.UTF_8);
+            SkyblockMod.coordsConfig = SkyblockMod.gson.fromJson(json, CoordsConfig.class);
         } catch (IOException e) {
             e.printStackTrace();
         }

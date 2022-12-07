@@ -57,7 +57,7 @@ public class CropNuker extends Module {
         if (!isToggled()) return;
         if(crop != null) {
             RenderUtils.preDraw();
-            RenderUtils.drawBlockBox(crop, new Color(255, 0, 0), SkyblockMod.config.lineWidth, event.partialTicks);
+            RenderUtils.drawBlockBox(crop, new Color(255, 0, 0), SkyblockMod.config.lineWidth);
             RenderUtils.postDraw();
         }
     }

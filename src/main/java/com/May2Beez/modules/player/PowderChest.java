@@ -98,13 +98,13 @@ public class PowderChest extends Module {
             for (TreasureChest allChest : allChests) {
                 if (allChest.isSolved || allChest.isExpired()) continue;
 
-                RenderUtils.drawBlockBox(allChest.pos, new Color(Color.green.getRed(), Color.green.getGreen(), Color.green.getBlue(), 150), 5, event.partialTicks);
+                RenderUtils.drawBlockBox(allChest.pos, new Color(Color.green.getRed(), Color.green.getGreen(), Color.green.getBlue(), 150), 5);
                 if (SkyblockMod.config.drawLinesToPowderChests)
                     RenderUtils.drawLineBetweenPoints(mc.thePlayer.getPosition(), allChest.pos, new Color(Color.green.getRed(), Color.green.getGreen(), Color.green.getBlue(), 120));
             }
         }
         if (closestChest != null) {
-            RenderUtils.drawBlockBox(closestChest.pos, new Color(Color.orange.getRed(), Color.orange.getGreen(), Color.orange.getBlue(), 150), 5, event.partialTicks);
+            RenderUtils.drawBlockBox(closestChest.pos, new Color(Color.orange.getRed(), Color.orange.getGreen(), Color.orange.getBlue(), 150), 5);
         }
         RenderUtils.postDraw();
     }
