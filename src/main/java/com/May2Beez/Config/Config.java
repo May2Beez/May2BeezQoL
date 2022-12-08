@@ -222,13 +222,13 @@ public class Config extends Vigilant {
     @Property(type = PropertyType.SWITCH, name = "Draw blocks blocking AOTV vision", category = AOTV_MACRO, subcategory = "Drawing")
     public boolean drawBlocksBlockingAOTV = true;
 
-    @Property(type = PropertyType.DECIMAL_SLIDER, name = "AOTV Vision blocks accuracy", decimalPlaces = 3, description = "Smaller == better accuracy", category = AOTV_MACRO, minF = 0.01f, maxF = 0.1f, subcategory = "Drawing")
+    @Property(type = PropertyType.DECIMAL_SLIDER, name = "AOTV Vision blocks accuracy", decimalPlaces = 3, description = "Smaller == more checks per line between waypoints", category = AOTV_MACRO, minF = 0.01f, maxF = 0.1f, subcategory = "Drawing")
     public float aotvVisionBlocksAccuracy = 0.1f;
 
     @Property(type = PropertyType.COLOR, name = "AOTV Vision blocks color", category = AOTV_MACRO, subcategory = "Drawing")
     public Color aotvVisionBlocksColor = new Color(255, 0, 0, 120);
 
-    @Property(type = PropertyType.DECIMAL_SLIDER, name = "AOTV Waypoint targeting time", decimalPlaces = 1, category = AOTV_MACRO, minF = 0, maxF = 10, subcategory = "Timers")
+    @Property(type = PropertyType.DECIMAL_SLIDER, name = "AOTV Waypoint targeting camera speed", decimalPlaces = 1, category = AOTV_MACRO, minF = 0, maxF = 10, subcategory = "Timers")
     public float aotvWaypointTargetingTime = 1f;
 
     @Property(type = PropertyType.DECIMAL_SLIDER, name = "AOTV Waypoint targeting accuracy", description = "Smaller == closer to center", decimalPlaces = 2, minF = 0.02f, maxF = 0.5f, category = AOTV_MACRO)
@@ -238,7 +238,7 @@ public class Config extends Vigilant {
 
 
     public Config() {
-        super(new File("./config/may2beez/config.toml"), "May2Beez QoL", (PropertyCollector)new JVMAnnotationPropertyCollector(), new ConfigSorting());
+        super(new File("./config/may2beez/config.toml"), "May2Beez QoL", new JVMAnnotationPropertyCollector(), new ConfigSorting());
         initialize();
         addDependency("aotvVisionBlocksColor", "drawBlocksBlockingAOTV");
         addDependency("aotvVisionBlocksAccuracy", "drawBlocksBlockingAOTV");

@@ -10,14 +10,12 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.init.Blocks;
-import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
-import org.lwjgl.Sys;
 import org.lwjgl.input.Keyboard;
 
 import java.awt.*;
@@ -230,9 +228,9 @@ public class AOTVMacro extends Module {
                 mc.thePlayer.inventory.currentItem = voidTool;
 
                 BlockPos waypoint = new BlockPos(Waypoints.get(currentWaypoint).x, Waypoints.get(currentWaypoint).y, Waypoints.get(currentWaypoint).z);
-                if (!RotationUtils.IsDiffLowerThan(SkyblockMod.config.aotvTargetingWaypointAccuracy))
-                    RotationUtils.smoothLook(RotationUtils.getRotationToBlock(waypoint), SkyblockMod.config.aotvWaypointTargetingTime);
-                else
+                RotationUtils.smoothLook(RotationUtils.getRotationToBlock(waypoint), SkyblockMod.config.aotvWaypointTargetingTime);
+
+                if (RotationUtils.IsDiffLowerThan(SkyblockMod.config.aotvTargetingWaypointAccuracy))
                     RotationUtils.resetRotation();
 
                 if (RotationUtils.running) return;
