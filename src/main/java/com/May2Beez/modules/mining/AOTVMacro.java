@@ -152,7 +152,7 @@ public class AOTVMacro extends Module {
                     break;
                 }
 
-                if (blockToIgnoreBecauseOfStuck != null && !stuckTimer2.hasReached(500)) {
+                if (blockToIgnoreBecauseOfStuck != null && !stuckTimer2.hasReached(30)) {
                     break;
                 }
 
@@ -230,7 +230,10 @@ public class AOTVMacro extends Module {
                 mc.thePlayer.inventory.currentItem = voidTool;
 
                 BlockPos waypoint = new BlockPos(Waypoints.get(currentWaypoint).x, Waypoints.get(currentWaypoint).y, Waypoints.get(currentWaypoint).z);
-                RotationUtils.smoothLook(RotationUtils.getRotationToBlock(waypoint), SkyblockMod.config.aotvCameraSpeed);
+                if (!RotationUtils.IsDiffLowerThan(SkyblockMod.config.aotvTargetingWaypointAccuracy))
+                    RotationUtils.smoothLook(RotationUtils.getRotationToBlock(waypoint), SkyblockMod.config.aotvWaypointTargetingTime);
+                else
+                    RotationUtils.resetRotation();
 
                 if (RotationUtils.running) return;
 
@@ -299,15 +302,16 @@ public class AOTVMacro extends Module {
         Vec3 currentPos = startPos;
 
         while (currentPos.distanceTo(startPos) < maxDistance) {
-            // Get the current block position
-//            BlockPos pos = new BlockPos(currentPos);
 
-            ArrayList<BlockPos> blocks = AnyBlockAroundVec3(currentPos, 0.3f);
+
+            ArrayList<BlockPos> blocks = AnyBlockAroundVec3(currentPos, 0.35f);
 
             for (BlockPos pos : blocks) {
 
+                Block block = mc.theWorld.getBlockState(pos).getBlock();
+
                 // Add the block to the list if it hasn't been added already
-                if (!blocksBlockingVision.contains(pos) && !mc.theWorld.isAirBlock(pos) && !pos.equals(pos1) && !pos.equals(pos2)) {
+                if (!blocksBlockingVision.contains(pos) && !mc.theWorld.isAirBlock(pos) && !pos.equals(pos1) && !pos.equals(pos2) && block != Blocks.stained_glass && block != Blocks.stained_glass_pane) {
                     blocksBlockingVision.add(pos);
                 }
             }
@@ -351,7 +355,7 @@ public class AOTVMacro extends Module {
                 if (blockPos1.equals(blockToIgnoreBecauseOfStuck)) continue;
 
                 mc.playerController.getBlockReachDistance();
-                if (mc.thePlayer.getDistanceSq(blockPos1) < 4.3f * 4.3f) {
+                if (mc.thePlayer.getDistanceSq(blockPos1) < 4.5f * 4.5f) {
                     IBlockState bs = mc.theWorld.getBlockState(blockPos1);
                     Vec3 vec3 = BlockUtils.getRandomVisibilityLine(blockPos1);
                     if (vec3 != null)

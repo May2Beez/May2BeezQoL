@@ -80,7 +80,7 @@ public class RotationUtils {
         return new Rotation(pitch, yaw);
     }
 
-    public static void smoothLook(Rotation rotation, int ticks) {
+    public static void smoothLook(Rotation rotation, float ticks) {
         if(ticks == 0) {
             look(rotation);
             return;
@@ -97,8 +97,16 @@ public class RotationUtils {
             return;
         }
 
-        RotationUtils.ticks = ticks * 20;
+        RotationUtils.ticks = (int) (ticks * 20);
         RotationUtils.tickCounter = 0;
+    }
+
+    public static boolean IsDiffLowerThan(float diff) {
+        return IsDiffLowerThan(diff, diff);
+    }
+
+    public static boolean IsDiffLowerThan(float pitch, float yaw) {
+        return Math.abs(pitchDifference) < pitch && Math.abs(yawDifference) < yaw;
     }
 
     public static void smartLook(Rotation rotation, int ticksPer180) {
@@ -137,7 +145,7 @@ public class RotationUtils {
     @SubscribeEvent
     public void onTick(TickEvent event) {
         if(Minecraft.getMinecraft().thePlayer == null) return;
-        if (event.phase == TickEvent.Phase.END) return;
+//        if (event.phase == TickEvent.Phase.END) return;
 
         if(tickCounter < ticks) {
             running = true;

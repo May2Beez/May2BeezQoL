@@ -47,8 +47,8 @@ public class Config extends Vigilant {
     //endregion
 
     //region General
-    @Property(type = PropertyType.SLIDER, name = "Camera speed", description = "Smaller number == faster", category = "General", min = 1, max = 20)
-    public int cameraSpeed = 5;
+    @Property(type = PropertyType.DECIMAL_SLIDER, decimalPlaces = 1, name = "Camera speed", description = "Smaller number == faster", category = "General", minF = 0, maxF = 10)
+    public float cameraSpeed = 3;
 
     //endregion
 
@@ -210,8 +210,8 @@ public class Config extends Vigilant {
     @Property(type = PropertyType.COLOR, name = "Route line color", category = AOTV_MACRO, subcategory = "Drawing")
     public Color routeLineColor = new Color(0, 255, 0, 50);
 
-    @Property(type = PropertyType.SLIDER, name = "Camera speed in ticks", category = AOTV_MACRO, min = 1, max = 10, subcategory = "Timers")
-    public int aotvCameraSpeed = 3;
+    @Property(type = PropertyType.DECIMAL_SLIDER, decimalPlaces = 1, name = "Camera speed in ticks", category = AOTV_MACRO, minF = 0, maxF = 10, subcategory = "Timers")
+    public float aotvCameraSpeed = 3f;
 
     @Property(type = PropertyType.SLIDER, name = "Stuck time threshold in ms", category = AOTV_MACRO, min = 500, max = 5000, subcategory = "Timers")
     public int aotvStuckTimeThreshold = 2000;
@@ -228,12 +228,22 @@ public class Config extends Vigilant {
     @Property(type = PropertyType.COLOR, name = "AOTV Vision blocks color", category = AOTV_MACRO, subcategory = "Drawing")
     public Color aotvVisionBlocksColor = new Color(255, 0, 0, 120);
 
+    @Property(type = PropertyType.DECIMAL_SLIDER, name = "AOTV Waypoint targeting time", decimalPlaces = 1, category = AOTV_MACRO, minF = 0, maxF = 10, subcategory = "Timers")
+    public float aotvWaypointTargetingTime = 1f;
+
+    @Property(type = PropertyType.DECIMAL_SLIDER, name = "AOTV Waypoint targeting accuracy", description = "Smaller == closer to center", decimalPlaces = 2, minF = 0.02f, maxF = 0.5f, category = AOTV_MACRO)
+    public float aotvTargetingWaypointAccuracy = 0.2f;
+
     //endregion
 
 
     public Config() {
         super(new File("./config/may2beez/config.toml"), "May2Beez QoL", (PropertyCollector)new JVMAnnotationPropertyCollector(), new ConfigSorting());
         initialize();
+        addDependency("aotvVisionBlocksColor", "drawBlocksBlockingAOTV");
+        addDependency("aotvVisionBlocksAccuracy", "drawBlocksBlockingAOTV");
+        addDependency("routeBlockColor", "showRouteBlocks");
+        addDependency("routeLineColor", "showRouteLines");
     }
 
     public static class ConfigSorting extends SortingBehavior {
