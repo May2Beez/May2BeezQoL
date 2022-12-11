@@ -42,7 +42,7 @@ public class MithrilMiner extends Module {
     private State currentState = State.SEARCHING;
 
     public MithrilMiner() {
-        super("Mithril Miner", new KeyBinding("Mithril Miner New", Keyboard.KEY_NONE, SkyblockMod.MODID + " - Mining"));
+        super("Mithril Miner", new KeyBinding("Mithril Miner", Keyboard.KEY_NONE, SkyblockMod.MODID + " - Mining"));
     }
 
     @Override
