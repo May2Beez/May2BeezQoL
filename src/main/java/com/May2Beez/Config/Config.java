@@ -10,45 +10,36 @@ import java.util.Comparator;
 
 public class Config extends Vigilant {
 
-    private final String MITHRIL_MINER = "Mithril Miner";
-    private final String GHOST_GRINDER = "Ghost Grinder";
-    private final String HARDSTONE_NUKER = "Hardstone Nuker";
-    private final String FARMING_MACRO = "Farming Macro";
-    private final String FARMING_NUKER = "Farming Nuker";
-    private final String AUTO_PLANT_CROPS = "Auto Plant Crops";
-    private final String FORAGING_MACRO = "Foraging Macro";
-    private final String FISHING = "Fishing Macro";
-    private final String MINING = "Mining";
-    private final String AOTV_MACRO = "AOTV Macro";
+    private static final String MITHRIL_MINER = "Mithril Miner";
+    private static final String GHOST_GRINDER = "Ghost Grinder";
+    private static final String HARDSTONE_NUKER = "Hardstone Nuker";
+    private static final String FARMING_MACRO = "Farming Macro";
+    private static final String FARMING_NUKER = "Farming Nuker";
+    private static final String AUTO_PLANT_CROPS = "Auto Plant Crops";
+    private static final String FORAGING_MACRO = "Foraging Macro";
+    private static final String FISHING = "Fishing Macro";
+    private static final String MINING = "Mining";
+    private static final String AOTV_MACRO = "AOTV Macro";
 
 
     //region Mithril Miner
-    @Property(type = PropertyType.SLIDER, name = "Max Break Time", category = MITHRIL_MINER,  min = 0, max = 500)
-    public int maxBreakTime = 80;
+    @Property(type = PropertyType.SLIDER, name = "Max Break Time", category = MITHRIL_MINER,  min = 0, max = 5000)
+    public int maxBreakTime = 2000;
 
     @Property(type = PropertyType.SWITCH, name = "Prioritize Titanium", category = MITHRIL_MINER)
     public boolean prioTitanium = false;
 
-    @Property(type = PropertyType.SLIDER, name = "Panic alert", category = MITHRIL_MINER, min = 0, max = 300)
-    public int panic = 100;
+    @Property(type = PropertyType.SWITCH, name = "Clay", category = MITHRIL_MINER, subcategory = "Filter")
+    public boolean filterClay = true;
 
-    @Property(type = PropertyType.SLIDER, name = "Walking frequency &", category = MITHRIL_MINER, min = 0, max = 100)
-    public int walking = 1;
+    @Property(type = PropertyType.SWITCH, name = "Gray wool", category = MITHRIL_MINER, subcategory = "Filter")
+    public boolean filterGrayWool = true;
 
-    @Property(type = PropertyType.SLIDER, name = "Walking time", category = MITHRIL_MINER, min = 0, max = 20)
-    public int walkingTime = 1;
+    @Property(type = PropertyType.SWITCH, name = "Prismarine", category = MITHRIL_MINER, subcategory = "Filter")
+    public boolean filterPrismarine = true;
 
-    @Property(type = PropertyType.SWITCH, name = "Use sneak key", category = MITHRIL_MINER)
-    public boolean sneak = true;
-
-    @Property(type = PropertyType.SELECTOR, name = "Mode", category = MITHRIL_MINER, options = {"Wool", "Clay", "Prismarine", "Gold", "Blue"})
-    public int mode = 0;
-
-    //endregion
-
-    //region General
-    @Property(type = PropertyType.DECIMAL_SLIDER, decimalPlaces = 1, name = "Camera speed", description = "Smaller number == faster", category = "General", minF = 0, maxF = 10)
-    public float cameraSpeed = 3;
+    @Property(type = PropertyType.SWITCH, name = "Blue wool", category = MITHRIL_MINER, subcategory = "Filter")
+    public boolean filterBlueWool = true;
 
     //endregion
 
@@ -167,6 +158,9 @@ public class Config extends Vigilant {
 
     @Property(type = PropertyType.SWITCH, name = "Use mining speed in mining macros", category = MINING)
     public boolean useMiningSpeed = false;
+
+    @Property(type = PropertyType.DECIMAL_SLIDER, decimalPlaces = 1, name = "Camera speed", description = "Smaller number == faster", category = MINING, minF = 0, maxF = 10)
+    public float cameraSpeed = 3;
 
     //endregion
 

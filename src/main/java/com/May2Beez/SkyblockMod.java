@@ -44,7 +44,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class SkyblockMod
 {
     public static final String MODID = "May2BeezQoL";
-    private static final Minecraft mc = Minecraft.getMinecraft();
     public static final String VERSION = "1.0.0";
     public static Config config = new Config();
     public static GuiScreen display = null;
@@ -165,6 +164,7 @@ public class SkyblockMod
         modules.add(new AutoMelody());
         modules.add(new FishingMacro());
         modules.add(new AOTVMacro());
+        modules.add(new MithrilMiner());
 
         for (Module m : modules)
             MinecraftForge.EVENT_BUS.register(m);

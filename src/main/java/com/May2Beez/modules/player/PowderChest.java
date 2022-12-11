@@ -93,7 +93,6 @@ public class PowderChest extends Module {
     @SubscribeEvent
     public void onWorldLastRender(RenderWorldLastEvent event) {
         if (!isToggled() || mc.thePlayer == null) return;
-        RenderUtils.preDraw();
         if (allChests.size() > 0) {
             for (TreasureChest allChest : allChests) {
                 if (allChest.isSolved || allChest.isExpired()) continue;
@@ -106,7 +105,6 @@ public class PowderChest extends Module {
         if (closestChest != null) {
             RenderUtils.drawBlockBox(closestChest.pos, new Color(Color.orange.getRed(), Color.orange.getGreen(), Color.orange.getBlue(), 150), 5);
         }
-        RenderUtils.postDraw();
     }
 
     @SubscribeEvent

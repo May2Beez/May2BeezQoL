@@ -28,8 +28,8 @@ public class AOTVMacro extends Module {
 
     private final Minecraft mc = Minecraft.getMinecraft();
 
-    private BlockData target = null;
-    private BlockData oldTarget = null;
+    private Structs.BlockData target = null;
+    private Structs.BlockData oldTarget = null;
     private int currentWaypoint = -1;
 
     private final Timer stuckTimer = new Timer();
@@ -150,7 +150,7 @@ public class AOTVMacro extends Module {
                     break;
                 }
 
-                if (blockToIgnoreBecauseOfStuck != null && !stuckTimer2.hasReached(30)) {
+                if (blockToIgnoreBecauseOfStuck != null && !stuckTimer2.hasReached(100)) {
                     break;
                 }
 
@@ -335,12 +335,12 @@ public class AOTVMacro extends Module {
         return blocks;
     }
 
-    private BlockData getClosestGemstone() {
-        BlockData blockPos = null;
+    private Structs.BlockData getClosestGemstone() {
+        Structs.BlockData blockPos = null;
 
         int range = 6;
 
-        ArrayList<BlockData> blocks = new ArrayList<>();
+        ArrayList<Structs.BlockData> blocks = new ArrayList<>();
 
         Iterable<BlockPos> blockss = BlockPos.getAllInBox(BlockUtils.getPlayerLoc().add(-range, -range, -range), BlockUtils.getPlayerLoc().add(range, range, range));
         for (BlockPos blockPos1 : blockss) {
@@ -352,23 +352,23 @@ public class AOTVMacro extends Module {
 
                 if (blockPos1.equals(blockToIgnoreBecauseOfStuck)) continue;
 
-                mc.playerController.getBlockReachDistance();
                 if (mc.thePlayer.getDistanceSq(blockPos1) < 4.5f * 4.5f) {
-                    IBlockState bs = mc.theWorld.getBlockState(blockPos1);
                     Vec3 vec3 = BlockUtils.getRandomVisibilityLine(blockPos1);
-                    if (vec3 != null)
-                        blocks.add(new BlockData(blockPos1, bs.getBlock(), bs, vec3));
+                    if (vec3 != null) {
+                        IBlockState bs = mc.theWorld.getBlockState(blockPos1);
+                        blocks.add(new Structs.BlockData(blockPos1, bs.getBlock(), bs, vec3));
+                    }
                 }
             }
         }
 
         double distance = 9999;
-        for (BlockData block : blocks) {
+        for (Structs.BlockData block : blocks) {
             double currentDistance;
             if (oldTarget != null) {
-                currentDistance = oldTarget.getPos().distanceSqToCenter(block.getPos().getX(), block.getPos().getY(), block.getPos().getZ());
+                currentDistance = oldTarget.getPos().distanceSq(block.getPos());
             } else {
-                currentDistance = mc.thePlayer.getDistanceSqToCenter(block.getPos());
+                currentDistance = BlockUtils.getPlayerLoc().distanceSq(block.getPos());
             }
             if (currentDistance < distance) {
                 distance = currentDistance;
@@ -429,7 +429,6 @@ public class AOTVMacro extends Module {
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (Waypoints == null || Waypoints.isEmpty()) return;
 
-        RenderUtils.preDraw();
         if (target != null) {
             RenderUtils.drawBlockBox(target.getPos(), new Color(0, 255, 0, 100), 4f);
         }
@@ -463,42 +462,9 @@ public class AOTVMacro extends Module {
             }
         }
 
-        RenderUtils.postDraw();
-
         for (AOTVWaypointsGUI.Waypoint waypoint : Waypoints) {
             BlockPos pos = new BlockPos(waypoint.x, waypoint.y, waypoint.z);
             RenderUtils.drawText(waypoint.name, pos.getX() + 0.5, pos.getY() + 1.5, pos.getZ() + 0.5, new Color(255, 255, 255, 255), true, 1, true);
-        }
-    }
-
-    private static class BlockData {
-        private final BlockPos pos;
-        private final Block block;
-        private final IBlockState state;
-
-        private final Vec3 randomVisibilityLine;
-
-        public BlockData(BlockPos pos, Block block, IBlockState state, Vec3 randomVisibilityLine) {
-            this.pos = pos;
-            this.block = block;
-            this.state = state;
-            this.randomVisibilityLine = randomVisibilityLine;
-        }
-
-        public BlockPos getPos() {
-            return pos;
-        }
-
-        public Block getBlock() {
-            return block;
-        }
-
-        public IBlockState getState() {
-            return state;
-        }
-
-        public Vec3 getRandomVisibilityLine() {
-            return randomVisibilityLine;
         }
     }
 }

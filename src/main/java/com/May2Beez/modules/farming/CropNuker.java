@@ -20,7 +20,6 @@ import java.util.ArrayList;
 public class CropNuker extends Module {
     private static BlockPos crop = null;
     private static final ArrayList<BlockPos> broken = new ArrayList<>();
-    private static int ticks = 0;
 
     public CropNuker() {
         super("Crop Nuker", new KeyBinding("Crop Nuker", Keyboard.KEY_Z, SkyblockMod.MODID + " - Farming"));
@@ -56,9 +55,7 @@ public class CropNuker extends Module {
     public void onRender(RenderWorldLastEvent event) {
         if (!isToggled()) return;
         if(crop != null) {
-            RenderUtils.preDraw();
             RenderUtils.drawBlockBox(crop, new Color(255, 0, 0), SkyblockMod.config.lineWidth);
-            RenderUtils.postDraw();
         }
     }
 

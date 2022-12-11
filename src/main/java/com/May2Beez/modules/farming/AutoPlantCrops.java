@@ -5,14 +5,11 @@ import com.May2Beez.SkyblockMod;
 import com.May2Beez.utils.BlockUtils;
 import com.May2Beez.utils.RenderUtils;
 import com.May2Beez.utils.RotationUtils;
-import com.May2Beez.utils.SkyblockUtils;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
-import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.init.Blocks;
-import net.minecraft.item.ItemStack;
 import net.minecraft.util.*;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -20,7 +17,6 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.lwjgl.input.Keyboard;
 
 import java.awt.*;
-import java.lang.reflect.Method;
 import java.util.*;
 
 import static com.May2Beez.utils.SkyblockUtils.*;
@@ -83,9 +79,7 @@ public class AutoPlantCrops extends Module {
         if (!isToggled()) return;
 
         if(closestBlock != null) {
-            RenderUtils.preDraw();
             RenderUtils.drawBlockBox(closestBlock, new Color(255, 0, 0), SkyblockMod.config.lineWidth);
-            RenderUtils.postDraw();
         }
     }
 
@@ -94,7 +88,6 @@ public class AutoPlantCrops extends Module {
 
         double r = SkyblockMod.config.autoCropRange;
         BlockPos playerPos = Minecraft.getMinecraft().thePlayer.getPosition();
-        Vec3 playerVec = Minecraft.getMinecraft().thePlayer.getPositionVector();
         Vec3i vec3i = new Vec3i(r, r, r);
 
         ArrayList<Vec3> blocks = new ArrayList<>();

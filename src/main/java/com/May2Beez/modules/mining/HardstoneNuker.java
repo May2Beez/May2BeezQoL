@@ -27,10 +27,9 @@ public class HardstoneNuker extends Module {
         super("Hardstone Nuker", new KeyBinding("Hardstone Nuker", Keyboard.KEY_NONE, SkyblockMod.MODID + " - Mining"));
     }
 
-    private ArrayList<BlockPos> broken = new ArrayList<>();
+    private final ArrayList<BlockPos> broken = new ArrayList<>();
     private static int currentDamage;
     private static BlockPos closestStone;
-    private boolean stopHardstone = false;
     private static int ticks = 0;
     private static BlockPos gemstone;
     private static BlockPos lastGem;
@@ -42,6 +41,7 @@ public class HardstoneNuker extends Module {
             broken.clear();
             return;
         }
+        boolean stopHardstone = false;
         if (!stopHardstone) {
             ticks++;
             if (SkyblockMod.config.hardIndex == 0) {
@@ -90,7 +90,6 @@ public class HardstoneNuker extends Module {
     @SubscribeEvent
     public void renderWorld(RenderWorldLastEvent event) {
         if (!isToggled()) return;
-        RenderUtils.preDraw();
         closestStone = closestStone();
         if (closestStone != null) {
             RenderUtils.drawBlockBox(closestStone, new Color(128, 128, 128), SkyblockMod.config.lineWidth);
@@ -122,7 +121,6 @@ public class HardstoneNuker extends Module {
             }
             RenderUtils.drawBlockBox(gemstone, color, SkyblockMod.config.lineWidth);
         }
-        RenderUtils.postDraw();
     }
 
     private BlockPos closestStone() {
@@ -134,8 +132,8 @@ public class HardstoneNuker extends Module {
         Vec3 playerVec = Minecraft.getMinecraft().thePlayer.getPositionVector();
         Vec3i vec3i = new Vec3i(r, 1 + SkyblockMod.config.hardrange, r);
         Vec3i vec3i2 = new Vec3i(r, SkyblockMod.config.hardrangeDown, r);
-        ArrayList<Vec3> stones = new ArrayList<Vec3>();
-        ArrayList<Vec3> gemstones = new ArrayList<Vec3>();
+        ArrayList<Vec3> stones = new ArrayList<>();
+        ArrayList<Vec3> gemstones = new ArrayList<>();
         for (BlockPos blockPos : BlockPos.getAllInBox(playerPos.add(vec3i), playerPos.subtract(vec3i2))) {
             IBlockState blockState = Minecraft.getMinecraft().theWorld.getBlockState(blockPos);
             if (SkyblockMod.config.hardIndex == 0) {
@@ -303,10 +301,7 @@ public class HardstoneNuker extends Module {
             return true;
         } else if (blockState.getBlock() == Blocks.gold_block) {
             return true;
-        } else if (blockState.getBlock() == Blocks.stained_glass_pane || blockState.getBlock() == Blocks.stained_glass) {
-            return true;
-        }
-        return false;
+        } else return blockState.getBlock() == Blocks.stained_glass_pane || blockState.getBlock() == Blocks.stained_glass;
     }
 
     public void swingItem() {

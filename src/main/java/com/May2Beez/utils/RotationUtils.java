@@ -8,6 +8,7 @@ import net.minecraft.util.Vec3;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
+import org.jetbrains.annotations.NotNull;
 
 public class RotationUtils {
     public static float pitchDifference;
@@ -19,6 +20,7 @@ public class RotationUtils {
     private static float serverYaw;
 
     public static boolean running = false;
+
 
     public static class Rotation {
         public float pitch;
@@ -42,6 +44,11 @@ public class RotationUtils {
         double diffX = block.getX() - Minecraft.getMinecraft().thePlayer.posX + 0.5;
         double diffY = block.getY() - Minecraft.getMinecraft().thePlayer.posY + 0.5 - Minecraft.getMinecraft().thePlayer.getEyeHeight();
         double diffZ = block.getZ() - Minecraft.getMinecraft().thePlayer.posZ + 0.5;
+        return getRotation(diffX, diffY, diffZ);
+    }
+
+    @NotNull
+    private static Rotation getRotation(double diffX, double diffY, double diffZ) {
         double dist = Math.sqrt(diffX * diffX + diffZ * diffZ);
 
         float pitch = (float) -Math.atan2(dist, diffY);
@@ -56,28 +63,14 @@ public class RotationUtils {
         double diffX = entity.posX - Minecraft.getMinecraft().thePlayer.posX;
         double diffY = entity.posY + entity.getEyeHeight() - Minecraft.getMinecraft().thePlayer.posY - Minecraft.getMinecraft().thePlayer.getEyeHeight();
         double diffZ = entity.posZ - Minecraft.getMinecraft().thePlayer.posZ;
-        double dist = Math.sqrt(diffX * diffX + diffZ * diffZ);
-
-        float pitch = (float) -Math.atan2(dist, diffY);
-        float yaw = (float) Math.atan2(diffZ, diffX);
-        pitch = (float) wrapAngleTo180((pitch * 180F / Math.PI + 90)*-1);
-        yaw = (float) wrapAngleTo180((yaw * 180 / Math.PI) - 90);
-
-        return new Rotation(pitch, yaw);
+        return getRotation(diffX, diffY, diffZ);
     }
 
     public static Rotation vec3ToRotation(Vec3 vec) {
         double diffX = vec.xCoord - Minecraft.getMinecraft().thePlayer.posX;
         double diffY = vec.yCoord - Minecraft.getMinecraft().thePlayer.posY - Minecraft.getMinecraft().thePlayer.getEyeHeight();
         double diffZ = vec.zCoord - Minecraft.getMinecraft().thePlayer.posZ;
-        double dist = Math.sqrt(diffX * diffX + diffZ * diffZ);
-
-        float pitch = (float) -Math.atan2(dist, diffY);
-        float yaw = (float) Math.atan2(diffZ, diffX);
-        pitch = (float) wrapAngleTo180((pitch * 180F / Math.PI + 90)*-1);
-        yaw = (float) wrapAngleTo180((yaw * 180 / Math.PI) - 90);
-
-        return new Rotation(pitch, yaw);
+        return getRotation(diffX, diffY, diffZ);
     }
 
     public static void smoothLook(Rotation rotation, float ticks) {
@@ -124,7 +117,7 @@ public class RotationUtils {
 
     public static void resetRotation() {
         running = false;
-        ticks = 0;
+        ticks = -1;
         tickCounter = 0;
         pitchDifference = 0;
         yawDifference = 0;
@@ -145,7 +138,7 @@ public class RotationUtils {
     @SubscribeEvent
     public void onTick(TickEvent event) {
         if(Minecraft.getMinecraft().thePlayer == null) return;
-//        if (event.phase == TickEvent.Phase.END) return;
+        if (event.phase == TickEvent.Phase.END) return;
 
         if(tickCounter < ticks) {
             running = true;
