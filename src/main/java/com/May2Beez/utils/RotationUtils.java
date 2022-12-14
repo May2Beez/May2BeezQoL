@@ -135,10 +135,8 @@ public class RotationUtils {
         Minecraft.getMinecraft().thePlayer.rotationYaw = serverYaw;
     }
 
-    @SubscribeEvent
-    public void onTick(TickEvent event) {
+    private void RotationTick() {
         if(Minecraft.getMinecraft().thePlayer == null) return;
-        if (event.phase == TickEvent.Phase.END) return;
 
         if(tickCounter < ticks) {
             running = true;
@@ -148,5 +146,20 @@ public class RotationUtils {
         } else {
             running = false;
         }
+    }
+
+    @SubscribeEvent
+    public void onTick(TickEvent.PlayerTickEvent event) {
+        RotationTick();
+    }
+
+    @SubscribeEvent
+    public void onTick2(TickEvent.ClientTickEvent event) {
+        RotationTick();
+    }
+
+    @SubscribeEvent
+    public void onTick3(TickEvent.RenderTickEvent event) {
+        RotationTick();
     }
 }

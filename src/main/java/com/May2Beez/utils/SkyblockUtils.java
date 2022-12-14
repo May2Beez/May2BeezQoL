@@ -202,12 +202,34 @@ public class SkyblockUtils {
             boolean flag2 = !(a instanceof EntityArmorStand);
             boolean flag3 = !(a instanceof net.minecraft.entity.projectile.EntityFireball);
             boolean flag4 = !(a instanceof net.minecraft.entity.projectile.EntityFishHook);
-            boolean flag5 = (entityType != null ? entityType.isInstance(a) : true);
+            boolean flag5 = (entityType == null || entityType.isInstance(a));
             return flag1 && flag2 && flag3 && flag4 && flag5;
         });
         if (!possible.isEmpty())
             return Collections.min(possible, Comparator.comparing(e2 -> e2.getDistanceToEntity(e)));
         return null;
+    }
+
+    public static Entity entityIsVisible(Entity entityToCheck) {
+        Entity entity = null;
+
+        // Raycast to entityToCheck and check if any blocks are in the way
+        Vec3 playerPos = new Vec3(mc.thePlayer.posX, mc.thePlayer.posY + mc.thePlayer.getEyeHeight(), mc.thePlayer.posZ);
+        Vec3 entityPos = new Vec3(entityToCheck.posX, entityToCheck.posY + entityToCheck.getEyeHeight(), entityToCheck.posZ);
+        MovingObjectPosition raycast = mc.theWorld.rayTraceBlocks(playerPos, entityPos, false, true, false);
+        if (raycast != null) {
+            // If the raycast hits a block, check if the block is the entityToCheck
+            if (raycast.typeOfHit == MovingObjectPosition.MovingObjectType.ENTITY) {
+                if (raycast.entityHit == entityToCheck) {
+                    entity = entityToCheck;
+                }
+            }
+        } else {
+            // If the raycast doesn't hit a block, the entity is visible
+            entity = entityToCheck;
+        }
+
+        return entity;
     }
 
     public static String stripString(String s) {

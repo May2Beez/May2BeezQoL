@@ -6,10 +6,11 @@ import com.May2Beez.commands.AOTVWaypoints;
 import com.May2Beez.commands.OpenSettings;
 import com.May2Beez.commands.UseCooldown;
 import com.May2Beez.modules.combat.GhostGrinder;
+import com.May2Beez.modules.combat.MobKiller;
 import com.May2Beez.modules.farming.AutoPlantCrops;
 import com.May2Beez.modules.farming.CropNuker;
 import com.May2Beez.modules.farming.FarmingMacro;
-import com.May2Beez.modules.farming.ForagingAlert;
+import com.May2Beez.modules.farming.ForagingMacro;
 import com.May2Beez.modules.mining.AOTVMacro;
 import com.May2Beez.modules.mining.HardstoneNuker;
 import com.May2Beez.modules.mining.MithrilMiner;
@@ -153,7 +154,7 @@ public class SkyblockMod
         MinecraftForge.EVENT_BUS.register(aotvWaypoints);
         MinecraftForge.EVENT_BUS.register(openSettings);
         modules.add(new MithrilMiner());
-        modules.add(new ForagingAlert());
+        modules.add(new ForagingMacro());
         modules.add(new GhostGrinder());
         modules.add(new HardstoneNuker());
         modules.add(new FarmingMacro());
@@ -164,7 +165,7 @@ public class SkyblockMod
         modules.add(new AutoMelody());
         modules.add(new FishingMacro());
         modules.add(new AOTVMacro());
-        modules.add(new MithrilMiner());
+        modules.add(new MobKiller());
 
         for (Module m : modules)
             MinecraftForge.EVENT_BUS.register(m);

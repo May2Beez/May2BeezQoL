@@ -11,6 +11,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.EnumDyeColor;
+import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
@@ -179,7 +180,7 @@ public class MithrilMiner extends Module {
 
             if (blockState.getBlock() == Blocks.air) continue;
             if (BlockMatchConfig(blockPos1)) {
-                if (mc.thePlayer.getDistanceSq(blockPos1) < 4.5f * 4.5f) {
+                if (mc.thePlayer.getDistanceSq(blockPos1) < SkyblockMod.config.scanRange * SkyblockMod.config.scanRange) {
                     Vec3 vec3 = BlockUtils.getRandomVisibilityLine(blockPos1);
                     if (vec3 != null) {
                         IBlockState bs = mc.theWorld.getBlockState(blockPos1);
@@ -188,47 +189,51 @@ public class MithrilMiner extends Module {
                 }
             }
         }
+        ArrayList<Structs.BlockData> titaniumBlocks = blocks.stream().filter(blockData -> isTitanium(blockData.getPos())).sorted(Comparator.comparingDouble(this::CompareDistance)).collect(Collectors.toCollection(ArrayList::new));
+        ArrayList<Structs.BlockData> blocksData = new ArrayList<>();
 
         if (SkyblockMod.config.prioTitanium) {
-            ArrayList<Structs.BlockData> titaniumBlocks = blocks.stream().filter(blockData -> isTitanium(blockData.getPos())).sorted(Comparator.comparingDouble(this::CompareDistance)).collect(Collectors.toCollection(ArrayList::new));
             if (titaniumBlocks.size() > 0) {
                 return titaniumBlocks.get(0);
             }
+        } else {
+            if (titaniumBlocks.size() > 0) {
+                blocksData.addAll(titaniumBlocks);
+            }
         }
 
+
         if (SkyblockMod.config.filterBlueWool) {
-            ArrayList<Structs.BlockData> sortedBlueWool = blocks.stream().filter(blockData -> blockData.getBlock() == Blocks.wool && blockData.getState().getValue(BlockColored.COLOR) == EnumDyeColor.LIGHT_BLUE).sorted(Comparator.comparingDouble(this::CompareDistance)).collect(Collectors.toCollection(ArrayList::new));
+            ArrayList<Structs.BlockData> sortedBlueWool = blocks.stream().filter(blockData -> blockData.getBlock() == Blocks.wool && blockData.getState().getValue(BlockColored.COLOR) == EnumDyeColor.LIGHT_BLUE).collect(Collectors.toCollection(ArrayList::new));
             if (sortedBlueWool.size() > 0) {
-                return sortedBlueWool.get(0);
+                blocksData.addAll(sortedBlueWool);
             }
         }
 
         if (SkyblockMod.config.filterPrismarine) {
-            ArrayList<Structs.BlockData> sortedPrismarine = blocks.stream().filter(blockData -> blockData.getBlock() == Blocks.prismarine).sorted(Comparator.comparingDouble(this::CompareDistance)).collect(Collectors.toCollection(ArrayList::new));
+            ArrayList<Structs.BlockData> sortedPrismarine = blocks.stream().filter(blockData -> blockData.getBlock() == Blocks.prismarine).collect(Collectors.toCollection(ArrayList::new));
             if (sortedPrismarine.size() > 0) {
-                return sortedPrismarine.get(0);
+                blocksData.addAll(sortedPrismarine);
             }
         }
 
         if (SkyblockMod.config.filterGrayWool) {
-            ArrayList<Structs.BlockData> sortedGrayWool = blocks.stream().filter(blockData -> blockData.getBlock() == Blocks.wool && blockData.getState().getValue(BlockColored.COLOR) == EnumDyeColor.GRAY).sorted(Comparator.comparingDouble(this::CompareDistance)).collect(Collectors.toCollection(ArrayList::new));
+            ArrayList<Structs.BlockData> sortedGrayWool = blocks.stream().filter(blockData -> blockData.getBlock() == Blocks.wool && blockData.getState().getValue(BlockColored.COLOR) == EnumDyeColor.GRAY).collect(Collectors.toCollection(ArrayList::new));
             if (sortedGrayWool.size() > 0) {
-                return sortedGrayWool.get(0);
+                blocksData.addAll(sortedGrayWool);
             }
         }
 
         if (SkyblockMod.config.filterClay) {
-            ArrayList<Structs.BlockData> sortedClay = blocks.stream().filter(blockData -> blockData.getBlock() == Blocks.clay).sorted(Comparator.comparingDouble(this::CompareDistance)).collect(Collectors.toCollection(ArrayList::new));
+            ArrayList<Structs.BlockData> sortedClay = blocks.stream().filter(blockData -> blockData.getBlock() == Blocks.stained_hardened_clay).collect(Collectors.toCollection(ArrayList::new));
             if (sortedClay.size() > 0) {
-                return sortedClay.get(0);
+                blocksData.addAll(sortedClay);
             }
         }
 
-        // It should even execute that far, but just in case
-
         double distance = 9999;
 
-        for (Structs.BlockData block : blocks) {
+        for (Structs.BlockData block : blocksData) {
             double currentDistance;
 
             if (oldTarget != null) {
@@ -300,7 +305,8 @@ public class MithrilMiner extends Module {
         if (mc.thePlayer == null || mc.theWorld == null) return;
 
         if (target != null) {
-            RenderUtils.drawBlockBox(target.getPos(), new Color(0, 255, 0, 100), 4f);
+            RenderUtils.drawBlockBox(target.getPos(), new Color(0, 255, 0, 100), 2.5f);
+            RenderUtils.miniBlockBox(target.getRandomVisibilityLine(), new Color(0, 255, 247, 166), 1.5f);
         }
     }
 }

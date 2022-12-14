@@ -1,11 +1,14 @@
 package com.May2Beez.Config;
 
+import com.May2Beez.modules.combat.MobKiller;
+import com.May2Beez.utils.SkyblockUtils;
 import gg.essential.vigilance.Vigilant;
 import gg.essential.vigilance.data.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.io.File;
+import java.util.Arrays;
 import java.util.Comparator;
 
 public class Config extends Vigilant {
@@ -20,6 +23,7 @@ public class Config extends Vigilant {
     private static final String FISHING = "Fishing Macro";
     private static final String MINING = "Mining";
     private static final String AOTV_MACRO = "AOTV Macro";
+    private static final String MOB_KILLER = "Mob Killer";
 
 
     //region Mithril Miner
@@ -40,6 +44,9 @@ public class Config extends Vigilant {
 
     @Property(type = PropertyType.SWITCH, name = "Blue wool", category = MITHRIL_MINER, subcategory = "Filter")
     public boolean filterBlueWool = true;
+
+    @Property(type = PropertyType.DECIMAL_SLIDER, name = "Scan range", category = MITHRIL_MINER, minF = 0, maxF = 5.5f)
+    public float scanRange = 4.5f;
 
     //endregion
 
@@ -230,6 +237,19 @@ public class Config extends Vigilant {
 
     //endregion
 
+
+    //region MobKiller
+
+    @Property(type = PropertyType.SLIDER, min = 1, max = 30, name = "Mob Killer scan range", category = MOB_KILLER)
+    public int mobKillerScanRange = 10;
+
+    @Property(type = PropertyType.TEXT, name = "Mob's names to kill", category = MOB_KILLER)
+    public String mobsNames = "";
+
+    @Property(type = PropertyType.DECIMAL_SLIDER, name = "Mob Killer camera speed", category = MOB_KILLER, minF = 0, maxF = 10)
+    public float mobKillerCameraSpeed = 3f;
+
+    //endregion
 
     public Config() {
         super(new File("./config/may2beez/config.toml"), "May2Beez QoL", new JVMAnnotationPropertyCollector(), new ConfigSorting());

@@ -11,9 +11,7 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.settings.KeyBinding;
-import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.init.Blocks;
-import net.minecraft.item.ItemStack;
 import net.minecraft.util.*;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -26,7 +24,7 @@ import java.util.stream.Collectors;
 
 import static com.May2Beez.utils.SkyblockUtils.*;
 
-public class ForagingAlert extends Module {
+public class ForagingMacro extends Module {
     public static ArrayList<Vec3> targets = null;
     public static int placedSaplings = 0;
     public static int waiting = 0;
@@ -35,7 +33,7 @@ public class ForagingAlert extends Module {
     private static long lastAxeUse = 0;
     private static long axeCooldown = 0;
     private static STATES state = STATES.PLANTING;
-    public ForagingAlert() {
+    public ForagingMacro() {
         super("Foraging Macro", new KeyBinding("Foraging Macro", Keyboard.KEY_SECTION, SkyblockMod.MODID + " - Farming"));
     }
     private int idleTicks = 0;
@@ -82,9 +80,9 @@ public class ForagingAlert extends Module {
     public void onRenderWorldLast(RenderWorldLastEvent event) {
         if (!isToggled()) return;
 
-        if (ForagingAlert.targets != null) {
+        if (ForagingMacro.targets != null) {
             for (Vec3 target : targets)
-                RenderUtils.miniBlockBox(new Vec3(target.xCoord + 0.5f, target.yCoord + 1, target.zCoord + 0.5f), Color.green);
+                RenderUtils.miniBlockBox(new Vec3(target.xCoord + 0.5f, target.yCoord + 1, target.zCoord + 0.5f), Color.green, 2f);
         }
     }
 
@@ -134,9 +132,9 @@ public class ForagingAlert extends Module {
                                 targets = null;
                                 return;
                             } else {
-                                RotationUtils.smoothLook(RotationUtils.vec3ToRotation(new Vec3(ForagingAlert.targets.get(placedSaplings).xCoord + 0.5f, ForagingAlert.targets.get(placedSaplings).yCoord + 1, ForagingAlert.targets.get(placedSaplings).zCoord + 0.5)), SkyblockMod.config.cameraSpeed);
+                                RotationUtils.smoothLook(RotationUtils.vec3ToRotation(new Vec3(ForagingMacro.targets.get(placedSaplings).xCoord + 0.5f, ForagingMacro.targets.get(placedSaplings).yCoord + 1, ForagingMacro.targets.get(placedSaplings).zCoord + 0.5)), SkyblockMod.config.cameraSpeed);
 
-                                if (Minecraft.getMinecraft().objectMouseOver != null && Minecraft.getMinecraft().objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK && Objects.equals(Minecraft.getMinecraft().objectMouseOver.getBlockPos(), new BlockPos(ForagingAlert.targets.get(placedSaplings)))) {
+                                if (Minecraft.getMinecraft().objectMouseOver != null && Minecraft.getMinecraft().objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK && Objects.equals(Minecraft.getMinecraft().objectMouseOver.getBlockPos(), new BlockPos(ForagingMacro.targets.get(placedSaplings)))) {
                                     Minecraft.getMinecraft().thePlayer.inventory.currentItem = sapling;
                                     rightClick();
 
@@ -174,14 +172,14 @@ public class ForagingAlert extends Module {
                             break;
                         }
                         case CHOPPING: {
-                            Block block = Minecraft.getMinecraft().theWorld.getBlockState(new BlockPos(ForagingAlert.targets.get(placedSaplings).xCoord, ForagingAlert.targets.get(placedSaplings).yCoord + 1, ForagingAlert.targets.get(placedSaplings).zCoord)).getBlock();
-                            if (block.getMaterial() == Material.wood && ForagingAlert.lastAxeUse == 0) {
+                            Block block = Minecraft.getMinecraft().theWorld.getBlockState(new BlockPos(ForagingMacro.targets.get(placedSaplings).xCoord, ForagingMacro.targets.get(placedSaplings).yCoord + 1, ForagingMacro.targets.get(placedSaplings).zCoord)).getBlock();
+                            if (block.getMaterial() == Material.wood && ForagingMacro.lastAxeUse == 0) {
                                 KeyBinding.setKeyBindState(Minecraft.getMinecraft().gameSettings.keyBindAttack.getKeyCode(), true);
                             }
 
-                            if (ForagingAlert.lastAxeUse != 0) {
+                            if (ForagingMacro.lastAxeUse != 0) {
                                 if (System.currentTimeMillis() - lastAxeUse + SkyblockMod.config.foragingDelay >= axeCooldown) {
-                                    ForagingAlert.lastAxeUse = 0;
+                                    ForagingMacro.lastAxeUse = 0;
                                     return;
                                 }
                             }
@@ -189,9 +187,9 @@ public class ForagingAlert extends Module {
                             if (block == Blocks.air) {
                                 Thread.sleep(new Random().nextInt(50) + SkyblockMod.config.foragingDelay);
                                 KeyBinding.setKeyBindState(Minecraft.getMinecraft().gameSettings.keyBindAttack.getKeyCode(), false);
-                                ForagingAlert.placedSaplings = 0;
-                                ForagingAlert.targets = null;
-                                ForagingAlert.lastAxeUse = System.currentTimeMillis();
+                                ForagingMacro.placedSaplings = 0;
+                                ForagingMacro.targets = null;
+                                ForagingMacro.lastAxeUse = System.currentTimeMillis();
                                 if (SkyblockMod.config.foragingUseRod) {
                                     state = STATES.ROD;
                                 } else {

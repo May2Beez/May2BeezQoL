@@ -28,12 +28,6 @@ public class RenderUtils {
         if(width == 0) return;
         final RenderManager renderManager = Minecraft.getMinecraft().getRenderManager();
 
-        GlStateManager.blendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        GlStateManager.enableBlend();
-        GlStateManager.disableTexture2D();
-        GlStateManager.disableDepth();
-        GlStateManager.depthMask(false);
-
         final double x = entity.lastTickPosX + (entity.posX - entity.lastTickPosX) * partialTicks
                 - renderManager.viewerPosX;
         final double y = entity.lastTickPosY + (entity.posY - entity.lastTickPosY) * partialTicks
@@ -51,22 +45,16 @@ public class RenderUtils {
                 entityBox.maxZ - entity.posZ + z + 0.05D
         );
 
-        GL11.glLineWidth(width);
-        GL11.glEnable(GL_LINE_SMOOTH);
-        GlStateManager.color(color.getRed(), color.getGreen(), color.getBlue(), 95);
-        drawSelectionBoundingBox(axisAlignedBB);
-
-        GlStateManager.color(1.0f, 1.0f, 1.0f, 1.0f);
-        GlStateManager.depthMask(true);
+        drawBlockBox(axisAlignedBB, color, width);
     }
 
-    public static void miniBlockBox(Vec3 block, Color color) {
+    public static void miniBlockBox(Vec3 block, Color color, float lineWidth) {
         drawBlockBox(new AxisAlignedBB(block.xCoord - 0.05D - (Minecraft.getMinecraft().getRenderManager()).viewerPosX,
                 block.yCoord - 0.05D - (Minecraft.getMinecraft().getRenderManager()).viewerPosY,
                 block.zCoord - 0.05D - (Minecraft.getMinecraft().getRenderManager()).viewerPosZ,
                 block.xCoord + 0.05D - (Minecraft.getMinecraft().getRenderManager()).viewerPosX,
                 block.yCoord + 0.05D - (Minecraft.getMinecraft().getRenderManager()).viewerPosY,
-                block.zCoord + 0.05D - (Minecraft.getMinecraft().getRenderManager()).viewerPosZ), color);
+                block.zCoord + 0.05D - (Minecraft.getMinecraft().getRenderManager()).viewerPosZ), color, lineWidth);
     }
 
     public static void renderText(String text, int x, int y) {
@@ -178,9 +166,9 @@ public class RenderUtils {
         glPopMatrix();
     }
 
-    private static void drawBlockBox(AxisAlignedBB bb, Color color) {
+    private static void drawBlockBox(AxisAlignedBB bb, Color color, float lineWidth) {
         GlStateManager.pushMatrix();
-        glLineWidth(2f);
+        glLineWidth(lineWidth);
         GlStateManager.color(color.getRed() / 255f, color.getGreen() / 255f, color.getBlue() / 255f, (Math.max(color.getAlpha() - 100, 75)) / 255f);
         drawSolidBox(bb);
 
