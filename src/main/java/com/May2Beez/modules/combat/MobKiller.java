@@ -129,6 +129,7 @@ public class MobKiller extends Module {
                         EntityArmorStand stand = (EntityArmorStand) entity;
                         Entity target = SkyblockUtils.getEntityCuttingOtherEntity(stand, null);
 
+                        if (target == null) continue;
                         if (SkyblockUtils.getMobHp(stand) <= 0) continue;
                         boolean entity1 = SkyblockUtils.entityIsVisible(target);
                         if (!entity1) continue;
