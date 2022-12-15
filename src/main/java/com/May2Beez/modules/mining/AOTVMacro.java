@@ -302,7 +302,7 @@ public class AOTVMacro extends Module {
         while (currentPos.distanceTo(startPos) < maxDistance) {
 
 
-            ArrayList<BlockPos> blocks = AnyBlockAroundVec3(currentPos, 0.35f);
+            ArrayList<BlockPos> blocks = AnyBlockAroundVec3(currentPos, 0.15f);
 
             for (BlockPos pos : blocks) {
 
@@ -322,9 +322,9 @@ public class AOTVMacro extends Module {
 
     private ArrayList<BlockPos> AnyBlockAroundVec3(Vec3 pos, float around) {
         ArrayList<BlockPos> blocks = new ArrayList<>();
-        for (double x = (pos.xCoord - around); x < pos.xCoord + around; x += around) {
-            for (double y = (pos.yCoord - around); y < pos.yCoord + around; y += around) {
-                for (double z = (pos.zCoord - around); z < pos.zCoord + around; z += around) {
+        for (double x = (pos.xCoord - around); x <= pos.xCoord + around; x += around) {
+            for (double y = (pos.yCoord - around); y <= pos.yCoord + around; y += around) {
+                for (double z = (pos.zCoord - around); z <= pos.zCoord + around; z += around) {
                     BlockPos blockPos = new BlockPos(x, y, z);
                     if (!blocks.contains(blockPos)) {
                         blocks.add(blockPos);

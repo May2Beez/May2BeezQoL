@@ -130,6 +130,8 @@ public class MobKiller extends Module {
                         Entity target = SkyblockUtils.getEntityCuttingOtherEntity(stand, null);
 
                         if (SkyblockUtils.getMobHp(stand) <= 0) continue;
+                        boolean entity1 = SkyblockUtils.entityIsVisible(target);
+                        if (!entity1) continue;
 
                         if (target instanceof EntityLiving) {
 
@@ -180,8 +182,8 @@ public class MobKiller extends Module {
 
                 if (RotationUtils.running) return;
 
-                Entity pointedEntity = SkyblockUtils.entityIsVisible(target.entity);
-                if (pointedEntity != null && pointedEntity.getEntityId() == target.entity.getEntityId()) {
+                boolean pointedEntity = SkyblockUtils.entityIsVisible(target.entity);
+                if (pointedEntity) {
                     if (attackDelay.hasReached(120)) {
                         rightClick();
                         attackDelay.reset();
