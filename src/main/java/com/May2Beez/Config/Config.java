@@ -4,6 +4,7 @@ import com.May2Beez.modules.combat.MobKiller;
 import com.May2Beez.utils.SkyblockUtils;
 import gg.essential.vigilance.Vigilant;
 import gg.essential.vigilance.data.*;
+import net.minecraft.client.Minecraft;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -251,6 +252,14 @@ public class Config extends Vigilant {
 
     //endregion
 
+
+    //region DEBUG
+
+    @Property(type = PropertyType.SWITCH, name = "Debug", category = "DEBUG")
+    public boolean debug = false;
+
+    //endregion
+
     public Config() {
         super(new File("./config/may2beez/config.toml"), "May2Beez QoL", new JVMAnnotationPropertyCollector(), new ConfigSorting());
         initialize();
@@ -258,6 +267,7 @@ public class Config extends Vigilant {
         addDependency("aotvVisionBlocksAccuracy", "drawBlocksBlockingAOTV");
         addDependency("routeBlockColor", "showRouteBlocks");
         addDependency("routeLineColor", "showRouteLines");
+        
     }
 
     public static class ConfigSorting extends SortingBehavior {

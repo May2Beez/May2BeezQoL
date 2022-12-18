@@ -79,6 +79,6 @@ public class BlockUtils {
                 }
             }
         }
-        return lines.isEmpty() || lines.size() < 2 ? null : lines.get((new Random()).nextInt(lines.size()));
+        return lines.isEmpty() || lines.size() < 2 ? null : lines.get(1 + (new Random()).nextInt(lines.size() - 2));
     }
 }

@@ -155,17 +155,17 @@ public class SkyblockMod
         MinecraftForge.EVENT_BUS.register(openSettings);
         modules.add(new MithrilMiner());
         modules.add(new ForagingMacro());
-        modules.add(new GhostGrinder());
+//        modules.add(new GhostGrinder()); // not rly working
         modules.add(new HardstoneNuker());
         modules.add(new FarmingMacro());
         modules.add(new CustomItemMacro());
         modules.add(new CropNuker());
         modules.add(new PowderChest());
-        modules.add(new AutoPlantCrops());
-        modules.add(new AutoMelody());
-        modules.add(new FishingMacro());
+//        modules.add(new AutoPlantCrops()); // meh
+//        modules.add(new AutoMelody()); // kinda pointless
+        modules.add(new FishingMacro()); // not finished
         modules.add(new AOTVMacro());
-        modules.add(new MobKiller());
+        modules.add(new MobKiller()); // sub-module for later usage
 
         for (Module m : modules)
             MinecraftForge.EVENT_BUS.register(m);

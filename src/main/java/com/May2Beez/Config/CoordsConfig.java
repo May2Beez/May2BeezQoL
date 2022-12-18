@@ -3,8 +3,6 @@ package com.May2Beez.Config;
 import com.May2Beez.AOTVWaypointsGUI;
 import com.May2Beez.modules.mining.AOTVMacro;
 import com.May2Beez.utils.SkyblockUtils;
-import eu.okaeri.configs.OkaeriConfig;
-import jdk.nashorn.internal.objects.annotations.Constructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

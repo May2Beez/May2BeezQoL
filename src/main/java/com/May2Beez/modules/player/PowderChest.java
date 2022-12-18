@@ -12,6 +12,7 @@ import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.init.Blocks;
 import net.minecraft.network.play.server.S29PacketSoundEffect;
 import net.minecraft.network.play.server.S2APacketParticles;
+import net.minecraft.tileentity.TileEntityChest;
 import net.minecraft.util.*;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.event.world.WorldEvent;
@@ -27,11 +28,10 @@ public class PowderChest extends Module {
 
     private TreasureChest closestChest = null;
     private final ArrayList<TreasureChest> allChests = new ArrayList<>();
-    private final Minecraft mc = Minecraft.getMinecraft();
+    private static final Minecraft mc = Minecraft.getMinecraft();
 
     private static class TreasureChest {
         public BlockPos pos;
-        public int progress = 0;
         public long time;
         public Vec3 particle = null;
         public AxisAlignedBB box;
@@ -46,6 +46,13 @@ public class PowderChest extends Module {
             return (System.currentTimeMillis() - time) >= 60000;
         }
         public boolean isSolved = false;
+
+        public boolean isOpen() {
+            TileEntityChest chest = (TileEntityChest) mc.theWorld.getTileEntity(pos);
+            if (chest == null) return false;
+            int state = chest.numPlayersUsing;
+            return state > 0;
+        }
     }
 
     public PowderChest() {
@@ -82,6 +89,10 @@ public class PowderChest extends Module {
                 allChests.add(new TreasureChest(event.pos));
             }
         }
+
+        if ((event.old.getBlock() == Blocks.chest || event.old.getBlock() == Blocks.trapped_chest) && event.update.getBlock() == Blocks.air) {
+            allChests.removeIf(chest -> chest.pos.equals(event.pos));
+        }
     }
 
     private void normalRotation() {
@@ -95,7 +106,8 @@ public class PowderChest extends Module {
         if (!isToggled() || mc.thePlayer == null) return;
         if (allChests.size() > 0) {
             for (TreasureChest allChest : allChests) {
-                if (allChest.isSolved || allChest.isExpired()) continue;
+
+                if (allChest.isSolved || allChest.isExpired() || allChest.isOpen()) continue;
 
                 RenderUtils.drawBlockBox(allChest.pos, new Color(Color.green.getRed(), Color.green.getGreen(), Color.green.getBlue(), 150), 5);
                 if (SkyblockMod.config.drawLinesToPowderChests)
@@ -132,12 +144,12 @@ public class PowderChest extends Module {
             float pitch = ((S29PacketSoundEffect) event.packet).getPitch();
             float volume = ((S29PacketSoundEffect) event.packet).getVolume();
             if (volume == 1f && pitch == 1f && (sound.equals("random.orb") || sound.equals("mob.villager.no"))) {
-                if (sound.equals("random.orb")) {
-                    closestChest.progress++;
-                } else {
-                    closestChest.progress = 0;
-                }
-                if (closestChest.progress >= 5) {
+//                if (sound.equals("random.orb")) {
+//                    closestChest.progress++;
+//                } else {
+//                    closestChest.progress = 0;
+//                }
+                if (closestChest.isOpen()) {
                     closestChest.particle = null;
                     closestChest.isSolved = true;
                     closestChest = null;
@@ -147,10 +159,12 @@ public class PowderChest extends Module {
     }
 
     private TreasureChest getClosestChest() {
-        ArrayList<TreasureChest> notSolved = (ArrayList<TreasureChest>) allChests.stream().filter(chest -> !chest.isSolved).collect(Collectors.toList());
+        ArrayList<TreasureChest> notSolved = (ArrayList<TreasureChest>) allChests.stream().filter(chest -> !chest.isSolved && !chest.isOpen()).collect(Collectors.toList());
         ArrayList<TreasureChest> notSolvedAndNotExpired = (ArrayList<TreasureChest>) notSolved.stream().filter(chest -> !chest.isExpired()).collect(Collectors.toList());
         if (notSolvedAndNotExpired.size() == 0) return null;
         TreasureChest closest = notSolvedAndNotExpired.get(0);
+
+        if (mc.thePlayer.getDistanceSq(closest.pos) > 6 * 6) return null;
 
         if (notSolvedAndNotExpired.size() == 1) return closest;
 
