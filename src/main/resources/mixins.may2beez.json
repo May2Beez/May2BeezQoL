@@ -1,0 +1,19 @@
+{
+  "required": true,
+  "package": "com.May2Beez.mixins",
+  "refmap": "mixins.may2beez.refmap.json",
+  "compatibilityLevel": "JAVA_8",
+  "verbose": true,
+  "mixins": [
+    "ModListMixing",
+    "NetHandlerPlayClientMixin",
+    "NetworkManagerMixin"
+  ],
+  "client": [
+    "EntityPlayerSPMixin",
+    "ModelBipedMixin",
+    "WorldMixin",
+    "accessors.EntityPlayerSPAccessor",
+    "accessors.MinecraftAccessor"
+  ]
+}
