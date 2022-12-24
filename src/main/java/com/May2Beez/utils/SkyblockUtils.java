@@ -270,10 +270,6 @@ public class SkyblockUtils {
         if (!May2BeezQoL.config.debug) return;
 
         for (Vec3 vec : debugPoints) {
-//            AxisAlignedBB bb = new AxisAlignedBB(vec.xCoord - 0.1, vec.yCoord - 0.1, vec.zCoord - 0.1, vec.xCoord + 0.1, vec.yCoord + 0.1, vec.zCoord + 0.1);
-
-//            bb.offset(-mc.getRenderManager().viewerPosX, -mc.getRenderManager().viewerPosY, -mc.getRenderManager().viewerPosZ);
-
             RenderUtils.miniBlockBox(vec, Color.cyan, 1.5f);
         }
     }

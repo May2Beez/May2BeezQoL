@@ -49,13 +49,13 @@ public class Config extends Vigilant {
     //endregion
 
     //region Ghost Grinder
-    @Property(type = PropertyType.SLIDER, name = "Line width", category = GHOST_GRINDER, min = 1, max = 10)
+    @Property(type = PropertyType.SLIDER, name = "Line width", category = GHOST_GRINDER, min = 1, max = 10, hidden = true)
     public int lineWidth = 2;
 
-    @Property(type = PropertyType.SLIDER, name = "Radius", category = GHOST_GRINDER, min = 0, max = 100)
+    @Property(type = PropertyType.SLIDER, name = "Radius", category = GHOST_GRINDER, min = 0, max = 100, hidden = true)
     public int radius = 15;
 
-    @Property(type = PropertyType.SLIDER, name = "Click delay", category = GHOST_GRINDER, min = 1, max = 20)
+    @Property(type = PropertyType.SLIDER, name = "Click delay", category = GHOST_GRINDER, min = 1, max = 20, hidden = true)
     public int clickDelay = 5;
 
     //endregion
@@ -180,10 +180,10 @@ public class Config extends Vigilant {
     //endregion
 
     //region Auto Plant Crops
-    @Property(type = PropertyType.SELECTOR, name = "Crop Type", category = AUTO_PLANT_CROPS, options = {"Cocoa Beans", "Cactus"})
+    @Property(type = PropertyType.SELECTOR, name = "Crop Type", category = AUTO_PLANT_CROPS, options = {"Cocoa Beans", "Cactus"}, hidden = true)
     public int cropTypeIndex = 0;
 
-    @Property(type = PropertyType.SLIDER, name = "Auto Crop Range", category = AUTO_PLANT_CROPS, min = 1, max = 8)
+    @Property(type = PropertyType.SLIDER, name = "Auto Crop Range", category = AUTO_PLANT_CROPS, min = 1, max = 8, hidden = true)
     public int autoCropRange = 0;
 
     //endregion
@@ -290,7 +290,6 @@ public class Config extends Vigilant {
 
     //endregion
 
-
     //region MobKiller
 
     @Property(type = PropertyType.SLIDER, min = 1, max = 30, name = "Mob Killer scan range", category = MOB_KILLER)
@@ -333,10 +332,9 @@ public class Config extends Vigilant {
 
     //endregion
 
-
     //region DEBUG
 
-    @Property(type = PropertyType.SWITCH, name = "Debug", category = "DEBUG")
+    @Property(type = PropertyType.SWITCH, name = "Debug", category = "DEBUG", hidden = true)
     public boolean debug = false;
 
     //endregion
