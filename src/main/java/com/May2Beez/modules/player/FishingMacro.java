@@ -20,7 +20,6 @@ import org.lwjgl.input.Keyboard;
 
 import java.util.*;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 public class FishingMacro extends Module {
 
@@ -34,11 +33,12 @@ public class FishingMacro extends Module {
     private final Timer attackDelay = new Timer();
 
     private final Timer antiAfkTimer = new Timer();
+    private final Timer waitAfterKillTimer = new Timer();
 
     private double oldBobberPosY = 0.0D;
     private RotationUtils.Rotation startRotation = null;
 
-    private static final CopyOnWriteArrayList<ParticleEntry> particles = new CopyOnWriteArrayList<>();
+    private static final ArrayList<ParticleEntry> particles = new ArrayList<>();
     private boolean killing = false;
 
     private int rodSlot = 0;
@@ -70,6 +70,7 @@ public class FishingMacro extends Module {
         inWaterTimer.reset();
         attackDelay.reset();
         antiAfkTimer.reset();
+        waitAfterKillTimer.reset();
         oldBobberPosY = 0.0D;
         killing = true;
         particles.clear();
@@ -111,13 +112,22 @@ public class FishingMacro extends Module {
 
         if (MobKiller.hasTarget()) {
             killing = true;
-            throwTimer.reset();
             return;
         }
 
+        if (!waitAfterKillTimer.hasReached(150))
+            return;
+
         if (killing) {
-            RotationUtils.smoothLook(startRotation, 250);
+            if (RotationUtils.done)
+                RotationUtils.smoothLook(startRotation, 200);
+
+            if (!RotationUtils.IsDiffLowerThan(0.1f))
+                return;
+
             killing = false;
+            waitAfterKillTimer.reset();
+            throwTimer.reset();
         }
 
         stopMovement();
@@ -215,7 +225,8 @@ public class FishingMacro extends Module {
     }
 
     private boolean bobberIsNearParticles(EntityFishHook bobber) {
-        return particles.stream().anyMatch(v -> (getHorizontalDistance(bobber.getPositionVector(), v.position) < 0.2D));
+        ArrayList<ParticleEntry> particlesTemp = new ArrayList<>(particles);
+        return particlesTemp.stream().anyMatch(v -> (getHorizontalDistance(bobber.getPositionVector(), v.position) < 0.2D));
     }
 
     public void stopMovement() {

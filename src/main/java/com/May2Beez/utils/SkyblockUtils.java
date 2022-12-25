@@ -67,11 +67,13 @@ public class SkyblockUtils {
             List<Score> list = new ArrayList<>(sb.getSortedScores(sb.getObjectiveInDisplaySlot(1)));
             for (Score score : list) {
                 ScorePlayerTeam team = sb.getPlayersTeam(score.getPlayerName());
-                String s = ChatFormatting.stripFormatting(ScorePlayerTeam.formatPlayerName((Team)team, score.getPlayerName()));
+                String s = ChatFormatting.stripFormatting(ScorePlayerTeam.formatPlayerName(team, score.getPlayerName()));
                 if (s.contains("Map"))
                     return true;
             }
-        } catch (Exception exception) {}
+        } catch (Exception ignored) {
+
+        }
         return false;
     }
 
@@ -152,7 +154,7 @@ public class SkyblockUtils {
         }
     }
 
-    public static void click() {
+    public static void leftClick() {
         try {
             Method clickMouse;
             try {
@@ -307,7 +309,9 @@ public class SkyblockUtils {
         if (mat.matches())
             try {
                 mobHp = Double.parseDouble(mat.group(1));
-            } catch (NumberFormatException numberFormatException) {}
+            } catch (NumberFormatException ignored) {
+
+            }
         return (int)Math.ceil(mobHp);
     }
 }

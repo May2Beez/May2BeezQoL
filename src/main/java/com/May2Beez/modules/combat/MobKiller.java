@@ -5,7 +5,6 @@ import com.May2Beez.Module;
 import com.May2Beez.utils.*;
 import com.May2Beez.utils.Timer;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
@@ -22,6 +21,7 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
+import static com.May2Beez.utils.SkyblockUtils.leftClick;
 import static com.May2Beez.utils.SkyblockUtils.rightClick;
 
 public class MobKiller extends Module {
@@ -144,44 +144,44 @@ public class MobKiller extends Module {
                     }
                 }))).collect(Collectors.toList());
 
-                if (filtered.size() > 0) {
+                if (filtered.isEmpty())
+                    break;
 
-                    double distance = 9999;
-                    Target closestTarget = null;
+                double distance = 9999;
+                Target closestTarget = null;
 
-                    for (Entity entity : filtered) {
-                        double currentDistance;
-                        EntityArmorStand stand = (EntityArmorStand) entity;
-                        Entity target = SkyblockUtils.getEntityCuttingOtherEntity(stand, null);
+                for (Entity entity : filtered) {
+                    double currentDistance;
+                    EntityArmorStand stand = (EntityArmorStand) entity;
+                    Entity target = SkyblockUtils.getEntityCuttingOtherEntity(stand, null);
 
-                        if (target == null) continue;
-                        if (SkyblockUtils.getMobHp(stand) <= 0) continue;
-                        boolean entity1 = SkyblockUtils.entityIsVisible(target);
-                        if (!entity1) continue;
+                    if (target == null) continue;
+                    if (SkyblockUtils.getMobHp(stand) <= 0) continue;
+                    boolean entity1 = SkyblockUtils.entityIsVisible(target);
+                    if (!entity1) continue;
 
-                        if (target instanceof EntityLiving) {
+                    if (target instanceof EntityLiving) {
 
-                            Target target1 = new Target((EntityLiving) target, stand);
+                        Target target1 = new Target((EntityLiving) target, stand);
 
-                            if (closestTarget != null) {
-                                currentDistance = target.getDistanceToEntity(mc.thePlayer);
-                                if (currentDistance < distance) {
-                                    distance = currentDistance;
-                                    closestTarget = target1;
-                                }
-                            } else {
-                                distance = target.getDistanceToEntity(mc.thePlayer);
+                        if (closestTarget != null) {
+                            currentDistance = target.getDistanceToEntity(mc.thePlayer);
+                            if (currentDistance < distance) {
+                                distance = currentDistance;
                                 closestTarget = target1;
                             }
-
-                            potentialTargets.add(target1);
+                        } else {
+                            distance = target.getDistanceToEntity(mc.thePlayer);
+                            closestTarget = target1;
                         }
-                    }
 
-                    if (closestTarget != null && closestTarget.distance() < May2BeezQoL.config.mobKillerScanRange) {
-                        target = closestTarget;
-                        currentState = States.ATTACKING;
+                        potentialTargets.add(target1);
                     }
+                }
+
+                if (closestTarget != null && closestTarget.distance() < May2BeezQoL.config.mobKillerScanRange) {
+                    target = closestTarget;
+                    currentState = States.ATTACKING;
                 }
                 break;
             case ATTACKING:
@@ -205,23 +205,28 @@ public class MobKiller extends Module {
 
 
                     if (RotationUtils.done)
-                        RotationUtils.smoothLook(new RotationUtils.Rotation(88, mc.thePlayer.rotationYaw), May2BeezQoL.config.mobKillerCameraSpeed);
+                        RotationUtils.smoothLook(new RotationUtils.Rotation(89, mc.thePlayer.rotationYaw), May2BeezQoL.config.mobKillerCameraSpeed);
 
-                    if (RotationUtils.IsDiffLowerThan(0.5f)) {
+                    if (RotationUtils.IsDiffLowerThan(0.1f)) {
                         RotationUtils.reset();
                     }
 
                     if (!RotationUtils.done) return;
 
-                    if (attackDelay.hasReached(500) && target.distance() <= 6) {
+                    if (attackDelay.hasReached(May2BeezQoL.config.mobKillerAttackDelay) && target.distance() <= 6) {
                         rightClick();
-                        System.out.println("Attacking");
                         attackDelay.reset();
                     }
 
                 } else {
 
-                    int weapon = SkyblockUtils.findItemInHotbar("Juju", "Terminator", "Bow", "Frozen Scythe", "Glacial Scythe");
+                    int weapon;
+
+                    if (!May2BeezQoL.config.customItemToKill.isEmpty()) {
+                        weapon = SkyblockUtils.findItemInHotbar(May2BeezQoL.config.customItemToKill);
+                    } else {
+                        weapon = SkyblockUtils.findItemInHotbar("Juju", "Terminator", "Bow", "Frozen Scythe", "Glacial Scythe");
+                    }
 
                     if (weapon == -1) {
                         SkyblockUtils.SendInfo("No weapon found");
@@ -232,7 +237,7 @@ public class MobKiller extends Module {
 
                     RotationUtils.smoothLook(RotationUtils.getRotation(target.entity), May2BeezQoL.config.mobKillerCameraSpeed);
 
-                    if (RotationUtils.IsDiffLowerThan(1)) {
+                    if (RotationUtils.IsDiffLowerThan(0.5f)) {
                         RotationUtils.reset();
                     }
 
@@ -240,8 +245,12 @@ public class MobKiller extends Module {
 
                     boolean pointedEntity = SkyblockUtils.entityIsVisible(target.entity);
                     if (pointedEntity) {
-                        if (attackDelay.hasReached(120)) {
-                            rightClick();
+                        if (attackDelay.hasReached(May2BeezQoL.config.mobKillerAttackDelay)) {
+                            if (May2BeezQoL.config.attackButton == 0) {
+                                leftClick();
+                            } else {
+                                rightClick();
+                            }
                             attackDelay.reset();
                         }
                     } else {
@@ -286,23 +295,6 @@ public class MobKiller extends Module {
 
         if (target != null) {
             RenderUtils.drawEntityBox(target.entity, new Color(200, 100, 100, 200), 2, event.partialTicks);
-        }
-    }
-
-    @SubscribeEvent
-    public void onGameRender(TickEvent.RenderTickEvent event) {
-        if (!isToggled()) return;
-
-        if (target != null) {
-            String[] text = new String[]{
-                    "§c§l" + target.entity.getName(),
-                    "§c§lHP: " + SkyblockUtils.getMobHp(target.stand),
-                    "§c§lDistance: " + target.distance(),
-            };
-            ScaledResolution scaledResolution = new ScaledResolution(Minecraft.getMinecraft());
-            int width = scaledResolution.getScaledWidth();
-            int height = scaledResolution.getScaledHeight();
-            RenderUtils.renderBoxedText(text, width - 150, height - 80, 1.0);
         }
     }
  }

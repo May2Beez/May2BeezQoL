@@ -289,6 +289,15 @@ public class Config extends Vigilant {
     @Property(type = PropertyType.SWITCH, name = "Use Hyperion under player", category = MOB_KILLER)
     public boolean useHyperionUnderPlayer = false;
 
+    @Property(type = PropertyType.SLIDER, name = "Delay between attacks", category = MOB_KILLER, min = 100, max = 500)
+    public int mobKillerAttackDelay = 250;
+
+    @Property(type = PropertyType.TEXT, name = "Custom item to kill", description = "Leave empty for default weapons", category = MOB_KILLER)
+    public String customItemToKill = "";
+
+    @Property(type = PropertyType.SELECTOR, name = "Button to attack with", description = "Doesn't override 'Use Hyperion under player'", category = MOB_KILLER, options = {"Left", "Right"})
+    public int attackButton = 0;
+
     //endregion
 
     //region ESP

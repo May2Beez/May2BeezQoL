@@ -239,7 +239,7 @@ public class ForagingMacro extends Module {
                 if (blockAbove.getBlock() == Blocks.sapling) {
                     RotationUtils.smoothLook(RotationUtils.getRotation(new Vec3(dirt.xCoord + 0.5, dirt.yCoord + y + 0.5, dirt.zCoord + 0.5)), May2BeezQoL.config.cameraSpeed);
                     Thread.sleep(new Random().nextInt(50) + 100);
-                    click();
+                    leftClick();
                 }
             }
         }
