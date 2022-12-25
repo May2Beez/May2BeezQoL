@@ -2,11 +2,10 @@ package com.May2Beez.modules.combat;
 
 import com.May2Beez.May2BeezQoL;
 import com.May2Beez.Module;
-import com.May2Beez.utils.RenderUtils;
-import com.May2Beez.utils.RotationUtils;
-import com.May2Beez.utils.SkyblockUtils;
+import com.May2Beez.utils.*;
 import com.May2Beez.utils.Timer;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
@@ -14,6 +13,7 @@ import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.util.StringUtils;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.InputEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.awt.*;
@@ -28,14 +28,17 @@ public class MobKiller extends Module {
 
     private final Minecraft mc = Minecraft.getMinecraft();
 
-    private Target target;
+    public static Target target;
+    public static int scanRange = 20;
 
     private static boolean caseSensitive = false;
     private static String[] mobsNames = null;
 
     private final Timer attackDelay = new Timer();
     private final Timer blockedVisionDelay = new Timer();
-    private States currentState = States.SEARCHING;
+    public static States currentState = States.SEARCHING;
+
+    public static boolean ShouldScan = false;
 
     private final CopyOnWriteArrayList<Target> potentialTargets = new CopyOnWriteArrayList<>();
 
@@ -63,6 +66,19 @@ public class MobKiller extends Module {
         super("Mob Killer", new KeyBinding("Attack Mobs", 0, "May2BeezQoL - Combat"));
     }
 
+    public static boolean hasTarget() {
+        return target != null;
+    }
+
+    @Override
+    public void onKeyInput(InputEvent.KeyInputEvent event) {
+        super.onKeyInput(event);
+
+        if (this.isToggled()) {
+            ShouldScan = true;
+        }
+    }
+
     @Override
     public void onEnable() {
         blockedVisionDelay.reset();
@@ -78,16 +94,23 @@ public class MobKiller extends Module {
         super.onEnable();
     }
 
+    public static void Toggle() {
+        if (!May2BeezQoL.mobKiller.isToggled()) {
+            May2BeezQoL.mobKiller.setToggled(true);
+            May2BeezQoL.mobKiller.onEnable();
+        } else {
+            May2BeezQoL.mobKiller.setToggled(false);
+            May2BeezQoL.mobKiller.onDisable();
+        }
+    }
+
     @Override
     public void onDisable() {
         target = null;
         potentialTargets.clear();
         RotationUtils.reset();
+        ShouldScan = false;
         super.onDisable();
-    }
-
-    public static void setCaseSensitive(String... mobsNames) {
-        MobKiller.mobsNames = mobsNames;
     }
 
     public static void setMobsNames(boolean caseSensitive, String... mobsNames) {
@@ -98,6 +121,7 @@ public class MobKiller extends Module {
     @SubscribeEvent
     public void onTick(TickEvent.PlayerTickEvent event) {
         if (!isToggled()) return;
+        if (!ShouldScan) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
 
         if (mobsNames == null || mobsNames.length == 0) return;
@@ -108,7 +132,7 @@ public class MobKiller extends Module {
         switch (currentState) {
             case SEARCHING:
                 potentialTargets.clear();
-                List<Entity> entities = mc.theWorld.loadedEntityList.stream().filter(entity -> entity instanceof EntityArmorStand).collect(Collectors.toList());
+                List<Entity> entities = mc.theWorld.loadedEntityList.stream().filter(entity -> entity instanceof EntityArmorStand).filter(entity -> mc.thePlayer.getPositionEyes(1).distanceTo(entity.getPositionVector()) <= scanRange).collect(Collectors.toList());
                 List<Entity> filtered = entities.stream().filter(v -> (!v.getName().contains(mc.thePlayer.getName()) && Arrays.stream(mobsNames).anyMatch(mobsName -> {
                     String mobsName1 = StringUtils.stripControlCodes(mobsName);
                     String vName = StringUtils.stripControlCodes(v.getName());
@@ -162,39 +186,71 @@ public class MobKiller extends Module {
                 break;
             case ATTACKING:
 
-                if (SkyblockUtils.getMobHp(target.stand) <= 0 || target.distance() > May2BeezQoL.config.mobKillerScanRange) {
+                if (SkyblockUtils.getMobHp(target.stand) <= 0 || target.distance() > May2BeezQoL.config.mobKillerScanRange || target.stand == null || target.entity.isDead) {
                     currentState = States.KILLED;
                     break;
                 }
 
-                int weapon = SkyblockUtils.findItemInHotbar("Juju", "Terminator", "Bow", "Frozen Scythe", "Glacial Scythe");
+                if (May2BeezQoL.config.useHyperionUnderPlayer) {
+                    int weapon = SkyblockUtils.findItemInHotbar("Hyperion");
 
-                if (weapon == -1) {
-                    SkyblockUtils.SendInfo("No weapon found");
-                    return;
-                }
+                    if (weapon == -1) {
+                        SkyblockUtils.SendInfo("No Hyperion found");
+                        return;
+                    }
 
-                mc.thePlayer.inventory.currentItem = weapon;
+                    mc.thePlayer.inventory.currentItem = weapon;
 
-                RotationUtils.smoothLook(RotationUtils.getRotation(target.entity), May2BeezQoL.config.mobKillerCameraSpeed);
+                    if (target.distance() > 6) return;
 
-                if (RotationUtils.IsDiffLowerThan(1)) {
-                    RotationUtils.reset();
-                }
 
-                if (!RotationUtils.done) return;
+                    if (RotationUtils.done)
+                        RotationUtils.smoothLook(new RotationUtils.Rotation(88, mc.thePlayer.rotationYaw), May2BeezQoL.config.mobKillerCameraSpeed);
 
-                boolean pointedEntity = SkyblockUtils.entityIsVisible(target.entity);
-                if (pointedEntity) {
-                    if (attackDelay.hasReached(120)) {
+                    if (RotationUtils.IsDiffLowerThan(0.5f)) {
+                        RotationUtils.reset();
+                    }
+
+                    if (!RotationUtils.done) return;
+
+                    if (attackDelay.hasReached(500) && target.distance() <= 6) {
                         rightClick();
+                        System.out.println("Attacking");
                         attackDelay.reset();
                     }
+
                 } else {
-                    SkyblockUtils.SendInfo("Something is blocking target, waiting for free shot...", false, name);
-                    blockedVisionDelay.reset();
-                    currentState = States.BLOCKED_VISION;
+
+                    int weapon = SkyblockUtils.findItemInHotbar("Juju", "Terminator", "Bow", "Frozen Scythe", "Glacial Scythe");
+
+                    if (weapon == -1) {
+                        SkyblockUtils.SendInfo("No weapon found");
+                        return;
+                    }
+
+                    mc.thePlayer.inventory.currentItem = weapon;
+
+                    RotationUtils.smoothLook(RotationUtils.getRotation(target.entity), May2BeezQoL.config.mobKillerCameraSpeed);
+
+                    if (RotationUtils.IsDiffLowerThan(1)) {
+                        RotationUtils.reset();
+                    }
+
+                    if (!RotationUtils.done) return;
+
+                    boolean pointedEntity = SkyblockUtils.entityIsVisible(target.entity);
+                    if (pointedEntity) {
+                        if (attackDelay.hasReached(120)) {
+                            rightClick();
+                            attackDelay.reset();
+                        }
+                    } else {
+                        SkyblockUtils.SendInfo("Something is blocking target, waiting for free shot...", false, name);
+                        blockedVisionDelay.reset();
+                        currentState = States.BLOCKED_VISION;
+                    }
                 }
+
 
                 break;
             case BLOCKED_VISION:
@@ -222,11 +278,31 @@ public class MobKiller extends Module {
         if (mc.thePlayer == null || mc.theWorld == null) return;
 
         if (potentialTargets.size() > 0) {
-            potentialTargets.forEach(v -> RenderUtils.drawEntityBox(v.entity, new Color(100, 200, 100, 200), 2, event.partialTicks));
+            potentialTargets.forEach(v -> {
+                if (v != target)
+                    RenderUtils.drawEntityBox(v.entity, new Color(100, 200, 100, 200), 2, event.partialTicks);
+            });
         }
 
         if (target != null) {
             RenderUtils.drawEntityBox(target.entity, new Color(200, 100, 100, 200), 2, event.partialTicks);
+        }
+    }
+
+    @SubscribeEvent
+    public void onGameRender(TickEvent.RenderTickEvent event) {
+        if (!isToggled()) return;
+
+        if (target != null) {
+            String[] text = new String[]{
+                    "§c§l" + target.entity.getName(),
+                    "§c§lHP: " + SkyblockUtils.getMobHp(target.stand),
+                    "§c§lDistance: " + target.distance(),
+            };
+            ScaledResolution scaledResolution = new ScaledResolution(Minecraft.getMinecraft());
+            int width = scaledResolution.getScaledWidth();
+            int height = scaledResolution.getScaledHeight();
+            RenderUtils.renderBoxedText(text, width - 150, height - 80, 1.0);
         }
     }
  }

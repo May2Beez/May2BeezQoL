@@ -17,6 +17,7 @@ import com.May2Beez.modules.player.CustomItemMacro;
 import com.May2Beez.modules.player.FishingMacro;
 import com.May2Beez.modules.player.ESP;
 import com.May2Beez.modules.player.PowderChest;
+import com.May2Beez.modules.world.WorldScanner;
 import com.May2Beez.utils.LocationUtils;
 import com.May2Beez.utils.RotationUtils;
 import com.May2Beez.utils.SkyblockUtils;
@@ -57,6 +58,8 @@ public class May2BeezQoL
     public static CopyOnWriteArrayList<Module> modules = new CopyOnWriteArrayList<>();
     public static Gson gson = new GsonBuilder().setPrettyPrinting().create();
     public static CoordsConfig coordsConfig;
+
+    public static MobKiller mobKiller = new MobKiller();
 
     public static boolean miningSpeedReady = true;
 
@@ -125,8 +128,10 @@ public class May2BeezQoL
             String[] arr = str.toString().split(",");
             for (String value : arr) {
                 String[] arr2 = value.split(":");
-                System.out.println(arr2[0] + " " + arr2[1]);
-                UseCooldown.RCitems.put(arr2[0], Integer.parseInt(arr2[1]));
+                if (arr2.length == 2) {
+                    System.out.println(arr2[0] + " " + arr2[1]);
+                    UseCooldown.RCitems.put(arr2[0], Integer.parseInt(arr2[1]));
+                }
             }
             reader.close();
             Reader reader2 = Files.newBufferedReader(Paths.get("./config/may2beez/lcmacros.json"));
@@ -140,8 +145,10 @@ public class May2BeezQoL
             String[] arr3 = str2.toString().split(",");
             for (String s : arr3) {
                 String[] arr4 = s.split(":");
-                System.out.println(arr4[0] + " " + arr4[1]);
-                UseCooldown.LCitems.put(arr4[0], Integer.parseInt(arr4[1]));
+                if (arr4.length == 2) {
+                    System.out.println(arr4[0] + " " + arr4[1]);
+                    UseCooldown.LCitems.put(arr4[0], Integer.parseInt(arr4[1]));
+                }
             }
             reader2.close();
         } catch (Exception e) {
@@ -172,10 +179,11 @@ public class May2BeezQoL
         modules.add(new PowderChest());
 //        modules.add(new AutoPlantCrops()); // meh
 //        modules.add(new AutoMelody()); // kinda pointless
-        modules.add(new FishingMacro()); // not finished
+        modules.add(new FishingMacro());
         modules.add(new AOTVMacro());
-        modules.add(new MobKiller()); // sub-module for later usage
+        modules.add(mobKiller); // sub-module for later usage
         modules.add(new ESP());
+        modules.add(new WorldScanner());
 
         for (Module m : modules)
             MinecraftForge.EVENT_BUS.register(m);

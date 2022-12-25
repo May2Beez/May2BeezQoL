@@ -2,30 +2,25 @@ package com.May2Beez.modules.player;
 
 import com.May2Beez.May2BeezQoL;
 import com.May2Beez.Module;
+import com.May2Beez.events.SpawnParticleEvent;
+import com.May2Beez.modules.combat.MobKiller;
 import com.May2Beez.utils.*;
 import com.May2Beez.utils.Timer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.entity.projectile.EntityFishHook;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
-import net.minecraft.network.play.server.S2APacketParticles;
 import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.Vec3;
-import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.lwjgl.input.Keyboard;
 
-import java.awt.*;
 import java.util.*;
 import java.util.List;
-
-import static com.May2Beez.utils.SkyblockUtils.click;
-import static com.May2Beez.utils.SkyblockUtils.rightClick;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class FishingMacro extends Module {
 
@@ -38,14 +33,15 @@ public class FishingMacro extends Module {
 
     private final Timer attackDelay = new Timer();
 
+    private final Timer antiAfkTimer = new Timer();
+
     private double oldBobberPosY = 0.0D;
-    private int ticks = 0;
-    private Entity target = null;
-    private EntityArmorStand targetStand = null;
     private RotationUtils.Rotation startRotation = null;
 
-    private static final List<ParticleEntry> particles = new ArrayList<>();
+    private static final CopyOnWriteArrayList<ParticleEntry> particles = new CopyOnWriteArrayList<>();
     private boolean killing = false;
+
+    private int rodSlot = 0;
 
     private enum AutoFishState {
         THROWING,
@@ -73,14 +69,22 @@ public class FishingMacro extends Module {
         throwTimer.reset();
         inWaterTimer.reset();
         attackDelay.reset();
-        ticks = 0;
+        antiAfkTimer.reset();
         oldBobberPosY = 0.0D;
-        target = null;
         killing = true;
         particles.clear();
+        rodSlot = SkyblockUtils.findItemInHotbar("Rod");
+        if (rodSlot == -1) {
+            SkyblockUtils.SendInfo("No rod found in hotbar!");
+            this.toggle();
+            return;
+        }
         startRotation = new RotationUtils.Rotation(mc.thePlayer.rotationPitch, mc.thePlayer.rotationYaw);
         KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), May2BeezQoL.config.sneakWhileFishing);
-
+        MobKiller.Toggle();
+        MobKiller.setMobsNames(false, fishingMobs.toArray(new String[0]));
+        MobKiller.scanRange = May2BeezQoL.config.scScanRange;
+        MobKiller.ShouldScan = true;
     }
 
     @Override
@@ -91,6 +95,8 @@ public class FishingMacro extends Module {
         }
         stopMovement();
         RotationUtils.reset();
+        MobKiller.ShouldScan = false;
+        MobKiller.Toggle();
     }
 
     @SubscribeEvent
@@ -101,20 +107,33 @@ public class FishingMacro extends Module {
         if (mc.currentScreen != null && !(mc.currentScreen instanceof net.minecraft.client.gui.GuiChat))
             return;
 
+        particles.removeIf(p -> (System.currentTimeMillis() - p.timeAdded) > 1000);
+
+        if (MobKiller.hasTarget()) {
+            killing = true;
+            throwTimer.reset();
+            return;
+        }
+
+        if (killing) {
+            RotationUtils.smoothLook(startRotation, 250);
+            killing = false;
+        }
+
         stopMovement();
 
-        if (May2BeezQoL.config.antiAfk && ++ticks > (30 + new Random().nextInt(30))) {
-            ticks = 0;
+        if (May2BeezQoL.config.antiAfk && antiAfkTimer.hasReached(3000 + new Random().nextInt(1500))) {
+            antiAfkTimer.reset();
 
             if (RotationUtils.done) {
                 switch (antiAfkState) {
                     case AWAY: {
-                        RotationUtils.smoothLook(new RotationUtils.Rotation(startRotation.pitch + (-2 + new Random().nextInt(4)), startRotation.yaw + (-2 + new Random().nextInt(4))), 5);
+                        RotationUtils.smoothLook(new RotationUtils.Rotation(startRotation.pitch + (-2 + new Random().nextInt(4)), startRotation.yaw + (-2 + new Random().nextInt(4))), 160);
                         antiAfkState = AntiAfkState.BACK;
                         break;
                     }
                     case BACK: {
-                        RotationUtils.smoothLook(startRotation, 5);
+                        RotationUtils.smoothLook(startRotation, 180);
                         antiAfkState = AntiAfkState.AWAY;
                         break;
                     }
@@ -122,40 +141,15 @@ public class FishingMacro extends Module {
             }
         }
 
-        particles.removeIf(p -> (System.currentTimeMillis() - p.timeAdded) > 1000);
-
-        if (target != null) {
-            if (SkyblockUtils.getMobHp(targetStand) <= 0) {
-                target = null;
-                mc.thePlayer.inventory.currentItem = May2BeezQoL.config.rodSlot - 1;
-            }
-        }
-
-        if (target == null && killing) {
-            RotationUtils.smoothLook(startRotation, 5);
-            killing = false;
-        }
-
 
         if (May2BeezQoL.config.sneakWhileFishing) {
             KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), true);
         }
 
-        if (May2BeezQoL.config.prioritizeSCs) {
-            findAndSetCurrentSeaCreature();
-            if (target != null) {
-                throwTimer.reset();
-            }
-        } else if (targetStand != null && SkyblockUtils.getMobHp(targetStand) <= 0) {
-            targetStand = null;
-            target = null;
-            mc.thePlayer.inventory.currentItem = May2BeezQoL.config.rodSlot - 1;
-        }
-
         switch (currentState) {
             case THROWING: {
-                if (mc.thePlayer.fishEntity == null && throwTimer.hasReached(250)) {
-                    mc.thePlayer.inventory.currentItem = May2BeezQoL.config.rodSlot - 1;
+                if (mc.thePlayer.fishEntity == null && throwTimer.hasReached(250) && RotationUtils.done) {
+                    mc.thePlayer.inventory.currentItem = rodSlot;
                     mc.playerController.sendUseItem(mc.thePlayer, mc.theWorld, mc.thePlayer.getHeldItem());
                     throwTimer.reset();
                     inWaterTimer.reset();
@@ -172,9 +166,6 @@ public class FishingMacro extends Module {
                 if (heldItem != null && heldItem.getItem() == Items.fishing_rod) {
                     if (throwTimer.hasReached(500) && mc.thePlayer.fishEntity != null) {
                         if (mc.thePlayer.fishEntity.isInWater() || mc.thePlayer.fishEntity.isInLava()) {
-                            if (!May2BeezQoL.config.prioritizeSCs) {
-                                findAndSetCurrentSeaCreature();
-                            }
                             EntityFishHook bobber = mc.thePlayer.fishEntity;
                             if (inWaterTimer.hasReached(2500) && Math.abs(bobber.motionX) < 0.01 && Math.abs(bobber.motionZ) < 0.01) {
                                 double movement = bobber.posY - oldBobberPosY;
@@ -196,13 +187,13 @@ public class FishingMacro extends Module {
                     }
                     break;
                 }
-                mc.thePlayer.inventory.currentItem = May2BeezQoL.config.rodSlot - 1;
+                mc.thePlayer.inventory.currentItem = rodSlot;
                 break;
             }
             case FISH_BITE: {
-                mc.thePlayer.inventory.currentItem = May2BeezQoL.config.rodSlot - 1;
+                mc.thePlayer.inventory.currentItem = rodSlot;
                 mc.playerController.sendUseItem(mc.thePlayer, mc.theWorld, mc.thePlayer.getHeldItem());
-                RotationUtils.smoothLook(startRotation, 5);
+                RotationUtils.smoothLook(startRotation, 45);
                 throwTimer.reset();
                 currentState = AutoFishState.THROWING;
                 break;
@@ -211,36 +202,9 @@ public class FishingMacro extends Module {
     }
 
     @SubscribeEvent
-    public void onRenderTick(RenderWorldLastEvent event) {
-        if (!isToggled()) return;
-
-        if (target != null) {
-            RenderUtils.drawEntityBox(target, Color.orange, 2, event.partialTicks);
-        }
-        if (mc.currentScreen != null && !(mc.currentScreen instanceof net.minecraft.client.gui.GuiChat))
-            return;
-
-        if (target != null && attackDelay.hasReached(150)) {
-            if (!RotationUtils.done) return;
-
-            mc.thePlayer.inventory.currentItem = May2BeezQoL.config.weaponSlot - 1;
-            switch (May2BeezQoL.config.weaponAttackMode) {
-                case 0: {
-                    click();
-                    break;
-                }
-                case 1: {
-                    rightClick();
-                    break;
-                }
-            }
-            attackDelay.reset();
-        }
-    }
-
-    public static void handleParticles(S2APacketParticles packet) {
-        if (packet.getParticleType() == EnumParticleTypes.WATER_WAKE || packet.getParticleType() == EnumParticleTypes.SMOKE_NORMAL) {
-            particles.add(new ParticleEntry(new Vec3(packet.getXCoordinate(), packet.getYCoordinate(), packet.getZCoordinate()), System.currentTimeMillis()));
+    public void handleParticles(SpawnParticleEvent packet) {
+        if (packet.getParticleTypes() == EnumParticleTypes.WATER_WAKE || packet.getParticleTypes() == EnumParticleTypes.SMOKE_NORMAL || packet.getParticleTypes() == EnumParticleTypes.FLAME) {
+            particles.add(new ParticleEntry(new Vec3(packet.getXCoord(), packet.getYCoord(), packet.getZCoord()), System.currentTimeMillis()));
         }
     }
 
@@ -252,30 +216,6 @@ public class FishingMacro extends Module {
 
     private boolean bobberIsNearParticles(EntityFishHook bobber) {
         return particles.stream().anyMatch(v -> (getHorizontalDistance(bobber.getPositionVector(), v.position) < 0.2D));
-    }
-
-    private void findAndSetCurrentSeaCreature() {
-        int ranga = May2BeezQoL.config.scScanRange;
-        List<Entity> mobs = mc.theWorld.getEntitiesInAABBexcluding(mc.thePlayer, mc.thePlayer.getEntityBoundingBox().expand(ranga, (ranga >> 1), ranga), e -> e instanceof EntityArmorStand);
-        Optional<Entity> filtered = mobs.stream().filter(v -> (v.getDistanceToEntity(mc.thePlayer) < ranga && !v.getName().contains(mc.thePlayer.getName()) && fishingMobs.stream().anyMatch(f -> f.contains(v.getCustomNameTag())))).min(Comparator.comparing(v -> v.getDistanceToEntity((Entity) mc.thePlayer)));
-        if (filtered.isPresent()) {
-            targetStand = (EntityArmorStand)filtered.get();
-            target = SkyblockUtils.getEntityCuttingOtherEntity(targetStand, null);
-            if (target != null && SkyblockUtils.getMobHp(targetStand) > 0) {
-                killing = true;
-
-                if (May2BeezQoL.config.lookDownWhenAttacking) {
-                    RotationUtils.smoothLook(new RotationUtils.Rotation(0, mc.thePlayer.rotationYaw), 150);
-                } else {
-                    RotationUtils.smoothLook(RotationUtils.getRotation(target), 150);
-                }
-
-            } else if (SkyblockUtils.getMobHp(targetStand) <= 0) {
-                targetStand = null;
-                target = null;
-                mc.thePlayer.inventory.currentItem = May2BeezQoL.config.rodSlot - 1;
-            }
-        }
     }
 
     public void stopMovement() {

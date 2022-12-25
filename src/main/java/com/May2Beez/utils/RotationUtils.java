@@ -8,7 +8,6 @@ import net.minecraft.util.Vec3;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import org.jetbrains.annotations.NotNull;
 
 public class RotationUtils {
 
@@ -190,7 +189,6 @@ public class RotationUtils {
         serverYaw = mc.thePlayer.rotationYaw;
 
         if (rotationType != RotationType.SERVER) return;
-        System.out.println("Pre");
         if (System.currentTimeMillis() <= endTime) {
             mc.thePlayer.rotationYaw = interpolate(startRot.yaw, endRot.yaw);
             mc.thePlayer.rotationPitch = interpolate(startRot.pitch, endRot.pitch);

@@ -5,7 +5,6 @@ import com.May2Beez.Module;
 import com.May2Beez.utils.LocationUtils;
 import com.May2Beez.utils.RenderUtils;
 import com.May2Beez.utils.SkyblockUtils;
-import net.minecraft.block.BlockStainedGlass;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityArmorStand;
@@ -44,14 +43,16 @@ public class ESP extends Module {
                 if (target == null) continue;
 
                 if (target instanceof EntityPlayerMP) {
-                    if (((EntityPlayerMP) target).ping != 1) continue;
+                    if (((EntityPlayerMP) target).ping == 1) continue;
                 }
+
+                if (SkyblockUtils.isNPC(target)) continue;
 
                 if (stand.getCustomNameTag().contains("§c") || stand.getCustomNameTag().contains("❤️")) {
                     RenderUtils.drawEntityBox(target, May2BeezQoL.config.espColor, 2, event.partialTicks);
 
                     if (!SkyblockUtils.entityIsVisible(target) && May2BeezQoL.config.drawMobNames) {
-                        RenderUtils.drawText(stand.getName(), target.posX, target.posY + target.height + 0.75, target.posZ, Color.WHITE, true, 0.8f, true);
+                        RenderUtils.drawText(stand.getName(), target.posX, target.posY + target.height + 1, target.posZ, Color.WHITE, true, 0.8f, true);
                     }
                 }
             }
@@ -72,10 +73,14 @@ public class ESP extends Module {
                     int state = chest.numPlayersUsing;
                     return state == 0;
                 })
+                .filter(pos -> {
+                    if (PowderChest.closestChest == null) return true;
+                    return PowderChest.closestChest.pos != pos;
+                })
                 .collect(Collectors.toList());
 
         for (BlockPos pos : chests) {
-            RenderUtils.drawBlockBox(pos, May2BeezQoL.config.chestEspColor, 3, true);
+            RenderUtils.drawBlockBox(pos, May2BeezQoL.config.chestEspColor, 3);
         }
     }
 
@@ -96,22 +101,22 @@ public class ESP extends Module {
 
             int meta = mc.theWorld.getBlockState(pos).getBlock().getMetaFromState(mc.theWorld.getBlockState(pos));
             if (meta == EnumDyeColor.RED.getMetadata()) {
-                RenderUtils.drawOutline(pos, new Color(Color.red.getRed(), Color.red.getGreen(), Color.red.getBlue(), alpha), 3, true);
+                RenderUtils.drawOutline(pos, new Color(Color.red.getRed(), Color.red.getGreen(), Color.red.getBlue(), alpha), 3);
             }
             if (meta == EnumDyeColor.ORANGE.getMetadata()) {
-                RenderUtils.drawOutline(pos, new Color(Color.orange.getRed(), Color.orange.getGreen(), Color.orange.getBlue(), alpha), 3, true);
+                RenderUtils.drawOutline(pos, new Color(Color.orange.getRed(), Color.orange.getGreen(), Color.orange.getBlue(), alpha), 3);
             }
             if (meta == EnumDyeColor.YELLOW.getMetadata()) {
-                RenderUtils.drawOutline(pos, new Color(Color.yellow.getRed(), Color.yellow.getGreen(), Color.yellow.getBlue(), alpha), 3, true);
+                RenderUtils.drawOutline(pos, new Color(Color.yellow.getRed(), Color.yellow.getGreen(), Color.yellow.getBlue(), alpha), 3);
             }
             if (meta == EnumDyeColor.PURPLE.getMetadata()) {
-                RenderUtils.drawOutline(pos, new Color(Color.magenta.getRed(), Color.magenta.getGreen(), Color.magenta.getBlue(), alpha), 3, true);
+                RenderUtils.drawOutline(pos, new Color(Color.magenta.getRed(), Color.magenta.getGreen(), Color.magenta.getBlue(), alpha), 3);
             }
             if (meta == EnumDyeColor.LIME.getMetadata()) {
-                RenderUtils.drawOutline(pos, new Color(Color.green.getRed(), Color.green.getGreen(), Color.green.getBlue(), alpha), 3, true);
+                RenderUtils.drawOutline(pos, new Color(Color.green.getRed(), Color.green.getGreen(), Color.green.getBlue(), alpha), 3);
             }
             if (meta == EnumDyeColor.BLUE.getMetadata()) {
-                RenderUtils.drawOutline(pos, new Color(Color.blue.getRed(), Color.blue.getGreen(), Color.blue.getBlue(), alpha), 3, true);
+                RenderUtils.drawOutline(pos, new Color(Color.blue.getRed(), Color.blue.getGreen(), Color.blue.getBlue(), alpha), 3);
             }
         }
     }

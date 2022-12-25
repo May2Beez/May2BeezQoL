@@ -22,10 +22,13 @@ public class Config extends Vigilant {
     private static final String AOTV_MACRO = "AOTV Macro";
     private static final String MOB_KILLER = "Mob Killer";
     private static final String ESP = "ESP";
+    private static final String WORLD_SCANNER = "World Scanner";
+
+    private static final int maxCameraSpeedMS = 300;
 
 
     //region Mithril Miner
-    @Property(type = PropertyType.SLIDER, name = "Max Break Time", category = MITHRIL_MINER,  min = 0, max = 5000)
+    @Property(type = PropertyType.SLIDER, name = "Max Break Time", category = MITHRIL_MINER, max = 5000)
     public int maxBreakTime = 2000;
 
     @Property(type = PropertyType.SWITCH, name = "Prioritize Titanium", category = MITHRIL_MINER)
@@ -52,7 +55,7 @@ public class Config extends Vigilant {
     @Property(type = PropertyType.SLIDER, name = "Line width", category = GHOST_GRINDER, min = 1, max = 10, hidden = true)
     public int lineWidth = 2;
 
-    @Property(type = PropertyType.SLIDER, name = "Radius", category = GHOST_GRINDER, min = 0, max = 100, hidden = true)
+    @Property(type = PropertyType.SLIDER, name = "Radius", category = GHOST_GRINDER, max = 100, hidden = true)
     public int radius = 15;
 
     @Property(type = PropertyType.SLIDER, name = "Click delay", category = GHOST_GRINDER, min = 1, max = 20, hidden = true)
@@ -66,10 +69,10 @@ public class Config extends Vigilant {
     public int nukerShape = 0;
 
     @Property(type = PropertyType.SLIDER, name = "Speed", category = NUKER, min = 10, max = 80, increment = 10)
-    public int nukerSpeed = 50;
+    public int nukerSpeed = 20;
 
-    @Property(type = PropertyType.SLIDER, name = "Pingless reset cutoff", category = NUKER, min = 0, max = 20)
-    public int nukerPinglessCutoff = 10;
+    @Property(type = PropertyType.SLIDER, name = "Pingless reset cutoff", category = NUKER, max = 20)
+    public int nukerPinglessCutoff = 15;
 
     @Property(type = PropertyType.SWITCH, name = "Mine Blocks In Front", description = "Mine all blocks in the way of the player", category = NUKER)
     public boolean mineBlocksInFront = false;
@@ -80,7 +83,7 @@ public class Config extends Vigilant {
     @Property(type = PropertyType.SELECTOR, name = "Pause nuker when solving", description = "Choose which mode hardstone nuker will use", category = NUKER, options = {"Don't", "Pause Nuker", "Pause Nuker Rotations"})
     public int powderChestPauseNukerMode = 0;
 
-    @Property(type = PropertyType.SLIDER, name = "Field of View", description = "Change fov of sphere shape nuker", min = 0, max = 360, increment = 20, category = NUKER)
+    @Property(type = PropertyType.SLIDER, name = "Field of View", description = "Change fov of sphere shape nuker", max = 360, increment = 20, category = NUKER)
     public int nukerFieldOfView = 180;
 
     @Property(type = PropertyType.SELECTOR, name = "Algorithm", category = NUKER, options = {"Closest Block (Classic)", "Smallest Rotation (NEW!)"})
@@ -145,7 +148,7 @@ public class Config extends Vigilant {
     @Property(type = PropertyType.TEXT, name = "Right coordinates", category = FARMING_MACRO)
     public String rightWall = "0.0";
 
-    @Property(type = PropertyType.SLIDER, name = "Amount of ms to move forward", description = "Set 0 to move only left/right", category = FARMING_MACRO, min = 0, max = 5000, increment = 100)
+    @Property(type = PropertyType.SLIDER, name = "Amount of ms to move forward", description = "Set 0 to move only left/right", category = FARMING_MACRO, max = 5000, increment = 100)
     public int forwardMs = 0;
 
     @Property(type = PropertyType.SELECTOR, name = "Check X or Z", category = FARMING_MACRO, options = {"X", "Z"})
@@ -160,21 +163,21 @@ public class Config extends Vigilant {
     //endregion
 
     //region Farming Nuker
-    @Property(type = PropertyType.SELECTOR, name = "Farming speed", category = FARMING_NUKER, options = {"40 BPS", "80 BPS"})
+    @Property(type = PropertyType.SELECTOR, name = "Farming speed", category = FARMING_NUKER, options = {"40 BPS", "80 BPS"}, hidden = true)
     public int farmingSpeedIndex = 0;
 
-    @Property(type = PropertyType.SLIDER, name = "Farming radius", category = FARMING_NUKER, min = 1, max = 10)
+    @Property(type = PropertyType.SLIDER, name = "Farming radius", category = FARMING_NUKER, min = 1, max = 10, hidden = true)
     public int farmingRadius = 3;
 
     @Property(type = PropertyType.SELECTOR, name = "Farming Shape", description = "Choose which pattern crop nuker will follow",
-            category = FARMING_NUKER, options = {"Closest Block", "Facing Axis"})
+            category = FARMING_NUKER, options = {"Closest Block", "Facing Axis"}, hidden = true)
     public int farmShapeIndex = 0;
 
     @Property(type = PropertyType.SELECTOR, name = "Nuker Crop Type", description = "Select the type of crop you want to nuke",
-            category = FARMING_NUKER, options = {"Any Crop Except Cane or Cactus", "Cane or Cactus", "Nether Wart", "Wheat", "Carrot", "Potato", "Pumpkin", "Melon", "Mushroom", "Cocoa"})
+            category = FARMING_NUKER, options = {"Any Crop Except Cane or Cactus", "Cane or Cactus", "Nether Wart", "Wheat", "Carrot", "Potato", "Pumpkin", "Melon", "Mushroom", "Cocoa"}, hidden = true)
     public int farmNukeIndex = 0;
 
-    @Property(type = PropertyType.SLIDER, name = "Down Up Range", category = FARMING_NUKER, min = 0, max = 4)
+    @Property(type = PropertyType.SLIDER, name = "Down Up Range", category = FARMING_NUKER, max = 4, hidden = true)
     public int downUpRange = 0;
 
     //endregion
@@ -189,7 +192,7 @@ public class Config extends Vigilant {
     //endregion
 
     //region Foraging Macro
-    @Property(type = PropertyType.SLIDER, name = "Foraging Macro Delay", category = FORAGING_MACRO, min = 0, max = 500)
+    @Property(type = PropertyType.SLIDER, name = "Foraging Macro Delay", category = FORAGING_MACRO, max = 500)
     public int foragingDelay = 0;
 
     @Property(type = PropertyType.CHECKBOX, name = "Use Fishing Rod", category = FORAGING_MACRO)
@@ -198,13 +201,13 @@ public class Config extends Vigilant {
     @Property(type = PropertyType.TEXT, name = "Monkey Pet LVL", category = FORAGING_MACRO)
     public String monkeyLVL = "0";
 
-    @Property(type = PropertyType.SLIDER, name = "Foraging Macro Pre Rod Delay", category = FORAGING_MACRO, min = 0, max = 500)
+    @Property(type = PropertyType.SLIDER, name = "Foraging Macro Pre Rod Delay", category = FORAGING_MACRO, max = 500)
     public int preRodDelay = 0;
 
     @Property(type = PropertyType.CHECKBOX, name = "Use normal Bone Meal, instead of Enchanted", category = FORAGING_MACRO)
     public boolean normalBoneMeal = false;
 
-    @Property(type = PropertyType.SLIDER, name = "Max idle", category = FORAGING_MACRO, min = 0, max = 60)
+    @Property(type = PropertyType.SLIDER, name = "Max idle", category = FORAGING_MACRO, max = 60)
     public int maxIdleTicks = 0;
 
     //endregion
@@ -213,13 +216,10 @@ public class Config extends Vigilant {
     @Property(type = PropertyType.SWITCH, name = "Powder chest solver server rotation", category = MINING)
     public boolean solvePowderChestServerRotation = false;
 
-    @Property(type = PropertyType.SLIDER, name = "Powder chest server side rotation speed", category = MINING, min = 1, max = 10)
-    public int powderChestServerRotationSpeed = 3;
-
     @Property(type = PropertyType.SWITCH, name = "Use mining speed in mining macros", category = MINING)
     public boolean useMiningSpeed = false;
 
-    @Property(type = PropertyType.SLIDER, name = "Camera speed in ms", category = MINING, min = 0, max = 1000)
+    @Property(type = PropertyType.SLIDER, name = "Camera speed in ms", category = MINING, max = maxCameraSpeedMS)
     public int cameraSpeed = 120;
 
     //endregion
@@ -228,22 +228,7 @@ public class Config extends Vigilant {
     @Property(type = PropertyType.SWITCH, name = "AntiAfk", category = FISHING)
     public boolean antiAfk = false;
 
-    @Property(type = PropertyType.SLIDER, name = "Rod Slot", category = FISHING, min = 1, max = 9)
-    public int rodSlot = 1;
-
-    @Property(type = PropertyType.SLIDER, name = "Weapon Slot", category = FISHING, min = 1, max = 9)
-    public int weaponSlot = 1;
-
-    @Property(type = PropertyType.SELECTOR, name = "Weapon Attack Mode", category = FISHING, options = {"LEFT CLICK", "RIGHT CLICK"})
-    public int weaponAttackMode = 0;
-
-    @Property(type = PropertyType.SWITCH, name = "Prioritize Killing SCs", category = FISHING)
-    public boolean prioritizeSCs = false;
-
-    @Property(type = PropertyType.SWITCH, name = "Look down when attacking", category = FISHING)
-    public boolean lookDownWhenAttacking = false;
-
-    @Property(type = PropertyType.SLIDER, name = "SC Scan Range", category = FISHING, min = 0, max = 20)
+    @Property(type = PropertyType.SLIDER, name = "SC Scan Range", category = FISHING, max = 20)
     public int scScanRange = 0;
 
     @Property(type = PropertyType.SWITCH, name = "Sneak while fishing", category = FISHING)
@@ -264,7 +249,7 @@ public class Config extends Vigilant {
     @Property(type = PropertyType.COLOR, name = "Route line color", category = AOTV_MACRO, subcategory = "Drawing")
     public Color routeLineColor = new Color(0, 255, 0, 50);
 
-    @Property(type = PropertyType.SLIDER, name = "Camera speed in ms", category = AOTV_MACRO, min = 0, max = 1000, subcategory = "Timers")
+    @Property(type = PropertyType.SLIDER, name = "Camera speed in ms", category = AOTV_MACRO, max = maxCameraSpeedMS, subcategory = "Timers")
     public int aotvCameraSpeed = 120;
 
     @Property(type = PropertyType.SLIDER, name = "Stuck time threshold in ms", category = AOTV_MACRO, min = 500, max = 5000, subcategory = "Timers")
@@ -282,7 +267,7 @@ public class Config extends Vigilant {
     @Property(type = PropertyType.COLOR, name = "AOTV Vision blocks color", category = AOTV_MACRO, subcategory = "Drawing")
     public Color aotvVisionBlocksColor = new Color(255, 0, 0, 120);
 
-    @Property(type = PropertyType.SLIDER, name = "AOTV Waypoint targeting camera speed in ms", category = AOTV_MACRO, min = 0, max = 1000, subcategory = "Timers")
+    @Property(type = PropertyType.SLIDER, name = "AOTV Waypoint targeting camera speed in ms", category = AOTV_MACRO, max = maxCameraSpeedMS, subcategory = "Timers")
     public int aotvWaypointTargetingTime = 100;
 
     @Property(type = PropertyType.DECIMAL_SLIDER, name = "AOTV Waypoint targeting accuracy", description = "Smaller == closer to center", decimalPlaces = 2, minF = 0.02f, maxF = 0.5f, category = AOTV_MACRO)
@@ -298,8 +283,11 @@ public class Config extends Vigilant {
     @Property(type = PropertyType.TEXT, name = "Mob's names to kill", category = MOB_KILLER)
     public String mobsNames = "";
 
-    @Property(type = PropertyType.SLIDER, name = "Mob Killer camera speed in ms", category = MOB_KILLER, min = 0, max = 1000)
+    @Property(type = PropertyType.SLIDER, name = "Mob Killer camera speed in ms", category = MOB_KILLER, max = maxCameraSpeedMS)
     public int mobKillerCameraSpeed = 120;
+
+    @Property(type = PropertyType.SWITCH, name = "Use Hyperion under player", category = MOB_KILLER)
+    public boolean useHyperionUnderPlayer = false;
 
     //endregion
 
@@ -323,10 +311,10 @@ public class Config extends Vigilant {
     @Property(type = PropertyType.SWITCH, name = "Draw ESP around gemstones", category = ESP)
     public boolean gemstoneEsp = true;
 
-    @Property(type = PropertyType.SLIDER, name = "Gemstone ESP alpha", category = ESP, min = 0, max = 255)
+    @Property(type = PropertyType.SLIDER, name = "Gemstone ESP alpha", category = ESP, max = 255)
     public int gemstoneEspAlpha = 80;
 
-    @Property(type = PropertyType.SLIDER, name = "ESP range", category = ESP, min = 0, max = 40)
+    @Property(type = PropertyType.SLIDER, name = "ESP range", category = ESP, max = 40)
     public int espRange = 10;
 
 
@@ -334,8 +322,42 @@ public class Config extends Vigilant {
 
     //region DEBUG
 
-    @Property(type = PropertyType.SWITCH, name = "Debug", category = "DEBUG", hidden = true)
+    @Property(type = PropertyType.SWITCH, name = "Debug", category = "DEBUG")
     public boolean debug = false;
+
+    //endregion
+
+    //region WORLD_SCANNER
+
+    @Property(type = PropertyType.SWITCH, name = "Enable world scanner", category = WORLD_SCANNER)
+    public boolean worldScanner = false;
+
+    @Property(type = PropertyType.SELECTOR, name = "Scanner mode", category = WORLD_SCANNER, options = {"When chunk is loaded", "Timer", "Both"})
+    public int worldScannerScanMode = 0;
+
+    @Property(type = PropertyType.SLIDER, name = "World Scan Timer", category = WORLD_SCANNER, max = 20)
+    public int worldScannerScanFrequency = 10;
+
+    @Property(type = PropertyType.SWITCH, name = "ESP Waypoint highlight", category = WORLD_SCANNER, subcategory = "Drawing")
+    public boolean espHighlight = true;
+
+    @Property(type = PropertyType.SWITCH, name = "ESP Waypoint text", category = WORLD_SCANNER, subcategory = "Drawing")
+    public boolean espWaypointText = true;
+
+    @Property(type = PropertyType.SWITCH, name = "ESP Waypoint Beacon", category = WORLD_SCANNER, subcategory = "Drawing")
+    public boolean espBeacon = true;
+
+    @Property(type = PropertyType.SWITCH, category = WORLD_SCANNER, subcategory = "FILTER", name = "Crystal Hollows crystals")
+    public boolean worldScannerCHCrystals = true;
+
+    @Property(type = PropertyType.SWITCH, category = WORLD_SCANNER, subcategory = "FILTER", name = "Crystal Hollows mob spots")
+    public boolean worldScannerCHMobSpots = true;
+
+    @Property(type = PropertyType.SWITCH, category = WORLD_SCANNER, subcategory = "FILTER", name = "Crystal Hollows fairy grottos")
+    public boolean worldScannerCHFairyGrottos = true;
+
+    @Property(type = PropertyType.SWITCH, category = WORLD_SCANNER, subcategory = "FILTER", name = "Crystal Hollows worm fishing spots")
+    public boolean worldScannerCHWormFishing = true;
 
     //endregion
 

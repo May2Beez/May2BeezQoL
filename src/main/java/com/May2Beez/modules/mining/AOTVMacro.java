@@ -414,7 +414,7 @@ public class AOTVMacro extends Module {
         if (Waypoints == null || Waypoints.isEmpty()) return;
 
         if (target != null) {
-            RenderUtils.drawBlockBox(target.getPos(), new Color(0, 255, 0, 100), 3f, true);
+            RenderUtils.drawBlockBox(target.getPos(), new Color(0, 255, 0, 100), 3f);
         }
 
         if (May2BeezQoL.config.showRouteBlocks) {

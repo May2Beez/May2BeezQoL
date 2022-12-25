@@ -1,7 +1,7 @@
 package com.May2Beez.utils;
 
 public class Timer {
-    private long lastMS = 0L;
+    public long lastMS = 0L;
 
     public Timer() {
         reset();

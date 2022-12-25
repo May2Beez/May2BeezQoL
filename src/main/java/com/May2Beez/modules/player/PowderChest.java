@@ -91,16 +91,24 @@ public class PowderChest extends Module {
         }
     }
 
+    @Override
+    public void onDisable() {
+        closestChest = null;
+        super.onDisable();
+    }
+
     private void normalRotation() {
         if (closestChest.particle == null) return;
 
-        RotationUtils.smoothLook(RotationUtils.getRotation(closestChest.particle), May2BeezQoL.config.cameraSpeed);
+        if (RotationUtils.done)
+            RotationUtils.smoothLook(RotationUtils.getRotation(closestChest.particle), May2BeezQoL.config.cameraSpeed);
     }
 
     private void serverRotation() {
         if (closestChest.particle == null) return;
 
-        RotationUtils.serverSmoothLook(RotationUtils.getRotation(closestChest.particle), May2BeezQoL.config.powderChestServerRotationSpeed);
+        if (RotationUtils.done)
+            RotationUtils.serverSmoothLook(RotationUtils.getRotation(closestChest.particle), May2BeezQoL.config.cameraSpeed);
     }
 
     @SubscribeEvent
@@ -119,7 +127,7 @@ public class PowderChest extends Module {
             }
         }
         if (closestChest != null) {
-            RenderUtils.drawBlockBox(closestChest.pos, new Color(Color.orange.getRed(), Color.orange.getGreen(), Color.orange.getBlue(), 150), 5);
+            RenderUtils.drawBlockBox(closestChest.pos, new Color(Color.orange.getRed(), Color.orange.getGreen(), Color.orange.getBlue(), 200), 3);
         }
     }
 

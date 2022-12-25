@@ -73,7 +73,7 @@ public class ForagingMacro extends Module {
         textToDraw[0] = "§lState: §r" + state;
         textToDraw[1] = "§lIdle time: §r" + idleTicks;
         textToDraw[2] = "§lAxe ready in: §r" + (timeToNextAxe > 0 ? String.format("%.2f", ((double) timeToNextAxe / 1000)) + "s" : "READY");
-        RenderUtils.renderBoxedText(textToDraw, width - 130, height - 80, 1.0, Color.lightGray.getRGB());
+        RenderUtils.renderBoxedText(textToDraw, width - 130, height - 80, 1.0);
     }
 
     @SubscribeEvent
@@ -264,7 +264,7 @@ public class ForagingMacro extends Module {
                     continue;
                 }
                 Vec3 vec = new Vec3(blockPos.getX(), blockPos.getY(), blockPos.getZ());
-                dirts.add(new Tuple<Double, Vec3>(vec.distanceTo(Minecraft.getMinecraft().thePlayer.getPositionVector()), vec));
+                dirts.add(new Tuple<>(vec.distanceTo(Minecraft.getMinecraft().thePlayer.getPositionVector()), vec));
             }
         }
         dirts.sort(Comparator.comparingDouble(Tuple::getFirst));
