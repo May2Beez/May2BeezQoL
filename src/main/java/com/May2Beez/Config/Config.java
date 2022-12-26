@@ -255,7 +255,7 @@ public class Config extends Vigilant {
     @Property(type = PropertyType.SLIDER, name = "Stuck time threshold in ms", category = AOTV_MACRO, min = 500, max = 5000, subcategory = "Timers")
     public int aotvStuckTimeThreshold = 2000;
 
-    @Property(type = PropertyType.SELECTOR, name = "Type of gemstone to mine", category = AOTV_MACRO, options = {"Any", "Ruby", "Amethyst", "Jade", "Sapphire", "Amber", "Topaz"})
+    @Property(type = PropertyType.SELECTOR, name = "Type of block to mine", category = AOTV_MACRO, options = {"Any", "Ruby", "Amethyst", "Jade", "Sapphire", "Amber", "Topaz", "Jasper", "Mithril"})
     public int aotvGemstoneType = 0;
 
     @Property(type = PropertyType.SWITCH, name = "Draw blocks blocking AOTV vision", category = AOTV_MACRO, subcategory = "Drawing")
@@ -272,6 +272,12 @@ public class Config extends Vigilant {
 
     @Property(type = PropertyType.DECIMAL_SLIDER, name = "AOTV Waypoint targeting accuracy", description = "Smaller == closer to center", decimalPlaces = 2, minF = 0.02f, maxF = 0.5f, category = AOTV_MACRO)
     public float aotvTargetingWaypointAccuracy = 0.2f;
+
+    @Property(type = PropertyType.SWITCH, name = "Yog killer", category = AOTV_MACRO)
+    public boolean yogKiller = false;
+
+    @Property(type = PropertyType.DECIMAL_SLIDER, minF = 1, maxF = 6, name = "Scan radius", category = AOTV_MACRO)
+    public float scanRadius = 5.5f;
 
     //endregion
 

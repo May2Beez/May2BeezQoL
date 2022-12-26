@@ -4,12 +4,15 @@ import com.May2Beez.AOTVWaypointsGUI;
 import com.May2Beez.May2BeezQoL;
 import com.May2Beez.Module;
 import com.May2Beez.events.BlockChangeEvent;
+import com.May2Beez.modules.combat.MobKiller;
 import com.May2Beez.utils.*;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockColored;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.init.Blocks;
+import net.minecraft.item.EnumDyeColor;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
@@ -39,11 +42,14 @@ public class AOTVMacro extends Module {
 
     private final ArrayList<BlockPos> blocksBlockingVision = new ArrayList<>();
 
+    private final ArrayList<Structs.BlockData> blocksToMine = new ArrayList<>();
+
+    private boolean killing = false;
+
     public enum State {
         SEARCHING,
         MINING,
-        WARPING,
-        KILLING
+        WARPING
     }
 
     private State currentState = State.SEARCHING;
@@ -59,6 +65,7 @@ public class AOTVMacro extends Module {
 
     @Override
     public void onEnable() {
+        blocksToMine.clear();
         Waypoints = May2BeezQoL.coordsConfig.getSelectedRoute().waypoints;
 
         BlockPos currentPos = BlockUtils.getPlayerLoc().down();
@@ -93,6 +100,17 @@ public class AOTVMacro extends Module {
             return;
         }
 
+        if (May2BeezQoL.config.yogKiller) {
+            MobKiller.Toggle();
+            MobKiller.setMobsNames(false, "Yog");
+            if (May2BeezQoL.config.useHyperionUnderPlayer) {
+                MobKiller.scanRange = 5;
+            } else {
+                MobKiller.scanRange = 10;
+            }
+            MobKiller.ShouldScan = true;
+        }
+
         searchingTimer.reset();
         super.onEnable();
     }
@@ -110,6 +128,8 @@ public class AOTVMacro extends Module {
         RotationUtils.reset();
         KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), false);
         KeyBinding.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), false);
+        MobKiller.ShouldScan = false;
+        MobKiller.Toggle();
     }
 
     @SubscribeEvent
@@ -124,6 +144,7 @@ public class AOTVMacro extends Module {
             currentState = State.SEARCHING;
             oldTarget = target;
             target = null;
+            RotationUtils.reset();
         }
     }
 
@@ -134,6 +155,21 @@ public class AOTVMacro extends Module {
         if (!this.isToggled()) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
 
+
+        if (May2BeezQoL.config.yogKiller) {
+            if (MobKiller.hasTarget()) {
+
+                if (!killing) {
+                    KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), false);
+                    KeyBinding.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), false);
+                    killing = true;
+                }
+
+                return;
+            } else if (killing) {
+                killing = false;
+            }
+        }
 
         switch (currentState) {
             case SEARCHING: {
@@ -155,8 +191,14 @@ public class AOTVMacro extends Module {
 
                 KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), true);
                 KeyBinding.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), false);
+
+                if (blocksToMine.isEmpty()) {
+                    blocksToMine.addAll(getBlocksToMine());
+                }
+
                 target = getClosestGemstone();
                 blockToIgnoreBecauseOfStuck = null;
+
                 if (target != null) {
                     currentState = State.MINING;
                     int miningTool = SkyblockUtils.findItemInHotbar("Drill", "Pickaxe", "Gauntlet");
@@ -199,7 +241,7 @@ public class AOTVMacro extends Module {
 
                 KeyBinding.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), lookingAtTarget);
 
-                if (stuckTimer.hasReached(May2BeezQoL.config.aotvStuckTimeThreshold) && RotationUtils.done) {
+                if (stuckTimer.hasReached(May2BeezQoL.config.aotvStuckTimeThreshold) && RotationUtils.IsDiffLowerThan(0.1f)) {
                     KeyBinding.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), false);
                     SkyblockUtils.SendInfo("Stuck for " + May2BeezQoL.config.aotvStuckTimeThreshold + " ms, restarting.", false, name);
                     stuckTimer.reset();
@@ -240,6 +282,7 @@ public class AOTVMacro extends Module {
                     if (movingObjectPosition.getBlockPos().equals(waypoint)) {
                         mc.playerController.sendUseItem(mc.thePlayer, mc.theWorld, mc.thePlayer.getHeldItem());
                         SkyblockUtils.SendInfo("Teleported to waypoint " + currentWaypoint, true, name);
+                        blocksToMine.clear();
                         currentState = State.SEARCHING;
                         searchingTimer.reset();
                         oldTarget = null;
@@ -319,88 +362,120 @@ public class AOTVMacro extends Module {
         }
     }
 
-    private Structs.BlockData getClosestGemstone() {
-        Structs.BlockData blockPos = null;
-
-        int range = 6;
+    private ArrayList<Structs.BlockData> getBlocksToMine() {
+        float range = May2BeezQoL.config.scanRadius + 1;
 
         ArrayList<Structs.BlockData> blocks = new ArrayList<>();
-
         Iterable<BlockPos> blockss = BlockPos.getAllInBox(BlockUtils.getPlayerLoc().add(-range, -range, -range), BlockUtils.getPlayerLoc().add(range, range, range));
         for (BlockPos blockPos1 : blockss) {
-            if (mc.theWorld.getBlockState(blockPos1).getBlock() == Blocks.stained_glass_pane || mc.theWorld.getBlockState(blockPos1).getBlock() == Blocks.stained_glass) {
+            ArrayList<Block> blocksToCheck = new ArrayList<Block>() {{
+                add(Blocks.stained_glass_pane);
+                add(Blocks.stained_glass);
+                if (May2BeezQoL.config.aotvGemstoneType == 8) {
+                    add(Blocks.wool);
+                    add(Blocks.prismarine);
+                    add(Blocks.stained_hardened_clay);
+                }
+            }};
+            if (blocksToCheck.stream().anyMatch(b -> b.equals(mc.theWorld.getBlockState(blockPos1).getBlock()))) {
 
-                if (May2BeezQoL.config.aotvGemstoneType > 0) {
+                if (May2BeezQoL.config.aotvGemstoneType == 8) {
+                    if (!IsThisAGoodMithril(blockPos1)) continue;
+                }
+                else if (May2BeezQoL.config.aotvGemstoneType > 0) {
                     if (!IsThisAGoodGemstone(blockPos1)) continue;
                 }
 
-                if (blockPos1.equals(blockToIgnoreBecauseOfStuck)) continue;
+                if (mc.thePlayer.getPositionEyes(1).distanceTo(new Vec3(blockPos1.getX() + 0.5, blockPos1.getY() + 0.5, blockPos1.getZ() + 0.5)) < May2BeezQoL.config.scanRadius) {
 
-                if (mc.thePlayer.getDistanceSq(blockPos1) < 4.5f * 4.5f) {
-                    Vec3 vec3 = BlockUtils.getRandomVisibilityLine(blockPos1);
-                    if (vec3 != null) {
-                        IBlockState bs = mc.theWorld.getBlockState(blockPos1);
-                        blocks.add(new Structs.BlockData(blockPos1, bs.getBlock(), bs, vec3));
-                    }
+                    IBlockState bs = mc.theWorld.getBlockState(blockPos1);
+                    blocks.add(new Structs.BlockData(blockPos1, bs.getBlock(), bs, null));
                 }
             }
         }
 
+        return blocks;
+    }
+
+    private Structs.BlockData getClosestGemstone() {
+        Structs.BlockData blockPos = null;
+
         double distance = 9999;
-        for (Structs.BlockData block : blocks) {
+        for (Structs.BlockData block : blocksToMine) {
+            Structs.BlockData blockPos1 = block;
             double currentDistance;
+
+            if (mc.theWorld.getBlockState(blockPos1.getPos()) == null || mc.theWorld.isAirBlock(blockPos1.getPos())) continue;
+
+            if (blockPos1.getPos().equals(blockToIgnoreBecauseOfStuck)) continue;
+
+            Vec3 vec3 = BlockUtils.getRandomVisibilityLine(blockPos1.getPos());
+            if (vec3 == null) continue;
+
+            blockPos1 = new Structs.BlockData(blockPos1.getPos(), blockPos1.getBlock(), blockPos1.getState(), vec3);
+
             if (oldTarget != null) {
-                currentDistance = oldTarget.getPos().distanceSq(block.getPos());
+                currentDistance = oldTarget.getPos().distanceSq(blockPos1.getPos());
             } else {
-                currentDistance = BlockUtils.getPlayerLoc().distanceSq(block.getPos());
+                currentDistance = BlockUtils.getPlayerLoc().distanceSq(blockPos1.getPos());
             }
             if (currentDistance < distance) {
                 distance = currentDistance;
-                blockPos = block;
+                blockPos = blockPos1;
             }
         }
 
         return blockPos;
     }
 
+    private boolean IsThisAGoodMithril(BlockPos blockPos) {
+
+        if (mc.theWorld.getBlockState(blockPos).getBlock() == Blocks.wool) {
+            EnumDyeColor color = mc.theWorld.getBlockState(blockPos).getValue(BlockColored.COLOR);
+            return (color == EnumDyeColor.LIGHT_BLUE || color == EnumDyeColor.GRAY);
+        }
+
+        if (mc.theWorld.getBlockState(blockPos).getBlock() == Blocks.prismarine) {
+            return true;
+        }
+
+        if (mc.theWorld.getBlockState(blockPos).getBlock() == Blocks.stained_hardened_clay) {
+            EnumDyeColor color = mc.theWorld.getBlockState(blockPos).getValue(BlockColored.COLOR);
+            return (color == EnumDyeColor.CYAN);
+        }
+
+        return false;
+    }
+
     public boolean IsThisAGoodGemstone(BlockPos block) {
 
-        // Check if glass_pane block is color red
-        int meta = mc.theWorld.getBlockState(block).getBlock().getMetaFromState(mc.theWorld.getBlockState(block));
+        EnumDyeColor color = mc.theWorld.getBlockState(block).getValue(BlockColored.COLOR);
 
-        switch (meta) {
-            // red
-            case 14: {
-                if (May2BeezQoL.config.aotvGemstoneType == 1) return true;
-                break;
+        switch (color) {
+            case RED: {
+                return May2BeezQoL.config.aotvGemstoneType == 1;
             }
-            // purple
-            case 10: {
-                if (May2BeezQoL.config.aotvGemstoneType == 2) return true;
-                break;
+            case PURPLE: {
+                return May2BeezQoL.config.aotvGemstoneType == 2;
             }
-            // lime
-            case 5: {
-                if (May2BeezQoL.config.aotvGemstoneType == 3) return true;
-                break;
+            case LIME: {
+                return May2BeezQoL.config.aotvGemstoneType == 3;
             }
-            // blue
-            case 11: {
-                if (May2BeezQoL.config.aotvGemstoneType == 4) return true;
-                break;
+            case BLUE: {
+                return May2BeezQoL.config.aotvGemstoneType == 4;
             }
-            // orange
-            case 1: {
-                if (May2BeezQoL.config.aotvGemstoneType == 5) return true;
-                break;
+            case ORANGE: {
+                return May2BeezQoL.config.aotvGemstoneType == 5;
             }
-            // yellow
-            case 4: {
-                if (May2BeezQoL.config.aotvGemstoneType == 6) return true;
-                break;
+            case YELLOW: {
+                return May2BeezQoL.config.aotvGemstoneType == 6;
             }
+            case MAGENTA: {
+                return May2BeezQoL.config.aotvGemstoneType == 7;
+            }
+
             default: {
-                SkyblockUtils.SendInfo("Unknown gemstone color: " + meta, false, name);
+                SkyblockUtils.SendInfo("Unknown gemstone color: " + color.getName(), false, name);
                 break;
             }
         }

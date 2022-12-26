@@ -9,6 +9,7 @@ import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.item.EntityArmorStand;
+import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.StringUtils;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -67,7 +68,7 @@ public class MobKiller extends Module {
     }
 
     public static boolean hasTarget() {
-        return target != null;
+        return currentState == States.ATTACKING && target != null;
     }
 
     @Override
@@ -157,8 +158,11 @@ public class MobKiller extends Module {
 
                     if (target == null) continue;
                     if (SkyblockUtils.getMobHp(stand) <= 0) continue;
-                    boolean entity1 = SkyblockUtils.entityIsVisible(target);
-                    if (!entity1) continue;
+
+                    RotationUtils.Rotation rotation = RotationUtils.getRotation(target);
+                    MovingObjectPosition ray = RaytracingUtils.raytrace(rotation.yaw, rotation.pitch, scanRange + 5);
+
+                    if (ray == null || ray.typeOfHit != MovingObjectPosition.MovingObjectType.ENTITY || ray.entityHit != target) continue;
 
                     if (target instanceof EntityLiving) {
 
@@ -237,14 +241,23 @@ public class MobKiller extends Module {
 
                     RotationUtils.smoothLook(RotationUtils.getRotation(target.entity), May2BeezQoL.config.mobKillerCameraSpeed);
 
-                    if (RotationUtils.IsDiffLowerThan(0.5f)) {
+                    if (RotationUtils.IsDiffLowerThan(0.2f)) {
                         RotationUtils.reset();
                     }
 
                     if (!RotationUtils.done) return;
 
-                    boolean pointedEntity = SkyblockUtils.entityIsVisible(target.entity);
-                    if (pointedEntity) {
+//                    boolean pointedEntity = SkyblockUtils.entityIsVisible(target.entity);
+
+                    RotationUtils.Rotation rotation = RotationUtils.getRotation(target.entity);
+
+                    MovingObjectPosition ray = RaytracingUtils.raytrace(rotation.yaw, rotation.pitch, scanRange + 5);
+
+                    if (ray == null || ray.typeOfHit != MovingObjectPosition.MovingObjectType.ENTITY || ray.entityHit != target.entity) {
+                        SkyblockUtils.SendInfo("Something is blocking target, waiting for free shot...", false, name);
+                        blockedVisionDelay.reset();
+                        currentState = States.BLOCKED_VISION;
+                    } else {
                         if (attackDelay.hasReached(May2BeezQoL.config.mobKillerAttackDelay)) {
                             if (May2BeezQoL.config.attackButton == 0) {
                                 leftClick();
@@ -253,11 +266,22 @@ public class MobKiller extends Module {
                             }
                             attackDelay.reset();
                         }
-                    } else {
-                        SkyblockUtils.SendInfo("Something is blocking target, waiting for free shot...", false, name);
-                        blockedVisionDelay.reset();
-                        currentState = States.BLOCKED_VISION;
                     }
+
+//                    if (pointedEntity) {
+//                        if (attackDelay.hasReached(May2BeezQoL.config.mobKillerAttackDelay)) {
+//                            if (May2BeezQoL.config.attackButton == 0) {
+//                                leftClick();
+//                            } else {
+//                                rightClick();
+//                            }
+//                            attackDelay.reset();
+//                        }
+//                    } else {
+//                        SkyblockUtils.SendInfo("Something is blocking target, waiting for free shot...", false, name);
+//                        blockedVisionDelay.reset();
+//                        currentState = States.BLOCKED_VISION;
+//                    }
                 }
 
 

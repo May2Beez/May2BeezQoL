@@ -66,30 +66,27 @@ public class BlockUtils {
 
     public static Vec3 getRandomVisibilityLine(BlockPos pos) {
         List<Vec3> lines = new ArrayList<>();
-        int accuracyChecks = 10;
+        int accuracyChecks = 8;
         for (int x = 0; x < accuracyChecks; x++) {
             for (int y = 0; y < accuracyChecks; y++) {
                 for (int z = 0; z < accuracyChecks; z++) {
                     Vec3 target = new Vec3(pos.getX() + x / (float) accuracyChecks, pos.getY() + y / (float) accuracyChecks, pos.getZ() + z / (float) accuracyChecks);
                     BlockPos test = new BlockPos(target.xCoord, target.yCoord, target.zCoord);
-                    MovingObjectPosition movingObjectPosition = mc.theWorld.rayTraceBlocks(mc.thePlayer.getPositionEyes(1.0F), target, true, false, true);
+                    MovingObjectPosition movingObjectPosition = mc.theWorld.rayTraceBlocks(mc.thePlayer.getPositionEyes(1.0F), target, false, false, true);
                     if (movingObjectPosition != null) {
                         BlockPos obj = movingObjectPosition.getBlockPos();
-                        if (obj.equals(test) && mc.thePlayer.getDistance(target.xCoord, target.yCoord - mc.thePlayer.getEyeHeight(), target.zCoord) < 4.5D)
+                        if (obj.equals(test))
                             lines.add(target);
                     }
                 }
             }
         }
 
-        // return a random line from the array not including the edging lines (first and last) or false if the array is empty
         if (lines.size() > 2) {
             return lines.get(new Random().nextInt(lines.size() - 2) + 1);
         } else {
             return null;
         }
-
-//        return lines.isEmpty() || lines.size() < 2 ? null : lines.get(1 + (new Random()).nextInt(lines.size() - 2));
     }
 
     public static BlockPos getClosestBlock(int radius, int height, int depth, Predicate<? super BlockPos> predicate) {
