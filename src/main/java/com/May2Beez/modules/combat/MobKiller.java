@@ -37,6 +37,7 @@ public class MobKiller extends Module {
 
     private final Timer attackDelay = new Timer();
     private final Timer blockedVisionDelay = new Timer();
+    private final Timer afterKillDelay = new Timer();
     public static States currentState = States.SEARCHING;
 
     public static boolean ShouldScan = false;
@@ -46,13 +47,23 @@ public class MobKiller extends Module {
     private static class Target {
         public EntityLiving entity;
         public EntityArmorStand stand;
+        public boolean worm;
         public double distance() {
-            return Minecraft.getMinecraft().thePlayer.getDistanceToEntity(entity);
+            if (entity != null)
+                return Minecraft.getMinecraft().thePlayer.getDistanceToEntity(entity);
+            else
+                return Minecraft.getMinecraft().thePlayer.getDistanceToEntity(stand);
         }
 
         public Target(EntityLiving entity, EntityArmorStand stand) {
             this.entity = entity;
             this.stand = stand;
+        }
+
+        public Target(EntityLiving entity, EntityArmorStand stand, boolean worm) {
+            this.entity = entity;
+            this.stand = stand;
+            this.worm = worm;
         }
     }
 
@@ -82,6 +93,7 @@ public class MobKiller extends Module {
 
     @Override
     public void onEnable() {
+        scanRange = May2BeezQoL.config.mobKillerScanRange;
         blockedVisionDelay.reset();
         attackDelay.reset();
         currentState = States.SEARCHING;
@@ -95,13 +107,20 @@ public class MobKiller extends Module {
         super.onEnable();
     }
 
-    public static void Toggle() {
+    public void Toggle() {
         if (!May2BeezQoL.mobKiller.isToggled()) {
             May2BeezQoL.mobKiller.setToggled(true);
-            May2BeezQoL.mobKiller.onEnable();
+            blockedVisionDelay.reset();
+            attackDelay.reset();
+            currentState = States.SEARCHING;
+            target = null;
+            potentialTargets.clear();
         } else {
             May2BeezQoL.mobKiller.setToggled(false);
-            May2BeezQoL.mobKiller.onDisable();
+            target = null;
+            potentialTargets.clear();
+            RotationUtils.reset();
+            ShouldScan = false;
         }
     }
 
@@ -154,6 +173,26 @@ public class MobKiller extends Module {
                 for (Entity entity : filtered) {
                     double currentDistance;
                     EntityArmorStand stand = (EntityArmorStand) entity;
+
+                    if (stand.getCustomNameTag().contains("Scatha") || stand.getCustomNameTag().contains("Worm")) {
+                        Target target1 = new Target(null, stand, true);
+
+                        if (closestTarget != null) {
+                            currentDistance = stand.getDistanceToEntity(mc.thePlayer);
+                            if (currentDistance < distance) {
+                                distance = currentDistance;
+                                closestTarget = target1;
+                            }
+                        } else {
+                            distance = stand.getDistanceToEntity(mc.thePlayer);
+                            closestTarget = target1;
+                        }
+
+                        potentialTargets.add(target1);
+
+                        continue;
+                    }
+
                     Entity target = SkyblockUtils.getEntityCuttingOtherEntity(stand, null);
 
                     if (target == null) continue;
@@ -183,15 +222,16 @@ public class MobKiller extends Module {
                     }
                 }
 
-                if (closestTarget != null && closestTarget.distance() < May2BeezQoL.config.mobKillerScanRange) {
+                if (closestTarget != null && closestTarget.distance() < scanRange) {
                     target = closestTarget;
                     currentState = States.ATTACKING;
                 }
                 break;
             case ATTACKING:
 
-                if (SkyblockUtils.getMobHp(target.stand) <= 0 || target.distance() > May2BeezQoL.config.mobKillerScanRange || target.stand == null || target.entity.isDead) {
+                if (SkyblockUtils.getMobHp(target.stand) <= 0 || target.distance() > scanRange || target.stand == null || (target.entity != null && target.entity.isDead)) {
                     currentState = States.KILLED;
+                    afterKillDelay.reset();
                     break;
                 }
 
@@ -239,21 +279,23 @@ public class MobKiller extends Module {
 
                     mc.thePlayer.inventory.currentItem = weapon;
 
-                    RotationUtils.smoothLook(RotationUtils.getRotation(target.entity), May2BeezQoL.config.mobKillerCameraSpeed);
+                    if (target.worm) {
+                        RotationUtils.smoothLook(RotationUtils.getRotation(target.stand.getPosition()), May2BeezQoL.config.mobKillerCameraSpeed);
+                    } else {
+                        RotationUtils.smoothLook(RotationUtils.getRotation(target.entity), May2BeezQoL.config.mobKillerCameraSpeed);
+                    }
 
-                    if (RotationUtils.IsDiffLowerThan(0.2f)) {
+                    if (RotationUtils.IsDiffLowerThan(0.1f)) {
                         RotationUtils.reset();
                     }
 
                     if (!RotationUtils.done) return;
 
-//                    boolean pointedEntity = SkyblockUtils.entityIsVisible(target.entity);
-
-                    RotationUtils.Rotation rotation = RotationUtils.getRotation(target.entity);
+                    RotationUtils.Rotation rotation = RotationUtils.getRotation(target.entity != null ? target.entity : target.stand);
 
                     MovingObjectPosition ray = RaytracingUtils.raytrace(rotation.yaw, rotation.pitch, scanRange + 5);
 
-                    if (ray == null || ray.typeOfHit != MovingObjectPosition.MovingObjectType.ENTITY || ray.entityHit != target.entity) {
+                    if (!target.worm && (ray == null || ray.typeOfHit != MovingObjectPosition.MovingObjectType.ENTITY || ray.entityHit != (target.entity != null ? target.entity : target.stand))) {
                         SkyblockUtils.SendInfo("Something is blocking target, waiting for free shot...", false, name);
                         blockedVisionDelay.reset();
                         currentState = States.BLOCKED_VISION;
@@ -267,21 +309,6 @@ public class MobKiller extends Module {
                             attackDelay.reset();
                         }
                     }
-
-//                    if (pointedEntity) {
-//                        if (attackDelay.hasReached(May2BeezQoL.config.mobKillerAttackDelay)) {
-//                            if (May2BeezQoL.config.attackButton == 0) {
-//                                leftClick();
-//                            } else {
-//                                rightClick();
-//                            }
-//                            attackDelay.reset();
-//                        }
-//                    } else {
-//                        SkyblockUtils.SendInfo("Something is blocking target, waiting for free shot...", false, name);
-//                        blockedVisionDelay.reset();
-//                        currentState = States.BLOCKED_VISION;
-//                    }
                 }
 
 
@@ -300,6 +327,10 @@ public class MobKiller extends Module {
 
                 break;
             case KILLED:
+
+                if (!afterKillDelay.hasReached(1000))
+                    return;
+
                 target = null;
                 currentState = States.SEARCHING;
                 break;
@@ -313,12 +344,12 @@ public class MobKiller extends Module {
         if (potentialTargets.size() > 0) {
             potentialTargets.forEach(v -> {
                 if (v != target)
-                    RenderUtils.drawEntityBox(v.entity, new Color(100, 200, 100, 200), 2, event.partialTicks);
+                    RenderUtils.drawEntityBox(v.worm ? v.stand : v.entity, new Color(100, 200, 100, 200), 2, event.partialTicks);
             });
         }
 
         if (target != null) {
-            RenderUtils.drawEntityBox(target.entity, new Color(200, 100, 100, 200), 2, event.partialTicks);
+            RenderUtils.drawEntityBox(target.worm ? target.stand : target.entity, new Color(200, 100, 100, 200), 2, event.partialTicks);
         }
     }
  }

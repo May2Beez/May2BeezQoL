@@ -32,20 +32,12 @@ public class PowderChest extends Module {
 
     public static class TreasureChest {
         public BlockPos pos;
-        public long time;
         public Vec3 particle = null;
-        public AxisAlignedBB box;
         public TreasureChest(BlockPos pos) {
             this.pos = pos;
-            this.box = new AxisAlignedBB(pos.getX(), pos.getY(), pos.getZ(), pos.getX() + 1, pos.getY() + 1, pos.getZ() + 1);
-            this.time = System.currentTimeMillis();
         }
 
         public double distance(double x, double y, double z) { return pos.distanceSqToCenter(x, y, z);}
-        public boolean isExpired() {
-            return (System.currentTimeMillis() - time) >= 60000;
-        }
-        public boolean isSolved = false;
 
         public boolean isOpen() {
             TileEntityChest chest = (TileEntityChest) mc.theWorld.getTileEntity(pos);
@@ -120,21 +112,21 @@ public class PowderChest extends Module {
 
                 for (TreasureChest allChest : allChests) {
 
-                    if (allChest.isSolved || allChest.isExpired() || allChest.isOpen()) continue;
+                    if (allChest.isOpen()) continue;
 
-                    RenderUtils.drawBlockBox(allChest.pos, May2BeezQoL.config.chestEspColor, 3);
+                    RenderUtils.drawBlockBox(allChest.pos, May2BeezQoL.config.chestEspColor, 3, event.partialTicks);
                 }
             }
         }
         if (closestChest != null) {
-            RenderUtils.drawBlockBox(closestChest.pos, new Color(Color.orange.getRed(), Color.orange.getGreen(), Color.orange.getBlue(), 200), 3);
+            RenderUtils.drawBlockBox(closestChest.pos, new Color(Color.CYAN .getRed(), Color.CYAN.getGreen(), Color.CYAN.getBlue(), 200), 5, event.partialTicks);
         }
     }
 
     @SubscribeEvent
     public void onWorldLoad(WorldEvent.Load event) {
-        allChests.clear();
         closestChest = null;
+        allChests.clear();
     }
 
     @SubscribeEvent
@@ -158,7 +150,6 @@ public class PowderChest extends Module {
             if (volume == 1f && pitch == 1f && (sound.equals("random.orb") || sound.equals("mob.villager.no"))) {
                 if (closestChest.isOpen()) {
                     closestChest.particle = null;
-                    closestChest.isSolved = true;
                     closestChest = null;
                 }
             }
@@ -166,16 +157,15 @@ public class PowderChest extends Module {
     }
 
     private TreasureChest getClosestChest() {
-        ArrayList<TreasureChest> notSolved = (ArrayList<TreasureChest>) allChests.stream().filter(chest -> !chest.isSolved && !chest.isOpen()).collect(Collectors.toList());
-        ArrayList<TreasureChest> notSolvedAndNotExpired = (ArrayList<TreasureChest>) notSolved.stream().filter(chest -> !chest.isExpired()).collect(Collectors.toList());
-        if (notSolvedAndNotExpired.size() == 0) return null;
-        TreasureChest closest = notSolvedAndNotExpired.get(0);
+        ArrayList<TreasureChest> notSolved = (ArrayList<TreasureChest>) allChests.stream().filter(chest -> !chest.isOpen()).collect(Collectors.toList());
+        if (notSolved.size() == 0) return null;
+        TreasureChest closest = notSolved.get(0);
 
         if (mc.thePlayer.getPositionEyes(1).distanceTo(new Vec3(closest.pos).add(new Vec3(0.5, 0.5, 0.5))) > 6) return null;
 
-        if (notSolvedAndNotExpired.size() == 1) return closest;
+        if (notSolved.size() == 1) return closest;
 
-        for (TreasureChest chest : notSolvedAndNotExpired) {
+        for (TreasureChest chest : notSolved) {
             if (mc.thePlayer.getPositionEyes(1).distanceTo(new Vec3(chest.pos).add(new Vec3(0.5, 0.5, 0.5))) < mc.thePlayer.getPositionEyes(1).distanceTo(new Vec3(closest.pos).add(new Vec3(0.5, 0.5, 0.5)))) {
                 closest = chest;
             }

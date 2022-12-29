@@ -312,6 +312,17 @@ public class SkyblockUtils {
             } catch (NumberFormatException ignored) {
 
             }
+        else {
+            pattern = Pattern.compile("\\[Lv(\\d+)\\]\\s+(\\w+)\\s+(\\d+)+[Mk]?");
+            stripped = stripString(aStand.getName());
+            mat = pattern.matcher(stripped);
+            if (mat.matches())
+                try {
+                    mobHp = Double.parseDouble(mat.group(3));
+                } catch (NumberFormatException ignored) {
+
+                }
+        }
         return (int)Math.ceil(mobHp);
     }
 }

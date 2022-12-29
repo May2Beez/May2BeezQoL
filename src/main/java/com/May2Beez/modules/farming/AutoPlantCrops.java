@@ -79,7 +79,7 @@ public class AutoPlantCrops extends Module {
         if (!isToggled()) return;
 
         if(closestBlock != null) {
-            RenderUtils.drawBlockBox(closestBlock, new Color(255, 0, 0), May2BeezQoL.config.lineWidth);
+            RenderUtils.drawBlockBox(closestBlock, new Color(255, 0, 0), May2BeezQoL.config.lineWidth, event.partialTicks);
         }
     }
 

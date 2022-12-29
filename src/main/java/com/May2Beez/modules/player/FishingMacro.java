@@ -81,7 +81,7 @@ public class FishingMacro extends Module {
         }
         startRotation = new RotationUtils.Rotation(mc.thePlayer.rotationPitch, mc.thePlayer.rotationYaw);
         KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), May2BeezQoL.config.sneakWhileFishing);
-        MobKiller.Toggle();
+        May2BeezQoL.mobKiller.Toggle();
         MobKiller.setMobsNames(false, fishingMobs.toArray(new String[0]));
         MobKiller.scanRange = May2BeezQoL.config.scScanRange;
         MobKiller.ShouldScan = true;
@@ -96,7 +96,7 @@ public class FishingMacro extends Module {
         stopMovement();
         RotationUtils.reset();
         MobKiller.ShouldScan = false;
-        MobKiller.Toggle();
+        May2BeezQoL.mobKiller.Toggle();
     }
 
     @SubscribeEvent

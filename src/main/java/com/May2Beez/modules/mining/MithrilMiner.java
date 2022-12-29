@@ -303,7 +303,7 @@ public class MithrilMiner extends Module {
         if (mc.thePlayer == null || mc.theWorld == null) return;
 
         if (target != null) {
-            RenderUtils.drawBlockBox(target.getPos(), new Color(0, 255, 0, 100), 2.5f);
+            RenderUtils.drawBlockBox(target.getPos(), new Color(0, 255, 0, 100), 2.5f, event.partialTicks);
             RenderUtils.miniBlockBox(target.getRandomVisibilityLine(), new Color(0, 255, 247, 166), 1.5f);
         }
     }

@@ -101,7 +101,7 @@ public class AOTVMacro extends Module {
         }
 
         if (May2BeezQoL.config.yogKiller) {
-            MobKiller.Toggle();
+            May2BeezQoL.mobKiller.Toggle();
             MobKiller.setMobsNames(false, "Yog");
             if (May2BeezQoL.config.useHyperionUnderPlayer) {
                 MobKiller.scanRange = 5;
@@ -129,7 +129,7 @@ public class AOTVMacro extends Module {
         KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), false);
         KeyBinding.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), false);
         MobKiller.ShouldScan = false;
-        MobKiller.Toggle();
+        May2BeezQoL.mobKiller.Toggle();
     }
 
     @SubscribeEvent
@@ -181,6 +181,8 @@ public class AOTVMacro extends Module {
                     if (searchingTimer.hasReached(May2BeezQoL.config.aotvStuckTimeThreshold)) {
                         SkyblockUtils.SendInfo("You are not at a valid waypoint!", false, name);
                         currentState = State.WARPING;
+                        KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), false);
+                        KeyBinding.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), false);
                     }
                     break;
                 }
@@ -489,13 +491,13 @@ public class AOTVMacro extends Module {
         if (Waypoints == null || Waypoints.isEmpty()) return;
 
         if (target != null) {
-            RenderUtils.drawBlockBox(target.getPos(), new Color(0, 255, 0, 100), 3f);
+            RenderUtils.drawBlockBox(target.getPos(), new Color(0, 255, 0, 100), 4f, event.partialTicks);
         }
 
         if (May2BeezQoL.config.showRouteBlocks) {
             for (AOTVWaypointsGUI.Waypoint waypoint : Waypoints) {
                 BlockPos pos = new BlockPos(waypoint.x, waypoint.y, waypoint.z);
-                RenderUtils.drawBlockBox(pos, May2BeezQoL.config.routeBlockColor, 3f);
+                RenderUtils.drawBlockBox(pos, May2BeezQoL.config.routeBlockColor, 4f, event.partialTicks);
             }
 
             if (May2BeezQoL.config.showRouteLines) {
@@ -504,11 +506,11 @@ public class AOTVMacro extends Module {
                     for (int i = 0; i < Waypoints.size() - 1; i++) {
                         BlockPos pos1 = new BlockPos(Waypoints.get(i).x, Waypoints.get(i).y, Waypoints.get(i).z);
                         BlockPos pos2 = new BlockPos(Waypoints.get(i + 1).x, Waypoints.get(i + 1).y, Waypoints.get(i + 1).z);
-                        RenderUtils.drawLineBetweenPoints(new Vec3(pos1).add(new Vec3(0.5, 0.5, 0.5)), new Vec3(pos2).add(new Vec3(0.5, 0.5, 0.5)), May2BeezQoL.config.routeLineColor);
+                        RenderUtils.drawLineBetweenPoints(new Vec3(pos1), new Vec3(pos2), May2BeezQoL.config.routeLineColor, event.partialTicks, 5f);
                     }
                     BlockPos pos1 = new BlockPos(Waypoints.get(Waypoints.size() - 1).x, Waypoints.get(Waypoints.size() - 1).y, Waypoints.get(Waypoints.size() - 1).z);
                     BlockPos pos2 = new BlockPos(Waypoints.get(0).x, Waypoints.get(0).y, Waypoints.get(0).z);
-                    RenderUtils.drawLineBetweenPoints(new Vec3(pos1).add(new Vec3(0.5, 0.5, 0.5)), new Vec3(pos2).add(new Vec3(0.5, 0.5, 0.5)), May2BeezQoL.config.routeLineColor);
+                    RenderUtils.drawLineBetweenPoints(new Vec3(pos1), new Vec3(pos2), May2BeezQoL.config.routeLineColor, event.partialTicks, 5f);
                 }
             }
         }
@@ -516,14 +518,14 @@ public class AOTVMacro extends Module {
         if (May2BeezQoL.config.drawBlocksBlockingAOTV && !isToggled()) {
             if (!blocksBlockingVision.isEmpty()) {
                 for (BlockPos pos : blocksBlockingVision) {
-                    RenderUtils.drawBlockBox(pos, May2BeezQoL.config.aotvVisionBlocksColor, 4f);
+                    RenderUtils.drawBlockBox(pos, May2BeezQoL.config.aotvVisionBlocksColor, 4f, event.partialTicks);
                 }
             }
         }
 
         for (AOTVWaypointsGUI.Waypoint waypoint : Waypoints) {
             BlockPos pos = new BlockPos(waypoint.x, waypoint.y, waypoint.z);
-            RenderUtils.drawText(waypoint.name, pos.getX() + 0.5, pos.getY() + 1.5, pos.getZ() + 0.5, new Color(255, 255, 255, 255), true, 1, true);
+            RenderUtils.drawText("§l§3[§f " + waypoint.name + " §3]", pos.getX() + 0.5, pos.getY() + 1.5, pos.getZ() + 0.5, event.partialTicks, false);
         }
     }
 }

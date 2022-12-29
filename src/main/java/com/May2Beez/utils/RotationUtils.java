@@ -1,5 +1,6 @@
 package com.May2Beez.utils;
 
+import com.May2Beez.May2BeezQoL;
 import com.May2Beez.events.PlayerMoveEvent;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
@@ -203,7 +204,7 @@ public class RotationUtils {
                 currentFakeYaw = mc.thePlayer.rotationYaw;
                 currentFakePitch = mc.thePlayer.rotationPitch;
 
-                if (System.currentTimeMillis() >= endTime + 250) {
+                if (System.currentTimeMillis() >= endTime + May2BeezQoL.config.holdRotationMS) {
                     reset();
                 }
             }

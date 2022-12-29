@@ -55,7 +55,7 @@ public class CropNuker extends Module {
     public void onRender(RenderWorldLastEvent event) {
         if (!isToggled()) return;
         if(crop != null) {
-            RenderUtils.drawBlockBox(crop, new Color(255, 0, 0), May2BeezQoL.config.lineWidth);
+            RenderUtils.drawBlockBox(crop, new Color(255, 0, 0), May2BeezQoL.config.lineWidth, event.partialTicks);
         }
     }
 

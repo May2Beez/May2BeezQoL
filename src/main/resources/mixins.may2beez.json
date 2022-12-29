@@ -10,10 +10,11 @@
     "NetworkManagerMixin"
   ],
   "client": [
+    "ChunkMixin",
     "EntityPlayerSPMixin",
     "ModelBipedMixin",
-    "WorldMixin",
     "accessors.EntityPlayerSPAccessor",
-    "accessors.MinecraftAccessor"
+    "accessors.MinecraftAccessor",
+    "accessors.RenderManagerAccessor"
   ]
 }

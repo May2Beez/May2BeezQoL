@@ -63,7 +63,7 @@ public class Config extends Vigilant {
 
     //endregion
 
-    //region Hardstone Nuker
+    //region Nuker
     @Property(type = PropertyType.SELECTOR, name = "Nuker Shape", description = "Choose which pattern hardstone nuker will follow",
             category = NUKER, options = {"Sphere", "Facing Axis", "Axis Tunnels"})
     public int nukerShape = 0;
@@ -221,6 +221,9 @@ public class Config extends Vigilant {
 
     @Property(type = PropertyType.SLIDER, name = "Camera speed in ms", category = MINING, max = maxCameraSpeedMS)
     public int cameraSpeed = 120;
+
+    @Property(type = PropertyType.SLIDER, name = "Hold server side rotation for X ms", category = MINING, max = 1500)
+    public int holdRotationMS = 750;
 
     //endregion
 
