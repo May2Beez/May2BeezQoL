@@ -65,7 +65,7 @@ public class AutoPlantCrops extends Module {
                 return;
             }
             MovingObjectPosition mop = Minecraft.getMinecraft().objectMouseOver;
-            if (mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK && mop.getBlockPos().getX() == closestBlock.getX() && mop.getBlockPos().getY() == closestBlock.getY() && mop.getBlockPos().getZ() == closestBlock.getZ()) {
+            if (mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK && mop.getBlockPos().equals(closestBlock)) {
                 Minecraft.getMinecraft().thePlayer.inventory.currentItem = indexOfCrop;
                 rightClick();
                 closestBlock = null;

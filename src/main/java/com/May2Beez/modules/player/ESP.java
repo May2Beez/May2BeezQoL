@@ -14,6 +14,7 @@ import net.minecraft.item.EnumDyeColor;
 import net.minecraft.tileentity.TileEntityChest;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
+import net.minecraft.util.Vec3;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
@@ -92,11 +93,33 @@ public class ESP extends Module {
                 })
                 .filter(pos -> {
                     if (PowderChest.closestChest == null) return true;
-                    return PowderChest.closestChest.pos != pos;
+                    return !PowderChest.closestChest.pos.equals(pos);
                 })
                 .collect(Collectors.toList());
 
         for (BlockPos pos : chests) {
+
+            // check if chest is a double chest
+            if (mc.theWorld.getBlockState(pos.add(1, 0, 0)).getBlock() == Blocks.chest || mc.theWorld.getBlockState(pos.add(1, 0, 0)).getBlock() == Blocks.trapped_chest) {
+                RenderUtils.drawDoubleChestBlockBox(pos, pos.add(1, 0, 0), May2BeezQoL.config.chestEspColor, 2, event.partialTicks);
+                continue;
+            }
+
+            if (mc.theWorld.getBlockState(pos.add(-1, 0, 0)).getBlock() == Blocks.chest || mc.theWorld.getBlockState(pos.add(-1, 0, 0)).getBlock() == Blocks.trapped_chest) {
+                RenderUtils.drawDoubleChestBlockBox(pos.add(-1, 0, 0), pos, May2BeezQoL.config.chestEspColor, 2, event.partialTicks);
+                continue;
+            }
+
+            if (mc.theWorld.getBlockState(pos.add(0, 0, 1)).getBlock() == Blocks.chest || mc.theWorld.getBlockState(pos.add(0, 0, 1)).getBlock() == Blocks.trapped_chest) {
+                RenderUtils.drawDoubleChestBlockBox(pos, pos.add(0, 0, 1), May2BeezQoL.config.chestEspColor, 2, event.partialTicks);
+                continue;
+            }
+
+            if (mc.theWorld.getBlockState(pos.add(0, 0, -1)).getBlock() == Blocks.chest || mc.theWorld.getBlockState(pos.add(0, 0, -1)).getBlock() == Blocks.trapped_chest) {
+                RenderUtils.drawDoubleChestBlockBox(pos.add(0, 0, -1), pos, May2BeezQoL.config.chestEspColor, 2, event.partialTicks);
+                continue;
+            }
+
             RenderUtils.drawBlockBox(pos, May2BeezQoL.config.chestEspColor, 3, event.partialTicks);
         }
     }

@@ -48,7 +48,7 @@ public class RenderUtils {
                 bbox.maxX - entity.posX + x,
                 bbox.maxY - entity.posY + y,
                 bbox.maxZ - entity.posZ + z
-        );
+        ).expand(0.1, 0.1, 0.1);
 
         drawFilledBoundingBox(aabb, color, 0.7f, lineWidth);
     }
@@ -191,6 +191,35 @@ public class RenderUtils {
                 double d1 = mc.thePlayer.lastTickPosY + (mc.thePlayer.posY - mc.thePlayer.lastTickPosY) * (double) partialTicks;
                 double d2 = mc.thePlayer.lastTickPosZ + (mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ) * (double) partialTicks;
                 drawFilledBoundingBox(block.getSelectedBoundingBox(mc.theWorld, blockPos).expand(0.002D, 0.002D, 0.002D).offset(-d0, -d1, -d2), color, 0f, lineWidth);
+            }
+        }
+    }
+
+    public static void drawDoubleChestBlockBox(BlockPos blockPos1, BlockPos blockPos2, Color color, float lineWidth, float partialTicks) {
+        if (blockPos1 != null && blockPos2 != null) {
+            // Get the IBlockState and Block objects for both BlockPos objects
+            IBlockState blockState1 = mc.theWorld.getBlockState(blockPos1);
+            IBlockState blockState2 = mc.theWorld.getBlockState(blockPos2);
+            Block block1 = blockState1.getBlock();
+            Block block2 = blockState2.getBlock();
+
+            if (block1 != null && block2 != null) {
+                // Set the block bounds based on the block state
+                block1.setBlockBoundsBasedOnState(mc.theWorld, blockPos1);
+                block2.setBlockBoundsBasedOnState(mc.theWorld, blockPos2);
+
+                // Calculate the bounding box for the double chest by combining the bounding boxes of both blocks
+                AxisAlignedBB boundingBox1 = block1.getSelectedBoundingBox(mc.theWorld, blockPos1).expand(0.002D, 0.002D, 0.002D);
+                AxisAlignedBB boundingBox2 = block2.getSelectedBoundingBox(mc.theWorld, blockPos2).expand(0.002D, 0.002D, 0.002D);
+                AxisAlignedBB boundingBox = boundingBox1.union(boundingBox2);
+
+                // Calculate the player's position for the given partial ticks
+                double d0 = mc.thePlayer.lastTickPosX + (mc.thePlayer.posX - mc.thePlayer.lastTickPosX) * (double) partialTicks;
+                double d1 = mc.thePlayer.lastTickPosY + (mc.thePlayer.posY - mc.thePlayer.lastTickPosY) * (double) partialTicks;
+                double d2 = mc.thePlayer.lastTickPosZ + (mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ) * (double) partialTicks;
+
+                // Offset the bounding box and draw it
+                drawFilledBoundingBox(boundingBox.offset(-d0, -d1, -d2), color, 0.7f, lineWidth);
             }
         }
     }

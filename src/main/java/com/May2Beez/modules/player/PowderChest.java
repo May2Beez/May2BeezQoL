@@ -73,9 +73,7 @@ public class PowderChest extends Module {
         if (mc.thePlayer == null || mc.theWorld == null) return;
 
         if (((event.update.getBlock() == Blocks.chest || event.update.getBlock() == Blocks.trapped_chest))) {
-            if (mc.thePlayer.getEntityBoundingBox().expand(8, 8, 8).isVecInside(new Vec3(event.pos))) {
-                allChests.add(new TreasureChest(event.pos));
-            }
+            allChests.add(new TreasureChest(event.pos));
         }
 
         if (event.update.getBlock() == Blocks.air) {
@@ -91,6 +89,17 @@ public class PowderChest extends Module {
 
     private void normalRotation() {
         if (closestChest.particle == null) return;
+
+        if (May2BeezQoL.config.onlyRotateIfLessThan80) {
+
+            RotationUtils.Rotation rotation = RotationUtils.getRotation(closestChest.pos);
+
+            RotationUtils.Rotation neededChange = RotationUtils.getNeededChange(rotation);
+
+            if (Math.abs(neededChange.pitch) > 80 || Math.abs(neededChange.yaw) > 80) {
+                return;
+            }
+        }
 
         if (RotationUtils.done)
             RotationUtils.smoothLook(RotationUtils.getRotation(closestChest.particle), May2BeezQoL.config.cameraSpeed);
@@ -159,17 +168,18 @@ public class PowderChest extends Module {
     private TreasureChest getClosestChest() {
         ArrayList<TreasureChest> notSolved = (ArrayList<TreasureChest>) allChests.stream().filter(chest -> !chest.isOpen()).collect(Collectors.toList());
         if (notSolved.size() == 0) return null;
-        TreasureChest closest = notSolved.get(0);
+        TreasureChest closest = null;
 
-        if (mc.thePlayer.getPositionEyes(1).distanceTo(new Vec3(closest.pos).add(new Vec3(0.5, 0.5, 0.5))) > 6) return null;
-
-        if (notSolved.size() == 1) return closest;
+        float distance = 9999;
 
         for (TreasureChest chest : notSolved) {
-            if (mc.thePlayer.getPositionEyes(1).distanceTo(new Vec3(chest.pos).add(new Vec3(0.5, 0.5, 0.5))) < mc.thePlayer.getPositionEyes(1).distanceTo(new Vec3(closest.pos).add(new Vec3(0.5, 0.5, 0.5)))) {
+            double currentDistance = mc.thePlayer.getPositionEyes(1).distanceTo(new Vec3(chest.pos).add(new Vec3(0.5, 0.5, 0.5)));
+            if (currentDistance < 6 && currentDistance < distance) {
                 closest = chest;
+                distance = (float) currentDistance;
             }
         }
+
         return closest;
     }
 }

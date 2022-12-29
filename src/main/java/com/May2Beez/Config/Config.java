@@ -24,7 +24,7 @@ public class Config extends Vigilant {
     private static final String ESP = "ESP";
     private static final String WORLD_SCANNER = "World Scanner";
 
-    private static final int maxCameraSpeedMS = 300;
+    private static final int maxCameraSpeedMS = 500;
 
 
     //region Mithril Miner
@@ -224,6 +224,9 @@ public class Config extends Vigilant {
 
     @Property(type = PropertyType.SLIDER, name = "Hold server side rotation for X ms", category = MINING, max = 1500)
     public int holdRotationMS = 750;
+
+    @Property(type = PropertyType.SWITCH, name = "Powder chest rotation only if needed rotation is less than 80°", category = MINING)
+    public boolean onlyRotateIfLessThan80 = false;
 
     //endregion
 
