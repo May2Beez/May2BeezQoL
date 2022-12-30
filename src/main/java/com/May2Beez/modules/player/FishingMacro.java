@@ -11,6 +11,7 @@ import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.projectile.EntityFishHook;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.Vec3;
@@ -75,7 +76,7 @@ public class FishingMacro extends Module {
         particles.clear();
         rodSlot = SkyblockUtils.findItemInHotbar("Rod");
         if (rodSlot == -1) {
-            SkyblockUtils.SendInfo("No rod found in hotbar!");
+            LogUtils.addMessage(getName() + " - No rod found in hotbar!", EnumChatFormatting.RED);
             this.toggle();
             return;
         }

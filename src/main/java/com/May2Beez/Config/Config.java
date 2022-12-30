@@ -225,8 +225,8 @@ public class Config extends Vigilant {
     @Property(type = PropertyType.SLIDER, name = "Hold server side rotation for X ms", category = MINING, max = 1500)
     public int holdRotationMS = 750;
 
-    @Property(type = PropertyType.SWITCH, name = "Powder chest rotation only if needed rotation is less than 80°", category = MINING)
-    public boolean onlyRotateIfLessThan80 = false;
+    @Property(type = PropertyType.SWITCH, name = "Powder chest rotation only if object under mouse is a treasure chest", category = MINING)
+    public boolean onlyRotateIfTreasureChest = false;
 
     //endregion
 

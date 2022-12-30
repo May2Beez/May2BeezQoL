@@ -1,6 +1,5 @@
 package com.May2Beez.utils;
 
-import com.May2Beez.May2BeezQoL;
 import com.mojang.realmsclient.gui.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityOtherPlayerMP;
@@ -14,84 +13,21 @@ import net.minecraft.inventory.ContainerChest;
 import net.minecraft.item.ItemStack;
 import net.minecraft.scoreboard.*;
 import net.minecraft.util.*;
-import net.minecraftforge.client.event.RenderWorldLastEvent;
-import net.minecraftforge.event.world.WorldEvent;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.gameevent.TickEvent;
 
-import java.awt.*;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class SkyblockUtils {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    public static boolean inDungeon;
 
-    public static boolean isInOtherGame;
-
-    public static boolean onSkyblock;
-
-    public static boolean onBedwars;
-
-    public static boolean onSkywars;
-
-    public static boolean inBlood;
-
-    public static boolean inP3;
-
-    private static final CopyOnWriteArrayList<Vec3> debugPoints = new CopyOnWriteArrayList<>();
-
-    @SubscribeEvent
-    public void onWorldLoad(WorldEvent.Load event) {
-        inBlood = false;
-        inP3 = false;
-    }
-
-    @SubscribeEvent
-    public void onTick(TickEvent.ClientTickEvent event) {
-        if (mc.theWorld != null)
-            inDungeon = (hasLine("Cleared:") || hasLine("Start"));
-        isInOtherGame = isInOtherGame();
-        onSkyblock = isOnSkyBlock();
-        onBedwars = hasScoreboardTitle("bed wars");
-        onSkywars = hasScoreboardTitle("SKYWARS");
-    }
-
-    public static boolean isInOtherGame() {
-        try {
-            Scoreboard sb = mc.thePlayer.getWorldScoreboard();
-            List<Score> list = new ArrayList<>(sb.getSortedScores(sb.getObjectiveInDisplaySlot(1)));
-            for (Score score : list) {
-                ScorePlayerTeam team = sb.getPlayersTeam(score.getPlayerName());
-                String s = ChatFormatting.stripFormatting(ScorePlayerTeam.formatPlayerName(team, score.getPlayerName()));
-                if (s.contains("Map"))
-                    return true;
-            }
-        } catch (Exception ignored) {
-
-        }
-        return false;
-    }
 
     public static boolean hasScoreboardTitle(String title) {
         if (mc.thePlayer == null || mc.thePlayer.getWorldScoreboard() == null || mc.thePlayer.getWorldScoreboard().getObjectiveInDisplaySlot(1) == null)
             return false;
         return ChatFormatting.stripFormatting(mc.thePlayer.getWorldScoreboard().getObjectiveInDisplaySlot(1).getDisplayName()).equalsIgnoreCase(title);
-    }
-
-    public static boolean isOnSkyBlock() {
-        try {
-            ScoreObjective titleObjective = mc.thePlayer.getWorldScoreboard().getObjectiveInDisplaySlot(1);
-            if (mc.thePlayer.getWorldScoreboard().getObjectiveInDisplaySlot(0) != null)
-                return ChatFormatting.stripFormatting(mc.thePlayer.getWorldScoreboard().getObjectiveInDisplaySlot(0).getDisplayName()).contains("SKYBLOCK");
-            return ChatFormatting.stripFormatting(mc.thePlayer.getWorldScoreboard().getObjectiveInDisplaySlot(1).getDisplayName()).contains("SKYBLOCK");
-        } catch (Exception e) {
-            return false;
-        }
     }
 
     public static boolean hasLine(String line) {
@@ -169,20 +105,6 @@ public class SkyblockUtils {
         }
     }
 
-    public static void SendInfo(String message) {
-        SendInfo(message, true);
-    }
-
-    public static void SendInfo(String message, boolean enable) {
-        SendInfo(message, enable, "");
-    }
-
-    public static void SendInfo(String message, boolean enable, String moduleName) {
-        if (Minecraft.getMinecraft().thePlayer == null) return;
-
-        Minecraft.getMinecraft().thePlayer.addChatMessage(new ChatComponentText(String.format("§d[QoL] §%s§l%s§r§%s %s", enable ? "2" : "c", moduleName, enable ? "2" : "c", message)));
-    }
-
     public static int findItemInHotbar(String ...name) {
         InventoryPlayer inv = mc.thePlayer.inventory;
         for (int i = 0; i < 9; i++) {
@@ -226,7 +148,7 @@ public class SkyblockUtils {
         return null;
     }
 
-    public static boolean entityIsVisible(Entity entityToCheck) {
+    public static boolean entityIsNotVisible(Entity entityToCheck) {
         Vec3 startPos = new Vec3(mc.thePlayer.posX, mc.thePlayer.posY + mc.thePlayer.getEyeHeight(), mc.thePlayer.posZ);
         Vec3 endPos = new Vec3(entityToCheck.posX, entityToCheck.posY + entityToCheck.height / 2, entityToCheck.posZ);
 
@@ -238,11 +160,7 @@ public class SkyblockUtils {
 
         Vec3 currentPos = startPos;
 
-        debugPoints.clear();
-
         while (currentPos.distanceTo(startPos) < maxDistance) {
-
-            debugPoints.add(currentPos);
 
             ArrayList<BlockPos> blocks = AnyBlockAroundVec3(currentPos, 0.1f);
 
@@ -256,24 +174,14 @@ public class SkyblockUtils {
             }
 
             if (flag) {
-                return false;
+                return true;
             }
 
             // Move along the line by the specified increment
             Vec3 scaledDirection = new Vec3(direction.xCoord * increment, direction.yCoord * increment, direction.zCoord * increment);
             currentPos = currentPos.add(scaledDirection);
         }
-        return true;
-    }
-
-    @SubscribeEvent
-    public void onWorldRender(RenderWorldLastEvent event) {
-        if (debugPoints.isEmpty()) return;
-        if (!May2BeezQoL.config.debug) return;
-
-        for (Vec3 vec : debugPoints) {
-            RenderUtils.miniBlockBox(vec, Color.cyan, 1.5f);
-        }
+        return false;
     }
 
     public static ArrayList<BlockPos> AnyBlockAroundVec3(Vec3 pos, float around) {
@@ -313,7 +221,7 @@ public class SkyblockUtils {
 
             }
         else {
-            pattern = Pattern.compile("\\[Lv(\\d+)\\]\\s+(\\w+)\\s+(\\d+)+[Mk]?");
+            pattern = Pattern.compile("\\[Lv(\\d+)]\\s+(\\w+)\\s+(\\d+)+[Mk]?");
             stripped = stripString(aStand.getName());
             mat = pattern.matcher(stripped);
             if (mat.matches())

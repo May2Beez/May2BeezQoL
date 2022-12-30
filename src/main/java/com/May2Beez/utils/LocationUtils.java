@@ -42,9 +42,6 @@ public class LocationUtils {
 
     public static String serverName;
     public static boolean onSkyblock = false;
-
-    // TEMPORARY FIX FOR LOCRAW
-    // I hope its really temporary
     @SubscribeEvent(receiveCanceled = true)
     public void onChat(ClientChatReceivedEvent event) {
         String unformatted = event.message.getUnformattedText();

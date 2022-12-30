@@ -2,9 +2,9 @@ package com.May2Beez.modules.farming;
 
 import com.May2Beez.May2BeezQoL;
 import com.May2Beez.Module;
+import com.May2Beez.utils.LogUtils;
 import com.May2Beez.utils.RenderUtils;
 import com.May2Beez.utils.RotationUtils;
-import com.May2Beez.utils.SkyblockUtils;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
@@ -98,21 +98,20 @@ public class ForagingMacro extends Module {
                     int treecap = findItemInHotbar("Treecap");
                     int rod = findItemInHotbar("Rod");
                     if (sapling == -1) {
-                        SkyblockUtils.SendInfo("§cNo saplings in hotbar", false, getName());
+                        LogUtils.addMessage(getName() + " - No saplings in hotbar", EnumChatFormatting.RED);
                     }
                     if (bonemeal == -1) {
-                        SkyblockUtils.SendInfo("§cNo bonemeal in hotbar", false, getName());
+                        LogUtils.addMessage(getName() + " - No bonemeal in hotbar", EnumChatFormatting.RED);
                     }
                     if (treecap == -1) {
-                        SkyblockUtils.SendInfo("§cNo Treecapitator in hotbar", false, getName());
+                        LogUtils.addMessage(getName() + " - No Treecapitator in hotbar", EnumChatFormatting.RED);
                     }
                     if (rod == -1) {
-                        SkyblockUtils.SendInfo("§cNo Fishing Rod in hotbar", false, getName());
+                        LogUtils.addMessage(getName() + " - No Fishing Rod in hotbar", EnumChatFormatting.RED);
                     }
                     if (sapling == -1 || bonemeal == -1 || treecap == -1 || rod == -1) {
                         playAlert();
                         toggle();
-                        SkyblockUtils.SendInfo("§cForaging Alert Deactivated", false, getName());
                         return;
                     }
                     switch (state) {
@@ -122,11 +121,11 @@ public class ForagingMacro extends Module {
                             if (targets.size() != 4) {
                                 Thread.sleep(new Random().nextInt(50) + May2BeezQoL.config.foragingDelay);
                                 if (getAllDirts(false).size() != 4) {
-                                    SkyblockUtils.SendInfo("§cThere is no exactly 4 dirts around you", false, getName());
+                                    LogUtils.addMessage(getName() + " - There is no exactly 4 dirts around you", EnumChatFormatting.RED);
                                     targets = null;
                                     return;
                                 }
-                                SkyblockUtils.SendInfo("§cThere are probably logs above dirts", false, getName());
+                                LogUtils.addMessage(getName() + " - There are probably logs above dirts", EnumChatFormatting.RED);
                                 Thread.sleep(new Random().nextInt(50) + May2BeezQoL.config.foragingDelay);
                                 RemoveLogs();
                                 targets = null;

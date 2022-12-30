@@ -3,11 +3,12 @@ package com.May2Beez.commands;
 import com.May2Beez.AOTVWaypointsGUI;
 import com.May2Beez.May2BeezQoL;
 import com.May2Beez.utils.BlockUtils;
-import com.May2Beez.utils.SkyblockUtils;
+import com.May2Beez.utils.LogUtils;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.command.ICommand;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.util.BlockPos;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
@@ -48,7 +49,7 @@ public class AOTVWaypoints implements ICommand {
             if (waypointToDelete != null)
                 May2BeezQoL.coordsConfig.removeCoord(May2BeezQoL.coordsConfig.getSelectedRoute(), waypointToDelete);
             else {
-                SkyblockUtils.SendInfo("No waypoint found at your current position", false, "AOTV Waypoints - ");
+                LogUtils.addMessage("AOTV Waypoints - No waypoint found at your current position", EnumChatFormatting.RED);
             }
         }
     }

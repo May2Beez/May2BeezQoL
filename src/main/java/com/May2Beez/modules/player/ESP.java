@@ -7,6 +7,7 @@ import com.May2Beez.utils.RenderUtils;
 import com.May2Beez.utils.SkyblockUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
@@ -14,7 +15,6 @@ import net.minecraft.item.EnumDyeColor;
 import net.minecraft.tileentity.TileEntityChest;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
-import net.minecraft.util.Vec3;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
@@ -49,14 +49,14 @@ public class ESP extends Module {
                             stand.posY + 0.5D - (Minecraft.getMinecraft().getRenderManager()).viewerPosY,
                             stand.posZ + 0.5D - (Minecraft.getMinecraft().getRenderManager()).viewerPosZ), May2BeezQoL.config.espColor, 2, event.partialTicks);
 
-                    if (!SkyblockUtils.entityIsVisible(stand) && May2BeezQoL.config.drawMobNames) {
+                    if (SkyblockUtils.entityIsNotVisible(stand) && May2BeezQoL.config.drawMobNames) {
                         RenderUtils.drawText(stand.getName(), stand.posX, stand.posY + stand.height + 1, stand.posZ, event.partialTicks, false);
                     }
 
                     continue;
                 }
 
-                Entity target = SkyblockUtils.getEntityCuttingOtherEntity(stand, null);
+                Entity target = SkyblockUtils.getEntityCuttingOtherEntity(stand, EntityLiving.class);
 
                 if (target == null) continue;
 
@@ -69,7 +69,7 @@ public class ESP extends Module {
                 if (stand.getCustomNameTag().contains("§c") || stand.getCustomNameTag().contains("❤️")) {
                     RenderUtils.drawEntityBox(target, May2BeezQoL.config.espColor, 2, event.partialTicks);
 
-                    if (!SkyblockUtils.entityIsVisible(target) && May2BeezQoL.config.drawMobNames) {
+                    if (SkyblockUtils.entityIsNotVisible(target) && May2BeezQoL.config.drawMobNames) {
                         RenderUtils.drawText(stand.getName(), target.posX, target.posY + target.height + 1, target.posZ, event.partialTicks, false);
                     }
                 }
@@ -81,6 +81,7 @@ public class ESP extends Module {
     public void onRenderWorldLastChestESP(RenderWorldLastEvent event) {
         if (mc.theWorld == null || mc.thePlayer == null) return;
         if (!May2BeezQoL.config.chestEsp) return;
+        if (LocationUtils.currentIsland == LocationUtils.Island.PRIVATE_ISLAND) return;
 
         int range = May2BeezQoL.config.espRange;
         List<BlockPos> chests = StreamSupport.stream(BlockPos.getAllInBox(mc.thePlayer.getPosition().add(-range, -range, -range), mc.thePlayer.getPosition().add(range, range, range)).spliterator(), false)

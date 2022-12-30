@@ -19,12 +19,13 @@ import com.May2Beez.modules.player.ESP;
 import com.May2Beez.modules.player.PowderChest;
 import com.May2Beez.modules.world.WorldScanner;
 import com.May2Beez.utils.LocationUtils;
+import com.May2Beez.utils.LogUtils;
 import com.May2Beez.utils.RotationUtils;
-import com.May2Beez.utils.SkyblockUtils;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.StringUtils;
 import net.minecraftforge.client.ClientCommandHandler;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
@@ -165,7 +166,6 @@ public class May2BeezQoL
         LoadCooldownMacros();
         MinecraftForge.EVENT_BUS.register(this);
         MinecraftForge.EVENT_BUS.register(new RotationUtils());
-        MinecraftForge.EVENT_BUS.register(new SkyblockUtils());
         MinecraftForge.EVENT_BUS.register(aotvWaypoints);
         MinecraftForge.EVENT_BUS.register(openSettings);
         MinecraftForge.EVENT_BUS.register(new LocationUtils());
@@ -207,7 +207,7 @@ public class May2BeezQoL
     @SubscribeEvent
     public void onWorldChange(WorldEvent.Unload event) {
         if (modules.stream().anyMatch(Module::isToggled)) {
-            SkyblockUtils.SendInfo("§cDetected World Change, Stopping All Macros", true, "");
+            LogUtils.addMessage("Detected World Change, Stopping All Macros", EnumChatFormatting.DARK_RED);
         }
         for (Module m : modules) {
             if (m.isToggled()) m.toggle();

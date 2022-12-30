@@ -14,6 +14,7 @@ import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.EnumDyeColor;
 import net.minecraft.util.BlockPos;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
@@ -73,7 +74,7 @@ public class AOTVMacro extends Module {
         int miningTool = SkyblockUtils.findItemInHotbar("Drill", "Pickaxe", "Gauntlet");
 
         if (miningTool == -1) {
-            SkyblockUtils.SendInfo("You don't have a mining tool!", false, name);
+            LogUtils.addMessage(getName() + " - You don't have a mining tool!", EnumChatFormatting.RED);
             this.toggle();
             return;
         }
@@ -81,7 +82,7 @@ public class AOTVMacro extends Module {
         int voidTool = SkyblockUtils.findItemInHotbar("Void");
 
         if (voidTool == -1) {
-            SkyblockUtils.SendInfo("You don't have a Aspect of the Void!", false,  name);
+            LogUtils.addMessage(getName() + " - You don't have a Aspect of the Void!", EnumChatFormatting.RED);
             this.toggle();
             return;
         }
@@ -95,7 +96,7 @@ public class AOTVMacro extends Module {
         }
 
         if (currentWaypoint == -1) {
-            SkyblockUtils.SendInfo("You are not at a valid waypoint!", false, name);
+            LogUtils.addMessage(getName() + " - You are not at a valid waypoint!", EnumChatFormatting.RED);
             this.setToggled(false);
             return;
         }
@@ -179,7 +180,7 @@ public class AOTVMacro extends Module {
 
                 if (!currentPos.equals(waypoint)) {
                     if (searchingTimer.hasReached(May2BeezQoL.config.aotvStuckTimeThreshold)) {
-                        SkyblockUtils.SendInfo("You are not at a valid waypoint!", false, name);
+                        LogUtils.addMessage(getName() + " - You are not at a valid waypoint!", EnumChatFormatting.DARK_RED);
                         currentState = State.WARPING;
                         KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), false);
                         KeyBinding.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), false);
@@ -206,14 +207,14 @@ public class AOTVMacro extends Module {
                     int miningTool = SkyblockUtils.findItemInHotbar("Drill", "Pickaxe", "Gauntlet");
 
                     if (miningTool == -1) {
-                        SkyblockUtils.SendInfo("You don't have a mining tool!", false, name);
+                        LogUtils.addMessage(getName() + " - You don't have a mining tool!", EnumChatFormatting.RED);
                         this.toggle();
                         return;
                     }
                     mc.thePlayer.inventory.currentItem = miningTool;
                 } else {
 
-                    SkyblockUtils.SendInfo("No gemstones found! Going to the next waypoint.", false, name);
+                    LogUtils.addMessage(getName() + " - No gemstones found! Going to the next waypoint.", EnumChatFormatting.RED);
                     if (currentWaypoint == Waypoints.size() - 1) {
                         currentWaypoint = 0;
                     } else {
@@ -245,7 +246,7 @@ public class AOTVMacro extends Module {
 
                 if (stuckTimer.hasReached(May2BeezQoL.config.aotvStuckTimeThreshold) && RotationUtils.IsDiffLowerThan(0.1f)) {
                     KeyBinding.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), false);
-                    SkyblockUtils.SendInfo("Stuck for " + May2BeezQoL.config.aotvStuckTimeThreshold + " ms, restarting.", false, name);
+                    LogUtils.addMessage(getName() + " - Stuck for " + May2BeezQoL.config.aotvStuckTimeThreshold + " ms, restarting.", EnumChatFormatting.DARK_RED);
                     stuckTimer.reset();
                     currentState = State.SEARCHING;
                     searchingTimer.reset();
@@ -263,7 +264,7 @@ public class AOTVMacro extends Module {
                 int voidTool = SkyblockUtils.findItemInHotbar("Void");
 
                 if (voidTool == -1) {
-                    SkyblockUtils.SendInfo("You don't have a Aspect of the Void!", false, name);
+                    LogUtils.addMessage(getName() + " - You don't have a Aspect of the Void!", EnumChatFormatting.RED);
                     this.toggle();
                     return;
                 }
@@ -283,20 +284,20 @@ public class AOTVMacro extends Module {
                 if (movingObjectPosition != null && movingObjectPosition.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
                     if (movingObjectPosition.getBlockPos().equals(waypoint)) {
                         mc.playerController.sendUseItem(mc.thePlayer, mc.theWorld, mc.thePlayer.getHeldItem());
-                        SkyblockUtils.SendInfo("Teleported to waypoint " + currentWaypoint, true, name);
+                        LogUtils.addMessage(getName() + " - Teleported to waypoint " + currentWaypoint, EnumChatFormatting.DARK_GREEN);
                         blocksToMine.clear();
                         currentState = State.SEARCHING;
                         searchingTimer.reset();
                         oldTarget = null;
                     } else {
                         if (stuckTimer.hasReached(2000) && RotationUtils.done) {
-                            SkyblockUtils.SendInfo("Path is not cleared. Block: " + movingObjectPosition.getBlockPos().toString() + " is on the way.", false, name);
+                            LogUtils.addMessage(getName() + " - Path is not cleared. Block: " + movingObjectPosition.getBlockPos().toString() + " is on the way.", EnumChatFormatting.RED);
                             this.toggle();
                             break;
                         }
                     }
                 } else if (movingObjectPosition != null) {
-                    SkyblockUtils.SendInfo("Something is on the way!", false, name);
+                    LogUtils.addMessage(getName() + " - Something is on the way!", EnumChatFormatting.RED);
                     this.toggle();
                 }
                 break;
@@ -477,7 +478,7 @@ public class AOTVMacro extends Module {
             }
 
             default: {
-                SkyblockUtils.SendInfo("Unknown gemstone color: " + color.getName(), false, name);
+                LogUtils.addMessage(getName() + " - Unknown gemstone color: " + color.getName(), EnumChatFormatting.RED);
                 break;
             }
         }
@@ -488,6 +489,7 @@ public class AOTVMacro extends Module {
     @SubscribeEvent
     public void onWorldLastRender(RenderWorldLastEvent event) {
         if (mc.thePlayer == null || mc.theWorld == null) return;
+        if (LocationUtils.currentIsland != LocationUtils.Island.CRYSTAL_HOLLOWS) return;
         if (Waypoints == null || Waypoints.isEmpty()) return;
 
         if (target != null) {

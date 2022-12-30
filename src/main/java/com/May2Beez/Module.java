@@ -1,10 +1,11 @@
 package com.May2Beez;
 
-import com.May2Beez.utils.SkyblockUtils;
+import com.May2Beez.utils.LogUtils;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
@@ -67,7 +68,7 @@ public class Module {
     }
 
     public void onEnable() {
-        SkyblockUtils.SendInfo("§r§2is enabled!", true, getName());
+        LogUtils.addMessage(getName() + " is enabled!", EnumChatFormatting.GREEN);
     }
 
     public boolean isKeybind() {
@@ -95,7 +96,7 @@ public class Module {
     }
 
     public void onDisable() {
-        SkyblockUtils.SendInfo("§r§cis disabled!", false, getName());
+        LogUtils.addMessage(getName() + " is disabled!", EnumChatFormatting.RED);
     }
 
     protected void useMiningSpeedBoost() {

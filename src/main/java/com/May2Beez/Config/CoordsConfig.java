@@ -2,10 +2,11 @@ package com.May2Beez.Config;
 
 import com.May2Beez.AOTVWaypointsGUI;
 import com.May2Beez.modules.mining.AOTVMacro;
-import com.May2Beez.utils.SkyblockUtils;
+import com.May2Beez.utils.LogUtils;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import net.minecraft.util.EnumChatFormatting;
 
 import java.util.ArrayList;
 
@@ -52,7 +53,7 @@ public class CoordsConfig {
         int index = WaypointLists.indexOf(wp);
         AOTVWaypointsGUI.WaypointList inner = WaypointLists.get(index);
         if (wp.waypoints.stream().anyMatch(p -> p.x == pos.x && p.y == pos.y && p.z == pos.z)) {
-            SkyblockUtils.SendInfo("This waypoint already exists!", false, "AOTV Waypoints - ");
+            LogUtils.addMessage("AOTV Waypoints - This waypoint already exists!", EnumChatFormatting.RED);
             return;
         }
         inner.waypoints.add(pos);

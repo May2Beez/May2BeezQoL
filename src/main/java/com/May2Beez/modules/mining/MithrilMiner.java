@@ -12,6 +12,7 @@ import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.EnumDyeColor;
 import net.minecraft.util.BlockPos;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
@@ -51,7 +52,7 @@ public class MithrilMiner extends Module {
         int miningTool = SkyblockUtils.findItemInHotbar("Drill", "Pickaxe", "Gauntlet");
 
         if (miningTool == -1) {
-            SkyblockUtils.SendInfo("You don't have a mining tool!", false, name);
+            LogUtils.addMessage(getName() + " - You don't have a mining tool!", EnumChatFormatting.RED);
             this.toggle();
             return;
         }
@@ -111,7 +112,7 @@ public class MithrilMiner extends Module {
                     int miningTool = SkyblockUtils.findItemInHotbar("Drill", "Pickaxe", "Gauntlet");
 
                     if (miningTool == -1) {
-                        SkyblockUtils.SendInfo("You don't have a mining tool!", false, name);
+                        LogUtils.addMessage(getName() + " - You don't have a mining tool!", EnumChatFormatting.RED);
                         this.toggle();
                         return;
                     }
@@ -121,7 +122,7 @@ public class MithrilMiner extends Module {
                     if (!searchingTimer.hasReached(2000))
                         break;
 
-                    SkyblockUtils.SendInfo("No blocks found!", false, name);
+                    LogUtils.addMessage(getName() + " - No blocks found!", EnumChatFormatting.RED);
                     target = null;
                     blockToIgnoreBecauseOfStuck = null;
 
@@ -153,7 +154,7 @@ public class MithrilMiner extends Module {
 
                 if (stuckTimer.hasReached(May2BeezQoL.config.maxBreakTime) && RotationUtils.done) {
                     KeyBinding.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), false);
-                    SkyblockUtils.SendInfo("Stuck for " + May2BeezQoL.config.maxBreakTime + " ms, restarting.", false, name);
+                    LogUtils.addMessage(getName() + " - Stuck for " + May2BeezQoL.config.maxBreakTime + " ms, restarting.", EnumChatFormatting.DARK_RED);
                     stuckTimer.reset();
                     currentState = State.SEARCHING;
                     searchingTimer.reset();

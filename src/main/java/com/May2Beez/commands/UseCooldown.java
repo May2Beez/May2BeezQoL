@@ -1,15 +1,14 @@
 package com.May2Beez.commands;
 
-import com.May2Beez.utils.SkyblockUtils;
+import com.May2Beez.utils.LogUtils;
 import com.google.gson.Gson;
 import net.minecraft.client.Minecraft;
-import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommand;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.BlockPos;
-import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.EnumChatFormatting;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.charset.StandardCharsets;
@@ -20,8 +19,8 @@ import java.util.HashMap;
 import java.util.List;
 
 public class UseCooldown implements ICommand {
-    public static HashMap<String, Integer> RCitems = new HashMap<String, Integer>();
-    public static HashMap<String, Integer> LCitems = new HashMap<String, Integer>();
+    public static HashMap<String, Integer> RCitems = new HashMap<>();
+    public static HashMap<String, Integer> LCitems = new HashMap<>();
 
     @Override
     public String getCommandName() {
@@ -42,10 +41,10 @@ public class UseCooldown implements ICommand {
     public void processCommand(ICommandSender sender, String[] args) {
         if (args.length == 0) {
             for (String i : RCitems.keySet()) {
-                SkyblockUtils.SendInfo("§7Right click macro set on " + i + " §7with cooldown of " + RCitems.get(i) + " ms.", true, "UseCooldown -");
+                LogUtils.addMessage("UseCooldown - Right click macro set on " + i + " with cooldown of " + RCitems.get(i) + " ms.", EnumChatFormatting.AQUA);
             }
             for (String i : LCitems.keySet()) {
-                SkyblockUtils.SendInfo("§7Left click macro set on " + i + " §7with cooldown of " + LCitems.get(i) + " ms.", true, "UseCooldown -");
+                LogUtils.addMessage("UseCooldown - Left click macro set on " + i + " with cooldown of " + LCitems.get(i) + " ms.", EnumChatFormatting.AQUA);
             }
             saveMacros();
             return;
@@ -58,20 +57,20 @@ public class UseCooldown implements ICommand {
                 int cd = Integer.parseInt(args[0]);
                 if (cd == 0) {
                     RCitems.remove(curStack.getDisplayName());
-                    SkyblockUtils.SendInfo("§aSuccessfully Removed " + curStack.getDisplayName() + "§a.", true, "UseCooldown -");
+                    LogUtils.addMessage("UseCooldown - Removed " + curStack.getDisplayName() + " from right click macro list.", EnumChatFormatting.AQUA);
                     saveMacros();
                     return;
                 }
                 if (cd < 100) {
-                    SkyblockUtils.SendInfo("§cInvalid Miliseconds, Minimum delay 100 Milisecond.", false, "UseCooldown -");
+                    LogUtils.addMessage("UseCooldown - Invalid Miliseconds, Minimum delay 100 Milisecond.", EnumChatFormatting.RED);
                     saveMacros();
                     return;
                 }
                 RCitems.put(curStack.getDisplayName(), cd);
-                SkyblockUtils.SendInfo("§aSuccessfully Added " + curStack.getDisplayName() + "§a to right click with a delay of " + cd + " ms.", true, "UseCooldown -");
+                LogUtils.addMessage("UseCooldown - Added " + curStack.getDisplayName() + " to right click macro list with cooldown of " + cd + " ms.", EnumChatFormatting.AQUA);
                 saveMacros();
             } else {
-                SkyblockUtils.SendInfo("§cError getting current held item.", false, "UseCooldown -");
+                LogUtils.addMessage("UseCooldown - Error getting current held item.", EnumChatFormatting.RED);
             }
         } else if (args.length == 2 && isNumeric(args[0]) && args[1].equalsIgnoreCase("left")) {
             InventoryPlayer inv = Minecraft.getMinecraft().thePlayer.inventory;
@@ -81,23 +80,23 @@ public class UseCooldown implements ICommand {
                 int cd = Integer.parseInt(args[0]);
                 if (cd == 0) {
                     LCitems.remove(curStack.getDisplayName());
-                    SkyblockUtils.SendInfo("§aSuccessfully Removed " + curStack.getDisplayName() + "§a.", true, "UseCooldown -");
+                    LogUtils.addMessage("UseCooldown - Removed " + curStack.getDisplayName() + " from left click macro list.", EnumChatFormatting.AQUA);
                     saveMacros();
                     return;
                 }
                 if (cd < 100) {
-                    SkyblockUtils.SendInfo("§cInvalid Miliseconds, Minimum delay 100 Milisecond.", false, "UseCooldown - ");
+                    LogUtils.addMessage("UseCooldown - Invalid Miliseconds, Minimum delay 100 Milisecond.", EnumChatFormatting.RED);
                     saveMacros();
                     return;
                 }
-                SkyblockUtils.SendInfo("§aSuccessfully Added " + curStack.getDisplayName() + "§a to left click with a delay of " + cd + " ms.", true, "UseCooldown - ");
+                LogUtils.addMessage("UseCooldown - Added " + curStack.getDisplayName() + " to left click macro list with cooldown of " + cd + " ms.", EnumChatFormatting.AQUA);
                 LCitems.put(curStack.getDisplayName(), cd);
                 saveMacros();
             } else {
-                SkyblockUtils.SendInfo("§cError getting current held item.", false, "UseCooldown - ");
+                LogUtils.addMessage("UseCooldown - Error getting current held item.", EnumChatFormatting.RED);
             }
         } else {
-            SkyblockUtils.SendInfo("§cInvalid Arguments.", false, "UseCooldown - ");
+            LogUtils.addMessage("UseCooldown - Invalid Arguments.", EnumChatFormatting.RED);
         }
     }
 

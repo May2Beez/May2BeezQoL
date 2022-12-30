@@ -90,13 +90,17 @@ public class PowderChest extends Module {
     private void normalRotation() {
         if (closestChest.particle == null) return;
 
-        if (May2BeezQoL.config.onlyRotateIfLessThan80) {
+        if (May2BeezQoL.config.onlyRotateIfTreasureChest) {
 
-            RotationUtils.Rotation rotation = RotationUtils.getRotation(closestChest.pos);
+            if (mc.objectMouseOver == null) {
+                return;
+            }
 
-            RotationUtils.Rotation neededChange = RotationUtils.getNeededChange(rotation);
+            if (mc.objectMouseOver.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) {
+                return;
+            }
 
-            if (Math.abs(neededChange.pitch) > 80 || Math.abs(neededChange.yaw) > 80) {
+            if (!mc.objectMouseOver.getBlockPos().equals(closestChest.pos)) {
                 return;
             }
         }

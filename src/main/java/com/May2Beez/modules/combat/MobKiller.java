@@ -9,6 +9,7 @@ import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.item.EntityArmorStand;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.StringUtils;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
@@ -239,7 +240,7 @@ public class MobKiller extends Module {
                     int weapon = SkyblockUtils.findItemInHotbar("Hyperion");
 
                     if (weapon == -1) {
-                        SkyblockUtils.SendInfo("No Hyperion found");
+                        LogUtils.addMessage(getName() + " - No Hyperion found", EnumChatFormatting.RED);
                         return;
                     }
 
@@ -273,7 +274,7 @@ public class MobKiller extends Module {
                     }
 
                     if (weapon == -1) {
-                        SkyblockUtils.SendInfo("No weapon found");
+                        LogUtils.addMessage(getName() + " - No weapon found", EnumChatFormatting.RED);
                         return;
                     }
 
@@ -296,7 +297,7 @@ public class MobKiller extends Module {
                     MovingObjectPosition ray = RaytracingUtils.raytrace(rotation.yaw, rotation.pitch, scanRange + 5);
 
                     if (!target.worm && (ray == null || ray.typeOfHit != MovingObjectPosition.MovingObjectType.ENTITY || ray.entityHit != (target.entity != null ? target.entity : target.stand))) {
-                        SkyblockUtils.SendInfo("Something is blocking target, waiting for free shot...", false, name);
+                        LogUtils.addMessage("Something is blocking target, waiting for free shot...", EnumChatFormatting.DARK_RED);
                         blockedVisionDelay.reset();
                         currentState = States.BLOCKED_VISION;
                     } else {
