@@ -25,7 +25,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 public class PowderChest extends Module {
-
     public static TreasureChest closestChest = null;
     private final CopyOnWriteArrayList<TreasureChest> allChests = new CopyOnWriteArrayList<>();
     private static final Minecraft mc = Minecraft.getMinecraft();
@@ -37,13 +36,19 @@ public class PowderChest extends Module {
             this.pos = pos;
         }
 
-        public double distance(double x, double y, double z) { return pos.distanceSqToCenter(x, y, z);}
+        public double distance(double x, double y, double z) {
+            return Math.sqrt(pos.distanceSqToCenter(x, y, z));
+        }
 
         public boolean isOpen() {
             TileEntityChest chest = (TileEntityChest) mc.theWorld.getTileEntity(pos);
             if (chest == null) return false;
             int state = chest.numPlayersUsing;
             return state > 0;
+        }
+
+        public double distance(Vec3 positionEyes) {
+            return Math.sqrt(pos.distanceSqToCenter(positionEyes.xCoord, positionEyes.yCoord, positionEyes.zCoord));
         }
     }
 
@@ -59,6 +64,8 @@ public class PowderChest extends Module {
         closestChest = getClosestChest();
 
         if (closestChest == null) return;
+
+        if (closestChest.distance(mc.thePlayer.getPositionEyes(1)) >= 3.5f) return;
 
         if (!May2BeezQoL.config.solvePowderChestServerRotation) {
             normalRotation();
@@ -127,12 +134,12 @@ public class PowderChest extends Module {
 
                     if (allChest.isOpen()) continue;
 
-                    RenderUtils.drawBlockBox(allChest.pos, May2BeezQoL.config.chestEspColor, 3, event.partialTicks);
+                    RenderUtils.drawBlockBox(allChest.pos, May2BeezQoL.config.chestEspColor, 3);
                 }
             }
         }
-        if (closestChest != null) {
-            RenderUtils.drawBlockBox(closestChest.pos, new Color(Color.CYAN .getRed(), Color.CYAN.getGreen(), Color.CYAN.getBlue(), 200), 5, event.partialTicks);
+        if (closestChest != null && closestChest.distance(mc.thePlayer.getPositionEyes(1)) < 3.5f) {
+            RenderUtils.drawBlockBox(closestChest.pos, new Color(Color.CYAN .getRed(), Color.CYAN.getGreen(), Color.CYAN.getBlue(), 150), 3);
         }
     }
 
@@ -178,7 +185,7 @@ public class PowderChest extends Module {
 
         for (TreasureChest chest : notSolved) {
             double currentDistance = mc.thePlayer.getPositionEyes(1).distanceTo(new Vec3(chest.pos).add(new Vec3(0.5, 0.5, 0.5)));
-            if (currentDistance < 6 && currentDistance < distance) {
+            if (currentDistance < distance) {
                 closest = chest;
                 distance = (float) currentDistance;
             }

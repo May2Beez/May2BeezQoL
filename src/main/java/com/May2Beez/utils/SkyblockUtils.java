@@ -211,7 +211,7 @@ public class SkyblockUtils {
 
     public static int getMobHp(EntityArmorStand aStand) {
         double mobHp = -1.0D;
-        Pattern pattern = Pattern.compile(".+? ([.\\d]+)[Mk]?/[.\\d]+[Mk]?");
+        Pattern pattern = Pattern.compile(".+? ([.\\d]+)[BMk]?/[.\\d]+[BMk]?");
         String stripped = stripString(aStand.getName());
         Matcher mat = pattern.matcher(stripped);
         if (mat.matches())
@@ -221,7 +221,7 @@ public class SkyblockUtils {
 
             }
         else {
-            pattern = Pattern.compile("\\[Lv(\\d+)]\\s+(\\w+)\\s+(\\d+)+[Mk]?");
+            pattern = Pattern.compile("\\[Lv(\\d+)]\\s+(\\w+)\\s+(\\d+)+[BMk]?");
             stripped = stripString(aStand.getName());
             mat = pattern.matcher(stripped);
             if (mat.matches())

@@ -23,6 +23,7 @@ public class Config extends Vigilant {
     private static final String MOB_KILLER = "Mob Killer";
     private static final String ESP = "ESP";
     private static final String WORLD_SCANNER = "World Scanner";
+    private static final String POWDER_MACRO = "Powder Macro";
 
     private static final int maxCameraSpeedMS = 500;
 
@@ -338,6 +339,9 @@ public class Config extends Vigilant {
     @Property(type = PropertyType.SLIDER, name = "ESP range", category = ESP, max = 40)
     public int espRange = 10;
 
+    @Property(type = PropertyType.SWITCH, name = "Show ghosts in The Mist", category = ESP)
+    public boolean showGhosts = false;
+
 
     //endregion
 
@@ -379,6 +383,13 @@ public class Config extends Vigilant {
 
     @Property(type = PropertyType.SWITCH, category = WORLD_SCANNER, subcategory = "FILTER", name = "Crystal Hollows worm fishing spots")
     public boolean worldScannerCHWormFishing = true;
+
+    //endregion
+
+    //region POWDER_MACRO
+
+    @Property(type = PropertyType.SWITCH, name = "Kill Scathas and worms", category = POWDER_MACRO)
+    public boolean killScathasAndWorms = false;
 
     //endregion
 

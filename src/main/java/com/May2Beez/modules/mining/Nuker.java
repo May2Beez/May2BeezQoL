@@ -157,7 +157,7 @@ public class Nuker extends Module {
         if (!isEnabled()) return;
         if (blockPos == null) return;
 
-        RenderUtils.drawBlockBox(blockPos, new Color(Color.GRAY.getRed(), Color.GRAY.getGreen(), Color.GRAY.getBlue(), 100), 2f, event.partialTicks);
+        RenderUtils.drawBlockBox(blockPos, new Color(Color.GRAY.getRed(), Color.GRAY.getGreen(), Color.GRAY.getBlue(), 100), 2f);
     }
 
     @SubscribeEvent(priority = EventPriority.NORMAL)

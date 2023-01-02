@@ -8,7 +8,7 @@ public class LogUtils {
     static Minecraft mc = Minecraft.getMinecraft();
 
     public static void addMessage(String message, EnumChatFormatting color) {
-        String prefix = EnumChatFormatting.BOLD.toString() + EnumChatFormatting.LIGHT_PURPLE + "[QoL] ";
+        String prefix = EnumChatFormatting.BOLD.toString() + EnumChatFormatting.LIGHT_PURPLE + "[QoL]";
         String mess = prefix + EnumChatFormatting.RESET + color + " " + message;
         Minecraft.getMinecraft().thePlayer.addChatMessage(new ChatComponentText(mess));
 

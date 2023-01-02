@@ -13,6 +13,7 @@ import com.May2Beez.modules.farming.ForagingMacro;
 import com.May2Beez.modules.mining.AOTVMacro;
 import com.May2Beez.modules.mining.MithrilMiner;
 import com.May2Beez.modules.mining.Nuker;
+import com.May2Beez.modules.mining.PowderMacro;
 import com.May2Beez.modules.player.CustomItemMacro;
 import com.May2Beez.modules.player.FishingMacro;
 import com.May2Beez.modules.player.ESP;
@@ -54,13 +55,14 @@ public class May2BeezQoL
 {
     public static final String MODID = "May2BeezQoL";
     public static final String VERSION = "1.0.0";
+    public static final PowderChest powderChestMacro = new PowderChest();
     public static Config config = new Config();
     public static GuiScreen display = null;
     public static CopyOnWriteArrayList<Module> modules = new CopyOnWriteArrayList<>();
     public static Gson gson = new GsonBuilder().setPrettyPrinting().create();
     public static CoordsConfig coordsConfig;
 
-    public static MobKiller mobKiller = new MobKiller();
+    public static final MobKiller mobKiller = new MobKiller();
 
     public static boolean miningSpeedReady = true;
 
@@ -176,7 +178,7 @@ public class May2BeezQoL
         modules.add(new FarmingMacro());
         modules.add(new CustomItemMacro());
 //        modules.add(new CropNuker());
-        modules.add(new PowderChest());
+        modules.add(powderChestMacro);
 //        modules.add(new AutoPlantCrops()); // meh
 //        modules.add(new AutoMelody()); // kinda pointless
         modules.add(new FishingMacro());
@@ -184,6 +186,7 @@ public class May2BeezQoL
         modules.add(mobKiller); // sub-module for later usage
         modules.add(new ESP());
         modules.add(new WorldScanner());
+//        modules.add(new PowderMacro());
 
         for (Module m : modules)
             MinecraftForge.EVENT_BUS.register(m);

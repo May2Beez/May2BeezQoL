@@ -153,9 +153,9 @@ public class WorldScanner extends Module {
             for (Map.Entry<String, BlockPos> entry : currentWorld.getCrystalWaypoints().entrySet()) {
                 BlockPos blockPos = entry.getValue();
                 if (May2BeezQoL.config.espHighlight)
-                    RenderUtils.drawBlockBox(blockPos, Color.WHITE, 3, event.partialTicks);
+                    RenderUtils.drawBlockBox(blockPos, Color.WHITE, 3);
                 if (May2BeezQoL.config.espWaypointText)
-                    RenderUtils.drawText(entry.getKey(), blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5, event.partialTicks, false);
+                    RenderUtils.drawText(entry.getKey(), blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5);
                 if (May2BeezQoL.config.espBeacon)
                     RenderUtils.renderBeacon(new Vec3(blockPos.getX(), blockPos.getY(), blockPos.getZ()), Color.PINK, event.partialTicks);
             }
@@ -164,9 +164,9 @@ public class WorldScanner extends Module {
             for (Map.Entry<String, BlockPos> entry : currentWorld.getMobSpotWaypoints().entrySet()) {
                 BlockPos blockPos = entry.getValue();
                 if (May2BeezQoL.config.espHighlight)
-                    RenderUtils.drawBlockBox(blockPos, Color.RED, 3, event.partialTicks);
+                    RenderUtils.drawBlockBox(blockPos, Color.RED, 3);
                 if (May2BeezQoL.config.espWaypointText)
-                    RenderUtils.drawText(entry.getKey(), blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5, event.partialTicks, false);
+                    RenderUtils.drawText(entry.getKey(), blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5);
                 if (May2BeezQoL.config.espBeacon)
                     RenderUtils.renderBeacon(new Vec3(blockPos.getX(), blockPos.getY(), blockPos.getZ()), Color.PINK, event.partialTicks);
             }
@@ -174,9 +174,9 @@ public class WorldScanner extends Module {
         if (May2BeezQoL.config.worldScannerCHFairyGrottos) {
             for (BlockPos blockPos : currentWorld.getFairyGrottos()) {
                 if (May2BeezQoL.config.espHighlight)
-                    RenderUtils.drawBlockBox(blockPos, Color.PINK, 3, event.partialTicks);
+                    RenderUtils.drawBlockBox(blockPos, Color.PINK, 3);
                 if (May2BeezQoL.config.espWaypointText)
-                    RenderUtils.drawText("§dFairy Grotto", blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5, event.partialTicks, false);
+                    RenderUtils.drawText("§dFairy Grotto", blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5);
                 if (May2BeezQoL.config.espBeacon)
                     RenderUtils.renderBeacon(new Vec3(blockPos.getX(), blockPos.getY(), blockPos.getZ()), Color.PINK, event.partialTicks);
             }
@@ -184,9 +184,9 @@ public class WorldScanner extends Module {
         if (May2BeezQoL.config.worldScannerCHWormFishing) {
             for (BlockPos blockPos : currentWorld.getWormFishing()) {
                 if (May2BeezQoL.config.espHighlight)
-                    RenderUtils.drawBlockBox(blockPos, Color.ORANGE, 3, event.partialTicks);
+                    RenderUtils.drawBlockBox(blockPos, Color.ORANGE, 3);
                 if (May2BeezQoL.config.espWaypointText)
-                    RenderUtils.drawText("§6Worm Fishing", blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5, event.partialTicks, false);
+                    RenderUtils.drawText("§6Worm Fishing", blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5);
                 if (May2BeezQoL.config.espBeacon)
                     RenderUtils.renderBeacon(new Vec3(blockPos.getX(), blockPos.getY(), blockPos.getZ()), Color.PINK, event.partialTicks);
             }

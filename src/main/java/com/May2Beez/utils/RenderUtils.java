@@ -21,34 +21,21 @@ import net.minecraft.entity.Entity;
 import net.minecraft.util.*;
 import org.lwjgl.opengl.GL11;
 
-import static org.lwjgl.opengl.GL11.*;
-
 public class RenderUtils {
 
     private static final ResourceLocation beaconBeam = new ResourceLocation("textures/entity/beacon_beam.png");
 
     private static final Minecraft mc = Minecraft.getMinecraft();
 
-    public static void drawEntityBox(final Entity entity, final Color color, final int lineWidth, float partialTicks) {
+    public static void drawEntityBox(final Entity entity, final Color color, final int lineWidth) {
         RenderManagerAccessor rm = (RenderManagerAccessor) Minecraft.getMinecraft().getRenderManager();
 
         double renderPosX = rm.getRenderPosX();
         double renderPosY = rm.getRenderPosY();
         double renderPosZ = rm.getRenderPosZ();
 
-        double x = entity.lastTickPosX + (entity.posX - entity.lastTickPosX) * partialTicks - renderPosX;
-        double y = entity.lastTickPosY + (entity.posY - entity.lastTickPosY) * partialTicks - renderPosY;
-        double z = entity.lastTickPosZ + (entity.posZ - entity.lastTickPosZ) * partialTicks - renderPosZ;
-
         AxisAlignedBB bbox = entity.getEntityBoundingBox();
-        AxisAlignedBB aabb = new AxisAlignedBB(
-                bbox.minX - entity.posX + x,
-                bbox.minY - entity.posY + y,
-                bbox.minZ - entity.posZ + z,
-                bbox.maxX - entity.posX + x,
-                bbox.maxY - entity.posY + y,
-                bbox.maxZ - entity.posZ + z
-        ).expand(0.1, 0.1, 0.1);
+        AxisAlignedBB aabb = bbox.offset(-mc.getRenderManager().viewerPosX, -mc.getRenderManager().viewerPosY, -mc.getRenderManager().viewerPosZ).expand(0.1, 0.1, 0.1);
 
         drawFilledBoundingBox(aabb, color, 0.7f, lineWidth);
     }
@@ -100,79 +87,50 @@ public class RenderUtils {
         GlStateManager.popMatrix();
     }
 
-    public static void drawText(String str, double X, double Y, double Z, float partialTicks, boolean showDist) {
-        GlStateManager.alphaFunc(516, 0.1F);
+    public static void drawText(String str, double X, double Y, double Z) {
+        float lScale = 1.0f;
+        FontRenderer fontRenderer = Minecraft.getMinecraft().fontRendererObj;
+
+        double renderPosX = X - Minecraft.getMinecraft().getRenderManager().viewerPosX;
+        double renderPosY = Y - Minecraft.getMinecraft().getRenderManager().viewerPosY;
+        double renderPosZ = Z - Minecraft.getMinecraft().getRenderManager().viewerPosZ;
+
+        double distance = Math.sqrt(renderPosX * renderPosX + renderPosY * renderPosY + renderPosZ * renderPosZ);
+        double multiplier = Math.max(distance / 150f, 0.1f);
+        lScale *= 0.45f * multiplier;
+
+        float xMultiplier = Minecraft.getMinecraft().gameSettings.thirdPersonView == 2 ? -1 : 1;
 
         GlStateManager.pushMatrix();
-
-        Entity viewer = Minecraft.getMinecraft().getRenderViewEntity();
-        double viewerX = viewer.lastTickPosX + (viewer.posX - viewer.lastTickPosX) * partialTicks;
-        double viewerY = viewer.lastTickPosY + (viewer.posY - viewer.lastTickPosY) * partialTicks;
-        double viewerZ = viewer.lastTickPosZ + (viewer.posZ - viewer.lastTickPosZ) * partialTicks;
-
-        double x = X - viewerX;
-        double y = Y - viewerY - viewer.getEyeHeight();
-        double z = Z - viewerZ;
-
-        double distSq = x * x + y * y + z * z;
-        double dist = Math.sqrt(distSq);
-        if (distSq > 144) {
-            x *= 12 / dist;
-            y *= 12 / dist;
-            z *= 12 / dist;
-        }
-        GlStateManager.translate(x, y, z);
-        GlStateManager.translate(0, viewer.getEyeHeight(), 0);
-
-        drawNametag(str);
-
-        GlStateManager.rotate(-Minecraft.getMinecraft().getRenderManager().playerViewY, 0.0F, 1.0F, 0.0F);
-        GlStateManager.rotate(Minecraft.getMinecraft().getRenderManager().playerViewX, 1.0F, 0.0F, 0.0F);
-        GlStateManager.translate(0, -0.25f, 0);
-        GlStateManager.rotate(-Minecraft.getMinecraft().getRenderManager().playerViewX, 1.0F, 0.0F, 0.0F);
-        GlStateManager.rotate(Minecraft.getMinecraft().getRenderManager().playerViewY, 0.0F, 1.0F, 0.0F);
-
-        if (showDist) {
-            drawNametag("§e" + Math.round(dist * 10) / 10 + " blocks");
-        }
-
-        GlStateManager.popMatrix();
-
-        GlStateManager.disableLighting();
-    }
-
-    public static void drawNametag(String str) {
-        FontRenderer fontrenderer = Minecraft.getMinecraft().fontRendererObj;
-        float f = 1.6F;
-        float f1 = 0.016666668F * f;
-        GlStateManager.pushMatrix();
-        GL11.glNormal3f(0.0F, 1.0F, 0.0F);
-        GlStateManager.rotate(-Minecraft.getMinecraft().getRenderManager().playerViewY, 0.0F, 1.0F, 0.0F);
-        GlStateManager.rotate(Minecraft.getMinecraft().getRenderManager().playerViewX, 1.0F, 0.0F, 0.0F);
-        GlStateManager.scale(-f1, -f1, f1);
+        GlStateManager.translate(renderPosX, renderPosY, renderPosZ);
+        RenderManager renderManager = Minecraft.getMinecraft().getRenderManager();
+        GlStateManager.rotate(-renderManager.playerViewY, 0, 1, 0);
+        GlStateManager.rotate(renderManager.playerViewX * xMultiplier, 1, 0, 0);
+        GlStateManager.scale(-lScale, -lScale, lScale);
         GlStateManager.disableLighting();
         GlStateManager.depthMask(false);
         GlStateManager.disableDepth();
         GlStateManager.enableBlend();
         GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
-        Tessellator tessellator = Tessellator.getInstance();
-        WorldRenderer bufferBuilder = tessellator.getWorldRenderer();
 
-        int textWidth = fontrenderer.getStringWidth(StringUtils.stripControlCodes(str));
+        int textWidth = fontRenderer.getStringWidth(str);
 
         float j = textWidth / 2f;
         GlStateManager.disableTexture2D();
-        bufferBuilder.begin(7, DefaultVertexFormats.POSITION_COLOR);
-        bufferBuilder.pos(-j - 1, -1, 0).color(0.0F, 0.0F, 0.0F, 0.5F).endVertex();
-        bufferBuilder.pos(-j - 1, 8, 0).color(0.0F, 0.0F, 0.0F, 0.5F).endVertex();
-        bufferBuilder.pos(j + 1, 8, 0).color(0.0F, 0.0F, 0.0F, 0.5F).endVertex();
-        bufferBuilder.pos(j + 1, -1, 0).color(0.0F, 0.0F, 0.0F, 0.5F).endVertex();
+        Tessellator tessellator = Tessellator.getInstance();
+        WorldRenderer worldrenderer = tessellator.getWorldRenderer();
+        GlStateManager.color(0, 0, 0, 0.5f);
+        worldrenderer.begin(7, DefaultVertexFormats.POSITION);
+        worldrenderer.pos(-j - 1, -1, 0).endVertex();
+        worldrenderer.pos(-j - 1, 8, 0).endVertex();
+        worldrenderer.pos(j + 1, 8, 0).endVertex();
+        worldrenderer.pos(j + 1, -1, 0).endVertex();
         tessellator.draw();
         GlStateManager.enableTexture2D();
-        fontrenderer.drawString(str, (int) -j, 0, 553648127);
-        GlStateManager.depthMask(true);
 
-        fontrenderer.drawString(str, (int) -j, 0, -1);
+        fontRenderer.drawString(str, -textWidth / 2, 0, 553648127);
+        GlStateManager.depthMask(true);
+        fontRenderer.drawString(str, -textWidth / 2, 0, -1);
 
         GlStateManager.enableDepth();
         GlStateManager.enableBlend();
@@ -180,22 +138,22 @@ public class RenderUtils {
         GlStateManager.popMatrix();
     }
 
-    public static void drawOutline(BlockPos blockPos, Color color, float lineWidth, float partialTicks) {
+    public static void drawOutline(BlockPos blockPos, Color color, float lineWidth) {
         if (blockPos != null) {
             IBlockState blockState = mc.theWorld.getBlockState(blockPos);
 
             if (blockState != null) {
                 Block block = blockState.getBlock();
                 block.setBlockBoundsBasedOnState(mc.theWorld, blockPos);
-                double d0 = mc.thePlayer.lastTickPosX + (mc.thePlayer.posX - mc.thePlayer.lastTickPosX) * (double) partialTicks;
-                double d1 = mc.thePlayer.lastTickPosY + (mc.thePlayer.posY - mc.thePlayer.lastTickPosY) * (double) partialTicks;
-                double d2 = mc.thePlayer.lastTickPosZ + (mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ) * (double) partialTicks;
+                double d0 = mc.getRenderManager().viewerPosX;
+                double d1 = mc.getRenderManager().viewerPosY;
+                double d2 = mc.getRenderManager().viewerPosZ;
                 drawFilledBoundingBox(block.getSelectedBoundingBox(mc.theWorld, blockPos).expand(0.002D, 0.002D, 0.002D).offset(-d0, -d1, -d2), color, 0f, lineWidth);
             }
         }
     }
 
-    public static void drawDoubleChestBlockBox(BlockPos blockPos1, BlockPos blockPos2, Color color, float lineWidth, float partialTicks) {
+    public static void drawDoubleChestBlockBox(BlockPos blockPos1, BlockPos blockPos2, Color color, float lineWidth) {
         if (blockPos1 != null && blockPos2 != null) {
             // Get the IBlockState and Block objects for both BlockPos objects
             IBlockState blockState1 = mc.theWorld.getBlockState(blockPos1);
@@ -214,9 +172,9 @@ public class RenderUtils {
                 AxisAlignedBB boundingBox = boundingBox1.union(boundingBox2);
 
                 // Calculate the player's position for the given partial ticks
-                double d0 = mc.thePlayer.lastTickPosX + (mc.thePlayer.posX - mc.thePlayer.lastTickPosX) * (double) partialTicks;
-                double d1 = mc.thePlayer.lastTickPosY + (mc.thePlayer.posY - mc.thePlayer.lastTickPosY) * (double) partialTicks;
-                double d2 = mc.thePlayer.lastTickPosZ + (mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ) * (double) partialTicks;
+                double d0 = mc.getRenderManager().viewerPosX;
+                double d1 = mc.getRenderManager().viewerPosY;
+                double d2 = mc.getRenderManager().viewerPosZ;
 
                 // Offset the bounding box and draw it
                 drawFilledBoundingBox(boundingBox.offset(-d0, -d1, -d2), color, 0.7f, lineWidth);
@@ -224,25 +182,25 @@ public class RenderUtils {
         }
     }
 
-    public static void drawBlockBox(BlockPos blockPos, Color color, float lineWidth, float partialTicks) {
+    public static void drawBlockBox(BlockPos blockPos, Color color, float lineWidth) {
         if (blockPos != null) {
             IBlockState blockState = mc.theWorld.getBlockState(blockPos);
 
             if (blockState != null) {
                 Block block = blockState.getBlock();
                 block.setBlockBoundsBasedOnState(mc.theWorld, blockPos);
-                double d0 = mc.thePlayer.lastTickPosX + (mc.thePlayer.posX - mc.thePlayer.lastTickPosX) * (double) partialTicks;
-                double d1 = mc.thePlayer.lastTickPosY + (mc.thePlayer.posY - mc.thePlayer.lastTickPosY) * (double) partialTicks;
-                double d2 = mc.thePlayer.lastTickPosZ + (mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ) * (double) partialTicks;
+                double d0 = mc.getRenderManager().viewerPosX;
+                double d1 = mc.getRenderManager().viewerPosY;
+                double d2 = mc.getRenderManager().viewerPosZ;
                 drawFilledBoundingBox(block.getSelectedBoundingBox(mc.theWorld, blockPos).expand(0.002D, 0.002D, 0.002D).offset(-d0, -d1, -d2), color, 0.7f, lineWidth);
             }
         }
     }
 
-    public static void drawBlockBox(AxisAlignedBB bb, Color color, float lineWidth, float partialTicks) {
-        double d0 = mc.thePlayer.lastTickPosX + (mc.thePlayer.posX - mc.thePlayer.lastTickPosX) * (double) partialTicks;
-        double d1 = mc.thePlayer.lastTickPosY + (mc.thePlayer.posY - mc.thePlayer.lastTickPosY) * (double) partialTicks;
-        double d2 = mc.thePlayer.lastTickPosZ + (mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ) * (double) partialTicks;
+    public static void drawBlockBox(AxisAlignedBB bb, Color color, float lineWidth) {
+        double d0 = mc.getRenderManager().viewerPosX;
+        double d1 = mc.getRenderManager().viewerPosY;
+        double d2 = mc.getRenderManager().viewerPosZ;
         drawFilledBoundingBox(bb.expand(0.002D, 0.002D, 0.002D).offset(-d0, -d1, -d2), color, 0.7f, lineWidth);
     }
 

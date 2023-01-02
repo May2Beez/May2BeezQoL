@@ -345,12 +345,12 @@ public class MobKiller extends Module {
         if (potentialTargets.size() > 0) {
             potentialTargets.forEach(v -> {
                 if (v != target)
-                    RenderUtils.drawEntityBox(v.worm ? v.stand : v.entity, new Color(100, 200, 100, 200), 2, event.partialTicks);
+                    RenderUtils.drawEntityBox(v.worm ? v.stand : v.entity, new Color(100, 200, 100, 200), 2);
             });
         }
 
         if (target != null) {
-            RenderUtils.drawEntityBox(target.worm ? target.stand : target.entity, new Color(200, 100, 100, 200), 2, event.partialTicks);
+            RenderUtils.drawEntityBox(target.worm ? target.stand : target.entity, new Color(200, 100, 100, 200), 2);
         }
     }
  }

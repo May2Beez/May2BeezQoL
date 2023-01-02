@@ -70,7 +70,7 @@ public class GhostGrinder extends Module {
     public void onRenderWorld(RenderWorldLastEvent event) {
         if (!isToggled()) return;
         if (creeper == null) return;
-        RenderUtils.drawEntityBox(creeper, Color.orange, May2BeezQoL.config.lineWidth, event.partialTicks);
+        RenderUtils.drawEntityBox(creeper, Color.orange, May2BeezQoL.config.lineWidth);
     }
 
     private static Entity getClosestCreeper() {

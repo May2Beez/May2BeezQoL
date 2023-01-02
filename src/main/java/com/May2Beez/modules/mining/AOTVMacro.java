@@ -493,13 +493,13 @@ public class AOTVMacro extends Module {
         if (Waypoints == null || Waypoints.isEmpty()) return;
 
         if (target != null) {
-            RenderUtils.drawBlockBox(target.getPos(), new Color(0, 255, 0, 100), 4f, event.partialTicks);
+            RenderUtils.drawBlockBox(target.getPos(), new Color(0, 255, 0, 100), 4f);
         }
 
         if (May2BeezQoL.config.showRouteBlocks) {
             for (AOTVWaypointsGUI.Waypoint waypoint : Waypoints) {
                 BlockPos pos = new BlockPos(waypoint.x, waypoint.y, waypoint.z);
-                RenderUtils.drawBlockBox(pos, May2BeezQoL.config.routeBlockColor, 4f, event.partialTicks);
+                RenderUtils.drawBlockBox(pos, May2BeezQoL.config.routeBlockColor, 4f);
             }
 
             if (May2BeezQoL.config.showRouteLines) {
@@ -520,14 +520,14 @@ public class AOTVMacro extends Module {
         if (May2BeezQoL.config.drawBlocksBlockingAOTV && !isToggled()) {
             if (!blocksBlockingVision.isEmpty()) {
                 for (BlockPos pos : blocksBlockingVision) {
-                    RenderUtils.drawBlockBox(pos, May2BeezQoL.config.aotvVisionBlocksColor, 4f, event.partialTicks);
+                    RenderUtils.drawBlockBox(pos, May2BeezQoL.config.aotvVisionBlocksColor, 4f);
                 }
             }
         }
 
         for (AOTVWaypointsGUI.Waypoint waypoint : Waypoints) {
             BlockPos pos = new BlockPos(waypoint.x, waypoint.y, waypoint.z);
-            RenderUtils.drawText("§l§3[§f " + waypoint.name + " §3]", pos.getX() + 0.5, pos.getY() + 1.5, pos.getZ() + 0.5, event.partialTicks, false);
+            RenderUtils.drawText("§l§3[§f " + waypoint.name + " §3]", pos.getX() + 0.5, pos.getY() + 1.5, pos.getZ() + 0.5);
         }
     }
 }
