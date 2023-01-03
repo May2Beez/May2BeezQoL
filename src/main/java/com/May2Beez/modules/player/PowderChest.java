@@ -65,8 +65,6 @@ public class PowderChest extends Module {
 
         if (closestChest == null) return;
 
-        if (closestChest.distance(mc.thePlayer.getPositionEyes(1)) >= 3.5f) return;
-
         if (!May2BeezQoL.config.solvePowderChestServerRotation) {
             normalRotation();
         } else {
@@ -138,7 +136,7 @@ public class PowderChest extends Module {
                 }
             }
         }
-        if (closestChest != null && closestChest.distance(mc.thePlayer.getPositionEyes(1)) < 3.5f) {
+        if (closestChest != null && closestChest.distance(mc.thePlayer.getPositionEyes(1)) < 5f) {
             RenderUtils.drawBlockBox(closestChest.pos, new Color(Color.CYAN .getRed(), Color.CYAN.getGreen(), Color.CYAN.getBlue(), 150), 3);
         }
     }
@@ -185,7 +183,7 @@ public class PowderChest extends Module {
 
         for (TreasureChest chest : notSolved) {
             double currentDistance = mc.thePlayer.getPositionEyes(1).distanceTo(new Vec3(chest.pos).add(new Vec3(0.5, 0.5, 0.5)));
-            if (currentDistance < distance) {
+            if (currentDistance < 5f && currentDistance < distance) {
                 closest = chest;
                 distance = (float) currentDistance;
             }

@@ -80,6 +80,20 @@ public class RotationUtils {
         return new Rotation(pitch, yaw);
     }
 
+    public static Rotation getRotation(Vec3 from, Vec3 to) {
+        double diffX = from.xCoord - to.xCoord;
+        double diffY = from.yCoord - to.yCoord;
+        double diffZ = from.zCoord - to.zCoord;
+        double dist = Math.sqrt(diffX * diffX + diffZ * diffZ);
+
+        float pitch = (float) -Math.atan2(dist, diffY);
+        float yaw = (float) Math.atan2(diffZ, diffX);
+        pitch = (float) wrapAngleTo180((pitch * 180F / Math.PI + 90) * -1);
+        yaw = (float) wrapAngleTo180((yaw * 180 / Math.PI) - 90);
+
+        return new Rotation(pitch, yaw);
+    }
+
     public static Rotation getRotation(BlockPos block) {
         return getRotation(new Vec3(block.getX() + 0.5, block.getY() + 0.5, block.getZ() + 0.5));
     }

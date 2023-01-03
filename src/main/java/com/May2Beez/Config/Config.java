@@ -268,7 +268,7 @@ public class Config extends Vigilant {
     @Property(type = PropertyType.SWITCH, name = "Draw blocks blocking AOTV vision", category = AOTV_MACRO, subcategory = "Drawing")
     public boolean drawBlocksBlockingAOTV = true;
 
-    @Property(type = PropertyType.DECIMAL_SLIDER, name = "AOTV Vision blocks accuracy", decimalPlaces = 3, description = "Smaller == more checks per line between waypoints", category = AOTV_MACRO, minF = 0.01f, maxF = 0.1f, subcategory = "Drawing")
+    @Property(type = PropertyType.DECIMAL_SLIDER, name = "AOTV Vision blocks accuracy", decimalPlaces = 1, description = "Smaller == more checks per line between waypoints", category = AOTV_MACRO, minF = 0.1f, maxF = 1f, subcategory = "Drawing")
     public float aotvVisionBlocksAccuracy = 0.1f;
 
     @Property(type = PropertyType.COLOR, name = "AOTV Vision blocks color", category = AOTV_MACRO, subcategory = "Drawing")

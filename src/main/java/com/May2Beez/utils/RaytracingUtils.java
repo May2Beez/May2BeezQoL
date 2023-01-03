@@ -1,16 +1,15 @@
 package com.May2Beez.utils;
 
 import com.google.common.base.Predicates;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
-import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.EntitySelectors;
-import net.minecraft.util.MovingObjectPosition;
-import net.minecraft.util.Vec3;
+import net.minecraft.util.*;
 
 import java.util.List;
 
 public class RaytracingUtils {
+
     private static final Minecraft mc = Minecraft.getMinecraft();
 
     public static MovingObjectPosition raytraceToBlock(float yaw, float pitch, double reach) {

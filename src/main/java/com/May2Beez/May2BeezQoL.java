@@ -18,6 +18,7 @@ import com.May2Beez.modules.player.CustomItemMacro;
 import com.May2Beez.modules.player.FishingMacro;
 import com.May2Beez.modules.player.ESP;
 import com.May2Beez.modules.player.PowderChest;
+import com.May2Beez.modules.singeplayer.AspectOfTheVoid;
 import com.May2Beez.modules.world.WorldScanner;
 import com.May2Beez.utils.LocationUtils;
 import com.May2Beez.utils.LogUtils;
@@ -187,6 +188,7 @@ public class May2BeezQoL
         modules.add(new ESP());
         modules.add(new WorldScanner());
 //        modules.add(new PowderMacro());
+        modules.add(new AspectOfTheVoid());
 
         for (Module m : modules)
             MinecraftForge.EVENT_BUS.register(m);

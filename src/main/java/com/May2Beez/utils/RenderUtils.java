@@ -113,7 +113,7 @@ public class RenderUtils {
         GlStateManager.enableBlend();
         GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
 
-        int textWidth = fontRenderer.getStringWidth(str);
+        int textWidth = fontRenderer.getStringWidth(StringUtils.stripControlCodes((str)));
 
         float j = textWidth / 2f;
         GlStateManager.disableTexture2D();

@@ -375,7 +375,7 @@ public class AOTVWaypointsGUI extends WindowScreen {
 
     private Unit AddNewWaypointListHandler() {
         System.out.println("Add New Waypoint List");
-        May2BeezQoL.coordsConfig.addRoute("Waypoint List " + May2BeezQoL.coordsConfig.getSelectedRoute().waypoints.size());
+        May2BeezQoL.coordsConfig.addRoute("Waypoint List " + (May2BeezQoL.coordsConfig.getSelectedRoute() != null ? May2BeezQoL.coordsConfig.getSelectedRoute().waypoints.size() : 1));
         UpdateGUI();
         return Unit.INSTANCE;
     }

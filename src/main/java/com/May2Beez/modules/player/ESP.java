@@ -114,10 +114,7 @@ public class ESP extends Module {
                 })
                 .filter(pos -> {
                     if (PowderChest.closestChest == null) return true;
-                    if (PowderChest.closestChest.pos.equals(pos)) {
-                        return PowderChest.closestChest.distance(mc.thePlayer.getPositionEyes(1).xCoord, mc.thePlayer.getPositionEyes(1).yCoord, mc.thePlayer.getPositionEyes(1).zCoord) > 3.5f;
-                    }
-                    return false;
+                    return !PowderChest.closestChest.pos.equals(pos);
                 })
                 .collect(Collectors.toList());
 
