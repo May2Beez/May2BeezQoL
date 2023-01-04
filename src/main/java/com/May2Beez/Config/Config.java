@@ -229,6 +229,9 @@ public class Config extends Vigilant {
     @Property(type = PropertyType.SWITCH, name = "Powder chest rotation only if object under mouse is a treasure chest", category = MINING)
     public boolean onlyRotateIfTreasureChest = false;
 
+    @Property(type = PropertyType.DECIMAL_SLIDER, name = "Space from edge block to the center for accuracy checks", description = "Lower value means that macro will check closes to the block's edge if the block is visible", category = MINING, minF = 0f, maxF = 0.5f)
+    public float miningAccuracy = 0.1f;
+
     //endregion
 
     //region Fishing Macro

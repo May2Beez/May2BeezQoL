@@ -24,8 +24,6 @@ import org.lwjgl.input.Keyboard;
 
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.concurrent.CopyOnWriteArrayList;
-
 
 public class AOTVMacro extends Module {
 
@@ -308,18 +306,16 @@ public class AOTVMacro extends Module {
         if (event.phase == TickEvent.Phase.END) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (isToggled()) return;
-
-        if (!blocksBlockingVision.isEmpty())
-            blocksBlockingVision.clear();
+        if (LocationUtils.currentIsland != LocationUtils.Island.CRYSTAL_HOLLOWS) return;
 
         if (!May2BeezQoL.config.drawBlocksBlockingAOTV) return;
+
+        blocksBlockingVision.clear();
 
         ArrayList<AOTVWaypointsGUI.Waypoint> Waypoints = May2BeezQoL.coordsConfig.getSelectedRoute().waypoints;
 
 
         if (Waypoints.size() > 1) {
-
-            debugPoints.clear();
 
             for (int i = 0; i < Waypoints.size() - 1; i++) {
                 BlockPos pos1 = new BlockPos(Waypoints.get(i).x, Waypoints.get(i).y, Waypoints.get(i).z);
@@ -334,8 +330,6 @@ public class AOTVMacro extends Module {
             GetAllBlocksInline(pos1, pos2);
         }
     }
-
-    private final CopyOnWriteArrayList<Vec3> debugPoints = new CopyOnWriteArrayList<>();
 
     private void GetAllBlocksInline(BlockPos pos1, BlockPos pos2) {
         Vec3 startPos = new Vec3(pos1.getX() + 0.5, pos1.getY() + 1 + mc.thePlayer.getDefaultEyeHeight() - 0.125, pos1.getZ() + 0.5);
@@ -357,8 +351,6 @@ public class AOTVMacro extends Module {
 
 
         while (currentPos.distanceTo(startPos) < maxDistance) {
-
-            debugPoints.add(currentPos);
 
             ArrayList<BlockPos> blocks = SkyblockUtils.AnyBlockAroundVec3(currentPos, 0.15f);
 
@@ -501,12 +493,13 @@ public class AOTVMacro extends Module {
     @SubscribeEvent
     public void onWorldLastRender(RenderWorldLastEvent event) {
         if (mc.thePlayer == null || mc.theWorld == null) return;
-//        if (LocationUtils.currentIsland != LocationUtils.Island.CRYSTAL_HOLLOWS) return;
+        if (LocationUtils.currentIsland != LocationUtils.Island.CRYSTAL_HOLLOWS) return;
         ArrayList<AOTVWaypointsGUI.Waypoint> Waypoints = May2BeezQoL.coordsConfig.getSelectedRoute().waypoints;
         if (Waypoints == null || Waypoints.isEmpty()) return;
 
         if (target != null) {
-            RenderUtils.drawBlockBox(target.getPos(), new Color(0, 255, 0, 100), 4f);
+            RenderUtils.drawBlockBox(target.getPos(), new Color(0, 255, 0, 80), 4f);
+            RenderUtils.miniBlockBox(target.getRandomVisibilityLine(), new Color(0, 255, 247, 166), 1.5f);
         }
 
         if (May2BeezQoL.config.showRouteBlocks) {
@@ -541,12 +534,6 @@ public class AOTVMacro extends Module {
         for (AOTVWaypointsGUI.Waypoint waypoint : Waypoints) {
             BlockPos pos = new BlockPos(waypoint.x, waypoint.y, waypoint.z);
             RenderUtils.drawText("§l§3[§f " + waypoint.name + " §3]", pos.getX() + 0.5, pos.getY() + 1.5, pos.getZ() + 0.5);
-        }
-
-        if (!debugPoints.isEmpty()) {
-            for (Vec3 vec3 : debugPoints) {
-                RenderUtils.miniBlockBox(vec3, new Color(255, 0, 0, 100), 4f);
-            }
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.May2Beez.utils;
 
+import com.May2Beez.May2BeezQoL;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.util.BlockPos;
@@ -8,7 +9,6 @@ import net.minecraft.util.Vec3;
 import net.minecraft.util.Vec3i;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 import java.util.function.Predicate;
 
@@ -65,12 +65,22 @@ public class BlockUtils {
     }
 
     public static Vec3 getRandomVisibilityLine(BlockPos pos) {
-        List<Vec3> lines = new ArrayList<>();
+        ArrayList<Vec3> lines = getAllVisibilityLines(pos);
+        if (lines.isEmpty())
+            return null;
+        else
+            return lines.get(new Random().nextInt(lines.size() - 1));
+    }
+
+    public static ArrayList<Vec3> getAllVisibilityLines(BlockPos pos) {
+        ArrayList<Vec3> lines = new ArrayList<>();
         int accuracyChecks = 8;
-        for (int x = 0; x < accuracyChecks; x++) {
-            for (int y = 0; y < accuracyChecks; y++) {
-                for (int z = 0; z < accuracyChecks; z++) {
-                    Vec3 target = new Vec3(pos.getX() + x / (float) accuracyChecks, pos.getY() + y / (float) accuracyChecks, pos.getZ() + z / (float) accuracyChecks);
+        float accuracy = 1f / accuracyChecks;
+        float spaceFromEdge = May2BeezQoL.config.miningAccuracy;
+        for (float x = pos.getX() + spaceFromEdge; x <= pos.getX() + (1f - spaceFromEdge); x += accuracy) {
+            for (float y = pos.getY() + spaceFromEdge; y <= pos.getY() + (1f - spaceFromEdge); y += accuracy) {
+                for (float z = pos.getZ() + spaceFromEdge; z <= pos.getZ() + (1f - spaceFromEdge); z += accuracy) {
+                    Vec3 target = new Vec3(x, y, z);
                     BlockPos test = new BlockPos(target.xCoord, target.yCoord, target.zCoord);
                     MovingObjectPosition movingObjectPosition = mc.theWorld.rayTraceBlocks(mc.thePlayer.getPositionEyes(1.0F), target, false, false, true);
                     if (movingObjectPosition != null) {
@@ -82,11 +92,7 @@ public class BlockUtils {
             }
         }
 
-        if (lines.size() > 2) {
-            return lines.get(new Random().nextInt(lines.size() - 2) + 1);
-        } else {
-            return null;
-        }
+        return lines;
     }
 
     public static BlockPos getClosestBlock(int radius, int height, int depth, Predicate<? super BlockPos> predicate) {

@@ -26,7 +26,7 @@ public class Module {
     @SerializedName("keyCode")
     private int keycode;
 
-    private KeyBinding keyBinding;
+    public KeyBinding keyBinding;
 
     public Module(String name, int keycode) {
         this.name = name;

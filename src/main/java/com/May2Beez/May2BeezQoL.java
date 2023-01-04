@@ -7,6 +7,7 @@ import com.May2Beez.commands.OpenSettings;
 import com.May2Beez.commands.UseCooldown;
 import com.May2Beez.events.MillisecondEvent;
 import com.May2Beez.events.SecondEvent;
+import com.May2Beez.modules.Debug;
 import com.May2Beez.modules.combat.MobKiller;
 import com.May2Beez.modules.farming.FarmingMacro;
 import com.May2Beez.modules.farming.ForagingMacro;
@@ -189,6 +190,7 @@ public class May2BeezQoL
         modules.add(new WorldScanner());
 //        modules.add(new PowderMacro());
         modules.add(new AspectOfTheVoid());
+        modules.add(new Debug());
 
         for (Module m : modules)
             MinecraftForge.EVENT_BUS.register(m);
