@@ -1,10 +1,12 @@
 package com.May2Beez.modules.mining;
 
-import com.May2Beez.AOTVWaypointsGUI;
+import com.May2Beez.gui.AOTVWaypointsGUI;
 import com.May2Beez.May2BeezQoL;
-import com.May2Beez.Module;
+import com.May2Beez.modules.Module;
 import com.May2Beez.events.BlockChangeEvent;
+import com.May2Beez.events.ReceivePacketEvent;
 import com.May2Beez.modules.combat.MobKiller;
+import com.May2Beez.modules.player.FuelFilling;
 import com.May2Beez.utils.*;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockColored;
@@ -13,6 +15,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.EnumDyeColor;
+import net.minecraft.network.play.server.S08PacketPlayerPosLook;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.MovingObjectPosition;
@@ -24,6 +27,7 @@ import org.lwjgl.input.Keyboard;
 
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 public class AOTVMacro extends Module {
 
@@ -43,6 +47,11 @@ public class AOTVMacro extends Module {
     private final ArrayList<Structs.BlockData> blocksToMine = new ArrayList<>();
 
     private boolean killing = false;
+    private final ArrayList<String> miningTools = new ArrayList<String>(){{
+        add("Pickaxe");
+        add("Drill");
+        add("Gauntlet");
+    }};
 
     public enum State {
         SEARCHING,
@@ -62,11 +71,17 @@ public class AOTVMacro extends Module {
     @Override
     public void onEnable() {
         blocksToMine.clear();
+        if (May2BeezQoL.coordsConfig.getSelectedRoute() == null) {
+            LogUtils.addMessage("No route selected!", EnumChatFormatting.RED);
+            this.toggle();
+            return;
+        }
+
         ArrayList<AOTVWaypointsGUI.Waypoint> Waypoints = May2BeezQoL.coordsConfig.getSelectedRoute().waypoints;
 
         BlockPos currentPos = BlockUtils.getPlayerLoc().down();
 
-        int miningTool = SkyblockUtils.findItemInHotbar("Drill", "Pickaxe", "Gauntlet");
+        int miningTool = SkyblockUtils.findItemInHotbar(miningTools.toArray(new String[0]));
 
         if (miningTool == -1) {
             LogUtils.addMessage(getName() + " - You don't have a mining tool!", EnumChatFormatting.RED);
@@ -141,7 +156,38 @@ public class AOTVMacro extends Module {
             oldTarget = target;
             target = null;
             RotationUtils.reset();
+            return;
         }
+
+        if (event.old.getBlock() == Blocks.cobblestone) {
+            if (event.update.getBlock() == Blocks.air) {
+                ArrayList<AOTVWaypointsGUI.Waypoint> Waypoints = May2BeezQoL.coordsConfig.getSelectedRoute().waypoints;
+
+                AOTVWaypointsGUI.Waypoint wp = Waypoints.stream().filter(waypoint -> waypoint.x == pos.getX() && waypoint.y == pos.getY() && waypoint.z == pos.getZ()).findFirst().orElse(null);
+                if (wp != null) {
+                    LogUtils.addMessage(getName() + " - Cobblestone at waypoint " + EnumChatFormatting.BOLD + wp.name + EnumChatFormatting.RESET + EnumChatFormatting.RED + " has been destroyed!", EnumChatFormatting.RED);
+
+                    if (May2BeezQoL.config.stopIfCobblestoneDestroyed) {
+                        this.toggle();
+                        SkyblockUtils.sendPingAlert();
+                    }
+                }
+            }
+        }
+    }
+
+    @SubscribeEvent
+    public void onPacket(ReceivePacketEvent event) {
+        if (!isToggled()) return;
+        if (mc.thePlayer == null || mc.theWorld == null) return;
+        if (!(event.packet instanceof S08PacketPlayerPosLook)) return;
+        if (mc.thePlayer.getHeldItem() != null && mc.thePlayer.getHeldItem().getDisplayName().contains("Void")) return;
+
+        toggle();
+        for (int i = 0; i < 5; i++) {
+            LogUtils.addMessage("Rotation check?", EnumChatFormatting.GOLD);
+        }
+        SkyblockUtils.sendPingAlert();
     }
 
 
@@ -150,8 +196,15 @@ public class AOTVMacro extends Module {
         if (event.phase == TickEvent.Phase.END) return;
         if (!this.isToggled()) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
+        if (May2BeezQoL.coordsConfig.getSelectedRoute() == null) return;
 
         ArrayList<AOTVWaypointsGUI.Waypoint> Waypoints = May2BeezQoL.coordsConfig.getSelectedRoute().waypoints;
+
+        if (May2BeezQoL.config.refuelWithAbiphone) {
+            if (FuelFilling.isRefueling()) {
+                return;
+            }
+        }
 
         if (May2BeezQoL.config.yogKiller) {
             if (MobKiller.hasTarget()) {
@@ -165,6 +218,7 @@ public class AOTVMacro extends Module {
                 return;
             } else if (killing) {
                 killing = false;
+                int miningTool = SkyblockUtils.findItemInHotbar(miningTools.toArray(new String[0]));
             }
         }
 
@@ -200,7 +254,7 @@ public class AOTVMacro extends Module {
 
                 if (target != null) {
                     currentState = State.MINING;
-                    int miningTool = SkyblockUtils.findItemInHotbar("Drill", "Pickaxe", "Gauntlet");
+                    int miningTool = SkyblockUtils.findItemInHotbar(miningTools.toArray(new String[0]));
 
                     if (miningTool == -1) {
                         LogUtils.addMessage(getName() + " - You don't have a mining tool!", EnumChatFormatting.RED);
@@ -210,7 +264,7 @@ public class AOTVMacro extends Module {
                     mc.thePlayer.inventory.currentItem = miningTool;
                 } else {
 
-                    LogUtils.addMessage(getName() + " - No gemstones found! Going to the next waypoint.", EnumChatFormatting.RED);
+                    LogUtils.addMessage(getName() + " - No gemstones found! Going to the next waypoint.", EnumChatFormatting.GOLD);
                     if (currentWaypoint == Waypoints.size() - 1) {
                         currentWaypoint = 0;
                     } else {
@@ -231,6 +285,16 @@ public class AOTVMacro extends Module {
                     break;
                 }
 
+                if (mc.thePlayer.getHeldItem() != null && miningTools.stream().noneMatch(name -> mc.thePlayer.getHeldItem().getDisplayName().contains(name))) {
+                    int miningTool = SkyblockUtils.findItemInHotbar("Drill", "Pickaxe", "Gauntlet");
+                    if (miningTool == -1) {
+                        LogUtils.addMessage(getName() + " - You don't have a mining tool!", EnumChatFormatting.RED);
+                        this.toggle();
+                        return;
+                    }
+                    mc.thePlayer.inventory.currentItem = miningTool;
+                }
+
                 useMiningSpeedBoost();
 
                 if (RotationUtils.done)
@@ -240,15 +304,15 @@ public class AOTVMacro extends Module {
 
                 KeyBinding.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), lookingAtTarget);
 
-                if (stuckTimer.hasReached(May2BeezQoL.config.aotvStuckTimeThreshold) && RotationUtils.IsDiffLowerThan(0.1f)) {
+                if (stuckTimer.hasReached(May2BeezQoL.miningSpeedActive ? May2BeezQoL.config.aotvStuckTimeThreshold / 2 : May2BeezQoL.config.aotvStuckTimeThreshold) && RotationUtils.IsDiffLowerThan(0.1f)) {
                     KeyBinding.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), false);
-                    LogUtils.addMessage(getName() + " - Stuck for " + May2BeezQoL.config.aotvStuckTimeThreshold + " ms, restarting.", EnumChatFormatting.DARK_RED);
+                    LogUtils.addMessage(getName() + " - Stuck for " + (May2BeezQoL.miningSpeedActive ? May2BeezQoL.config.aotvStuckTimeThreshold / 2f : May2BeezQoL.config.aotvStuckTimeThreshold) + " ms " + (May2BeezQoL.miningSpeedActive ? "(Faster stuck check, because of Boost active)" : "") + ", restarting.", EnumChatFormatting.DARK_RED);
                     stuckTimer.reset();
                     currentState = State.SEARCHING;
                     searchingTimer.reset();
                     blockToIgnoreBecauseOfStuck = target.getPos();
+                    oldTarget = target;
                     target = null;
-                    oldTarget = null;
                     stuckTimer2.reset();
                 }
 
@@ -260,7 +324,7 @@ public class AOTVMacro extends Module {
                 int voidTool = SkyblockUtils.findItemInHotbar("Void");
 
                 if (voidTool == -1) {
-                    LogUtils.addMessage(getName() + " - You don't have a Aspect of the Void!", EnumChatFormatting.RED);
+                    LogUtils.addMessage(getName() + " - You don't have an Aspect of the Void!", EnumChatFormatting.RED);
                     this.toggle();
                     return;
                 }
@@ -307,7 +371,7 @@ public class AOTVMacro extends Module {
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (isToggled()) return;
         if (LocationUtils.currentIsland != LocationUtils.Island.CRYSTAL_HOLLOWS) return;
-
+        if (May2BeezQoL.coordsConfig.getSelectedRoute() == null) return;
         if (!May2BeezQoL.config.drawBlocksBlockingAOTV) return;
 
         blocksBlockingVision.clear();
@@ -370,7 +434,7 @@ public class AOTVMacro extends Module {
     }
 
     private ArrayList<Structs.BlockData> getBlocksToMine() {
-        float range = May2BeezQoL.config.scanRadius + 1;
+        float range = May2BeezQoL.config.scanRadius + 0.5f;
 
         ArrayList<Structs.BlockData> blocks = new ArrayList<>();
         Iterable<BlockPos> blockss = BlockPos.getAllInBox(BlockUtils.getPlayerLoc().add(-range, -range, -range), BlockUtils.getPlayerLoc().add(range, range, range));
@@ -393,11 +457,8 @@ public class AOTVMacro extends Module {
                     if (!IsThisAGoodGemstone(blockPos1)) continue;
                 }
 
-                if (mc.thePlayer.getPositionEyes(1).distanceTo(new Vec3(blockPos1.getX() + 0.5, blockPos1.getY() + 0.5, blockPos1.getZ() + 0.5)) < May2BeezQoL.config.scanRadius) {
-
-                    IBlockState bs = mc.theWorld.getBlockState(blockPos1);
-                    blocks.add(new Structs.BlockData(blockPos1, bs.getBlock(), bs, null));
-                }
+                IBlockState bs = mc.theWorld.getBlockState(blockPos1);
+                blocks.add(new Structs.BlockData(blockPos1, bs.getBlock(), bs, null));
             }
         }
 
@@ -423,8 +484,10 @@ public class AOTVMacro extends Module {
 
             if (oldTarget != null) {
                 currentDistance = oldTarget.getPos().distanceSq(blockPos1.getPos());
+            } else if (mc.objectMouseOver != null && mc.objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
+                currentDistance = mc.objectMouseOver.getBlockPos().distanceSq(blockPos1.getPos());
             } else {
-                currentDistance = BlockUtils.getPlayerLoc().distanceSq(blockPos1.getPos());
+                currentDistance = BlockUtils.getPlayerLoc().distanceSq(blockPos1.getPos());;
             }
             if (currentDistance < distance) {
                 distance = currentDistance;
@@ -494,6 +557,7 @@ public class AOTVMacro extends Module {
     public void onWorldLastRender(RenderWorldLastEvent event) {
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (LocationUtils.currentIsland != LocationUtils.Island.CRYSTAL_HOLLOWS) return;
+        if (May2BeezQoL.coordsConfig.getSelectedRoute() == null) return;
         ArrayList<AOTVWaypointsGUI.Waypoint> Waypoints = May2BeezQoL.coordsConfig.getSelectedRoute().waypoints;
         if (Waypoints == null || Waypoints.isEmpty()) return;
 

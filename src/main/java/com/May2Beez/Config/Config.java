@@ -214,23 +214,38 @@ public class Config extends Vigilant {
     //endregion
 
     //region Mining
-    @Property(type = PropertyType.SWITCH, name = "Powder chest solver server rotation", category = MINING)
+    @Property(type = PropertyType.SWITCH, name = "Powder chest solver server rotation", subcategory = "Powder Chests", category = MINING)
     public boolean solvePowderChestServerRotation = false;
 
-    @Property(type = PropertyType.SWITCH, name = "Use mining speed in mining macros", category = MINING)
+    @Property(type = PropertyType.SWITCH, name = "Use mining speed in mining macros", subcategory = "General", category = MINING)
     public boolean useMiningSpeed = false;
 
-    @Property(type = PropertyType.SLIDER, name = "Camera speed in ms", category = MINING, max = maxCameraSpeedMS)
+    @Property(type = PropertyType.SLIDER, name = "Camera speed in ms", subcategory = "General", category = MINING, max = maxCameraSpeedMS)
     public int cameraSpeed = 120;
 
-    @Property(type = PropertyType.SLIDER, name = "Hold server side rotation for X ms", category = MINING, max = 1500)
+    @Property(type = PropertyType.SLIDER, name = "Hold server side rotation for X ms", subcategory = "General", category = MINING, max = 1500)
     public int holdRotationMS = 750;
 
-    @Property(type = PropertyType.SWITCH, name = "Powder chest rotation only if object under mouse is a treasure chest", category = MINING)
+    @Property(type = PropertyType.SWITCH, name = "Powder chest rotation only if object under mouse is a treasure chest", subcategory = "Powder Chests", category = MINING)
     public boolean onlyRotateIfTreasureChest = false;
 
-    @Property(type = PropertyType.DECIMAL_SLIDER, name = "Space from edge block to the center for accuracy checks", description = "Lower value means that macro will check closes to the block's edge if the block is visible", category = MINING, minF = 0f, maxF = 0.5f)
+    @Property(type = PropertyType.DECIMAL_SLIDER, name = "Space from edge block to the center for accuracy checks", subcategory = "Targetting", description = "Lower value means that macro will check closes to the block's edge if the block is visible", category = MINING, minF = 0f, maxF = 0.5f, decimalPlaces = 2)
     public float miningAccuracy = 0.1f;
+
+    @Property(type = PropertyType.SLIDER, name = "Accuracy checks per dimension", subcategory = "Targetting", description = "Higher value means that macro will check more times if the block is visible", category = MINING, min = 1, max = 16)
+    public int miningAccuracyChecks = 8;
+
+    @Property(type = PropertyType.DECIMAL_SLIDER, name = "Space from cobblestone to the center", subcategory = "Targetting", description = "Increase if macro destroys cobblestone too often", category = MINING, minF = 0f, maxF = 0.3f, decimalPlaces = 3)
+    public float miningCobblestoneAccuracy = 0.05f;
+
+    @Property(type = PropertyType.SWITCH, name = "Refuel with abiphone", subcategory = "General", category = MINING)
+    public boolean refuelWithAbiphone = false;
+
+    @Property(type = PropertyType.SLIDER, name = "Fuel threshold", subcategory = "General", category = MINING, min = 100, max = 5000)
+    public int fuelThreshold = 2000;
+
+    @Property(type = PropertyType.SELECTOR, name = "Type of fuel", subcategory = "General", category = MINING, options = {"Goblin Egg", "Biofuel", "Volta", "Oil Barrel"})
+    public int fuelType = 3;
 
     //endregion
 
@@ -283,11 +298,14 @@ public class Config extends Vigilant {
     @Property(type = PropertyType.DECIMAL_SLIDER, name = "AOTV Waypoint targeting accuracy", description = "Smaller == closer to center", decimalPlaces = 2, minF = 0.02f, maxF = 0.5f, category = AOTV_MACRO)
     public float aotvTargetingWaypointAccuracy = 0.2f;
 
-    @Property(type = PropertyType.SWITCH, name = "Yog killer", category = AOTV_MACRO)
+    @Property(type = PropertyType.SWITCH, name = "Yog killer", subcategory = "Additions", category = AOTV_MACRO)
     public boolean yogKiller = false;
 
     @Property(type = PropertyType.DECIMAL_SLIDER, minF = 1, maxF = 6, name = "Scan radius", category = AOTV_MACRO)
-    public float scanRadius = 5.5f;
+    public float scanRadius = 4.5f;
+
+    @Property(type = PropertyType.SWITCH, name = "Stop macro if cobblestone on route has been destroyed", subcategory = "Additions", category = AOTV_MACRO)
+    public boolean stopIfCobblestoneDestroyed = true;
 
     //endregion
 

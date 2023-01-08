@@ -1,7 +1,7 @@
 package com.May2Beez.modules.combat;
 
 import com.May2Beez.May2BeezQoL;
-import com.May2Beez.Module;
+import com.May2Beez.modules.Module;
 import com.May2Beez.utils.*;
 import com.May2Beez.utils.Timer;
 import net.minecraft.client.Minecraft;
@@ -122,6 +122,10 @@ public class MobKiller extends Module {
             potentialTargets.clear();
             RotationUtils.reset();
             ShouldScan = false;
+        }
+
+        if (May2BeezQoL.config.debug) {
+            LogUtils.addMessage("DEBUG: MobKiller Toggle - " + May2BeezQoL.mobKiller.isToggled(), EnumChatFormatting.LIGHT_PURPLE);
         }
     }
 

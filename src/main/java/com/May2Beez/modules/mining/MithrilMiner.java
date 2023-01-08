@@ -1,8 +1,9 @@
 package com.May2Beez.modules.mining;
 
-import com.May2Beez.Module;
+import com.May2Beez.modules.Module;
 import com.May2Beez.May2BeezQoL;
 import com.May2Beez.events.BlockChangeEvent;
+import com.May2Beez.modules.player.FuelFilling;
 import com.May2Beez.utils.*;
 import net.minecraft.block.BlockColored;
 import net.minecraft.block.BlockStone;
@@ -94,6 +95,12 @@ public class MithrilMiner extends Module {
         if (event.phase == TickEvent.Phase.END) return;
         if (!isToggled()) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
+
+        if (May2BeezQoL.config.refuelWithAbiphone) {
+            if (FuelFilling.isRefueling()) {
+                return;
+            }
+        }
 
         switch (currentState) {
             case SEARCHING: {

@@ -7,18 +7,16 @@ import com.May2Beez.commands.OpenSettings;
 import com.May2Beez.commands.UseCooldown;
 import com.May2Beez.events.MillisecondEvent;
 import com.May2Beez.events.SecondEvent;
+import com.May2Beez.gui.AOTVWaypointsGUI;
 import com.May2Beez.modules.Debug;
+import com.May2Beez.modules.Module;
 import com.May2Beez.modules.combat.MobKiller;
 import com.May2Beez.modules.farming.FarmingMacro;
 import com.May2Beez.modules.farming.ForagingMacro;
 import com.May2Beez.modules.mining.AOTVMacro;
 import com.May2Beez.modules.mining.MithrilMiner;
 import com.May2Beez.modules.mining.Nuker;
-import com.May2Beez.modules.mining.PowderMacro;
-import com.May2Beez.modules.player.CustomItemMacro;
-import com.May2Beez.modules.player.FishingMacro;
-import com.May2Beez.modules.player.ESP;
-import com.May2Beez.modules.player.PowderChest;
+import com.May2Beez.modules.player.*;
 import com.May2Beez.modules.singeplayer.AspectOfTheVoid;
 import com.May2Beez.modules.world.WorldScanner;
 import com.May2Beez.utils.LocationUtils;
@@ -61,12 +59,14 @@ public class May2BeezQoL
     public static Config config = new Config();
     public static GuiScreen display = null;
     public static CopyOnWriteArrayList<Module> modules = new CopyOnWriteArrayList<>();
-    public static Gson gson = new GsonBuilder().setPrettyPrinting().create();
+    public static Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().setPrettyPrinting().create();
     public static CoordsConfig coordsConfig;
 
     public static final MobKiller mobKiller = new MobKiller();
+    public static final FuelFilling fuelFilling = new FuelFilling();
 
     public static boolean miningSpeedReady = true;
+    public static boolean miningSpeedActive = false;
 
     private void initConfigs(FMLPreInitializationEvent event) {
         File directory = new File(event.getModConfigurationDirectory(), "may2beez");
@@ -168,29 +168,34 @@ public class May2BeezQoL
         OpenSettings openSettings = new OpenSettings();
         initConfigs(event);
         LoadCooldownMacros();
+
         MinecraftForge.EVENT_BUS.register(this);
         MinecraftForge.EVENT_BUS.register(new RotationUtils());
         MinecraftForge.EVENT_BUS.register(aotvWaypoints);
         MinecraftForge.EVENT_BUS.register(openSettings);
         MinecraftForge.EVENT_BUS.register(new LocationUtils());
+        MinecraftForge.EVENT_BUS.register(fuelFilling);
+
         modules.add(new MithrilMiner());
         modules.add(new ForagingMacro());
-//        modules.add(new GhostGrinder()); // not rly working
         modules.add(new Nuker());
         modules.add(new FarmingMacro());
         modules.add(new CustomItemMacro());
-//        modules.add(new CropNuker());
         modules.add(powderChestMacro);
-//        modules.add(new AutoPlantCrops()); // meh
-//        modules.add(new AutoMelody()); // kinda pointless
         modules.add(new FishingMacro());
         modules.add(new AOTVMacro());
         modules.add(mobKiller); // sub-module for later usage
         modules.add(new ESP());
         modules.add(new WorldScanner());
-//        modules.add(new PowderMacro());
         modules.add(new AspectOfTheVoid());
         modules.add(new Debug());
+
+//        modules.add(new GhostGrinder()); // not rly working
+//        modules.add(new PowderMacro());
+//        modules.add(new AutoMelody()); // kinda pointless
+//        modules.add(new CropNuker());
+//        modules.add(new AutoPlantCrops()); // meh
+
 
         for (Module m : modules)
             MinecraftForge.EVENT_BUS.register(m);
@@ -241,10 +246,14 @@ public class May2BeezQoL
         try {
             String message = StringUtils.stripControlCodes(event.message.getUnformattedText());
             if (message.contains(":") || message.contains(">")) return;
-            if(message.startsWith("You used your")) {
+            if(message.startsWith("You used your Mining Speed Boost")) {
                 miningSpeedReady = false;
+                miningSpeedActive = true;
             } else if(message.endsWith("is now available!")) {
                 miningSpeedReady = true;
+            }
+            if (message.endsWith("Speed Boost has expired!")) {
+                miningSpeedActive = false;
             }
         } catch (Exception ignored) {}
     }

@@ -1,7 +1,7 @@
 package com.May2Beez.modules.world;
 
 import com.May2Beez.May2BeezQoL;
-import com.May2Beez.Module;
+import com.May2Beez.modules.Module;
 import com.May2Beez.utils.LocationUtils;
 import com.May2Beez.utils.ReflectionUtils;
 import com.May2Beez.utils.RenderUtils;

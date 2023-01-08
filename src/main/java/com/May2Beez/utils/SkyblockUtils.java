@@ -11,6 +11,7 @@ import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.ContainerChest;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagList;
 import net.minecraft.scoreboard.*;
 import net.minecraft.util.*;
 
@@ -197,6 +198,28 @@ public class SkyblockUtils {
             }
         }
         return blocks;
+    }
+
+    public static ArrayList<String> getItemLore(ItemStack item) {
+        NBTTagList loreTag = item.getTagCompound().getCompoundTag("display").getTagList("Lore", 8);
+        ArrayList<String> loreList = new ArrayList<>();
+        for (int i = 0; i < loreTag.tagCount(); i++) {
+            loreList.add(StringUtils.stripControlCodes(loreTag.getStringTagAt(i)));
+        }
+        return loreList;
+    }
+
+    public static void sendPingAlert() {
+        new Thread(() -> {
+            for (int i = 0; i < 15; i++) {
+                mc.theWorld.playSound(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ, "random.orb", 10.0F, 1.0F, false);
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
     }
 
     public static String stripString(String s) {

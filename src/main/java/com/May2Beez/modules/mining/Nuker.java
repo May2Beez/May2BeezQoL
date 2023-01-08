@@ -1,7 +1,7 @@
 package com.May2Beez.modules.mining;
 
 import com.May2Beez.May2BeezQoL;
-import com.May2Beez.Module;
+import com.May2Beez.modules.Module;
 import com.May2Beez.events.MillisecondEvent;
 import com.May2Beez.events.PlayerMoveEvent;
 import com.May2Beez.events.SecondEvent;

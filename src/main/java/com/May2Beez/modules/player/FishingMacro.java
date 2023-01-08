@@ -1,7 +1,7 @@
 package com.May2Beez.modules.player;
 
 import com.May2Beez.May2BeezQoL;
-import com.May2Beez.Module;
+import com.May2Beez.modules.Module;
 import com.May2Beez.events.SpawnParticleEvent;
 import com.May2Beez.modules.combat.MobKiller;
 import com.May2Beez.utils.*;

@@ -1,6 +1,6 @@
 package com.May2Beez.modules;
 
-import com.May2Beez.Module;
+import com.May2Beez.May2BeezQoL;
 import com.May2Beez.utils.BlockUtils;
 import com.May2Beez.utils.RenderUtils;
 import net.minecraft.client.Minecraft;
@@ -12,6 +12,7 @@ import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
+import org.lwjgl.input.Keyboard;
 
 import java.awt.*;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -22,7 +23,7 @@ public class Debug extends Module {
     private final Minecraft mc = Minecraft.getMinecraft();
 
     public Debug() {
-        super("Debug", new KeyBinding("Debug", 0, "May2Beez"));
+        super("Debug", new KeyBinding("Debug Key", Keyboard.KEY_H, "May2Beez - Debug"));
     }
 
     @Override
@@ -48,7 +49,7 @@ public class Debug extends Module {
         }
         if (!testPoints.isEmpty()) {
             for (Vec3 pos : testPoints) {
-                RenderUtils.miniBlockBox(pos, Color.lightGray, 2f);
+                RenderUtils.miniBlockBox(pos, new Color(Color.lightGray.getRed(), Color.lightGray.getGreen(), Color.lightGray.getBlue(), 50), 2f);
             }
         }
     }
@@ -61,6 +62,6 @@ public class Debug extends Module {
         testPoints.clear();
         if (testBlock == null) return;
 
-        testPoints.addAll(BlockUtils.getAllVisibilityLines(testBlock));
+        testPoints.addAll(BlockUtils.getAllVisibilityLines(testBlock, mc.thePlayer.getPositionVector().add(new Vec3(0, mc.thePlayer.getDefaultEyeHeight(), 0)).subtract(new Vec3(0, 0.125, 0)).subtract(new Vec3(0, testBlock.getY() <= mc.thePlayer.posY ? May2BeezQoL.config.miningCobblestoneAccuracy : 0, 0))));
     }
 }

@@ -1,8 +1,8 @@
 package com.May2Beez.Config;
 
-import com.May2Beez.AOTVWaypointsGUI;
-import com.May2Beez.modules.mining.AOTVMacro;
+import com.May2Beez.gui.AOTVWaypointsGUI;
 import com.May2Beez.utils.LogUtils;
+import com.google.gson.annotations.Expose;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -15,50 +15,35 @@ import java.util.ArrayList;
 @NoArgsConstructor
 public class CoordsConfig {
 
+    @Expose
     private final ArrayList<AOTVWaypointsGUI.WaypointList> WaypointLists = new ArrayList<AOTVWaypointsGUI.WaypointList>() {{
         add(new AOTVWaypointsGUI.WaypointList("Default", true, true, new ArrayList<>()));
     }};
 
-    private int selectedRoute = 0;
-
-    public void setSelectedRoute(int selectedRoute) {
-        this.selectedRoute = selectedRoute;
-        AOTVMacro.getAOTVWaypoints();
-    }
-
     public AOTVWaypointsGUI.WaypointList getSelectedRoute() {
-        if (WaypointLists.isEmpty())
-            return new AOTVWaypointsGUI.WaypointList("Default", true, true, new ArrayList<>());
-        return WaypointLists.get(selectedRoute);
-    }
-
-    public String getSelectedRouteName() {
-        return WaypointLists.get(selectedRoute).name;
+        return WaypointLists.stream().filter(wl -> wl.enabled).findFirst().orElse(null);
     }
 
     public ArrayList<AOTVWaypointsGUI.WaypointList> getRoutes() {
         return WaypointLists;
     }
 
-    public AOTVWaypointsGUI.WaypointList getRoute(int index) {
-        return WaypointLists.get(index);
+    public AOTVWaypointsGUI.WaypointList addRoute(String name) {
+        AOTVWaypointsGUI.WaypointList route = new AOTVWaypointsGUI.WaypointList(name);
+        WaypointLists.add(route);
+        return route;
     }
 
-    public void addRoute(String name) {
-        WaypointLists.add(new AOTVWaypointsGUI.WaypointList(name));
-        AOTVWaypointsGUI.SaveWaypoints();
-    }
-
-    public void addCoord(AOTVWaypointsGUI.WaypointList wp, AOTVWaypointsGUI.Waypoint pos) {
+    public boolean addCoord(AOTVWaypointsGUI.WaypointList wp, AOTVWaypointsGUI.Waypoint pos) {
         int index = WaypointLists.indexOf(wp);
         AOTVWaypointsGUI.WaypointList inner = WaypointLists.get(index);
         if (wp.waypoints.stream().anyMatch(p -> p.x == pos.x && p.y == pos.y && p.z == pos.z)) {
             LogUtils.addMessage("AOTV Waypoints - This waypoint already exists!", EnumChatFormatting.RED);
-            return;
+            return false;
         }
         inner.waypoints.add(pos);
         WaypointLists.set(index, inner);
-        AOTVWaypointsGUI.SaveWaypoints();
+        return true;
     }
 
     public void removeCoord(AOTVWaypointsGUI.WaypointList wp, AOTVWaypointsGUI.Waypoint waypoint) {
@@ -66,11 +51,16 @@ public class CoordsConfig {
         AOTVWaypointsGUI.WaypointList inner = WaypointLists.get(index);
         inner.waypoints.remove(waypoint);
         WaypointLists.set(index, inner);
-        AOTVWaypointsGUI.SaveWaypoints();
     }
 
     public void removeRoute(AOTVWaypointsGUI.WaypointList index) {
         WaypointLists.remove(index);
-        AOTVWaypointsGUI.SaveWaypoints();
+    }
+
+    public void changeVisibility(AOTVWaypointsGUI.WaypointList index, boolean visible) {
+        int i = WaypointLists.indexOf(index);
+        AOTVWaypointsGUI.WaypointList inner = WaypointLists.get(i);
+        inner.showCoords = visible;
+        WaypointLists.set(i, inner);
     }
 }

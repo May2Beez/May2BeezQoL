@@ -1,6 +1,6 @@
 package com.May2Beez.modules.player;
 
-import com.May2Beez.Module;
+import com.May2Beez.modules.Module;
 import com.May2Beez.May2BeezQoL;
 import com.May2Beez.utils.SkyblockUtils;
 import net.minecraft.client.Minecraft;

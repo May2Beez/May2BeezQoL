@@ -1,6 +1,6 @@
 package com.May2Beez.modules.singeplayer;
 
-import com.May2Beez.Module;
+import com.May2Beez.modules.Module;
 import com.May2Beez.utils.RenderUtils;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;

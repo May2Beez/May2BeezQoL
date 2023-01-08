@@ -1,5 +1,6 @@
-package com.May2Beez;
+package com.May2Beez.modules;
 
+import com.May2Beez.May2BeezQoL;
 import com.May2Beez.utils.LogUtils;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;

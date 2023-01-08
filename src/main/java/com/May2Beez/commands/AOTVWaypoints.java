@@ -1,6 +1,6 @@
 package com.May2Beez.commands;
 
-import com.May2Beez.AOTVWaypointsGUI;
+import com.May2Beez.gui.AOTVWaypointsGUI;
 import com.May2Beez.May2BeezQoL;
 import com.May2Beez.utils.BlockUtils;
 import com.May2Beez.utils.LogUtils;

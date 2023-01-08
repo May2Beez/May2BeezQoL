@@ -65,24 +65,28 @@ public class BlockUtils {
     }
 
     public static Vec3 getRandomVisibilityLine(BlockPos pos) {
-        ArrayList<Vec3> lines = getAllVisibilityLines(pos);
-        if (lines.isEmpty())
+        ArrayList<Vec3> lines = getAllVisibilityLines(pos, mc.thePlayer.getPositionVector().add(new Vec3(0, mc.thePlayer.getEyeHeight(), 0)).subtract(new Vec3(0, (pos.getY() <= mc.thePlayer.posY && Math.abs(pos.getX() - mc.thePlayer.posX) <= 1 && Math.abs(pos.getZ() - mc.thePlayer.posZ) <= 1) ? May2BeezQoL.config.miningCobblestoneAccuracy : 0, 0)));
+        if (lines.isEmpty()) {
             return null;
-        else
-            return lines.get(new Random().nextInt(lines.size() - 1));
+        } else {
+            return lines.get(new Random().nextInt(lines.size()));
+        }
     }
 
-    public static ArrayList<Vec3> getAllVisibilityLines(BlockPos pos) {
+    public static ArrayList<Vec3> getAllVisibilityLines(BlockPos pos, Vec3 from) {
         ArrayList<Vec3> lines = new ArrayList<>();
-        int accuracyChecks = 8;
+        int accuracyChecks = May2BeezQoL.config.miningAccuracyChecks;
         float accuracy = 1f / accuracyChecks;
         float spaceFromEdge = May2BeezQoL.config.miningAccuracy;
         for (float x = pos.getX() + spaceFromEdge; x <= pos.getX() + (1f - spaceFromEdge); x += accuracy) {
             for (float y = pos.getY() + spaceFromEdge; y <= pos.getY() + (1f - spaceFromEdge); y += accuracy) {
                 for (float z = pos.getZ() + spaceFromEdge; z <= pos.getZ() + (1f - spaceFromEdge); z += accuracy) {
                     Vec3 target = new Vec3(x, y, z);
+                    if (from.distanceTo(target) > May2BeezQoL.config.scanRadius) {
+                        continue;
+                    }
                     BlockPos test = new BlockPos(target.xCoord, target.yCoord, target.zCoord);
-                    MovingObjectPosition movingObjectPosition = mc.theWorld.rayTraceBlocks(mc.thePlayer.getPositionEyes(1.0F), target, false, false, true);
+                    MovingObjectPosition movingObjectPosition = mc.theWorld.rayTraceBlocks(from, target, false, false, true);
                     if (movingObjectPosition != null) {
                         BlockPos obj = movingObjectPosition.getBlockPos();
                         if (obj.equals(test))

@@ -1,7 +1,7 @@
 package com.May2Beez.modules.farming;
 
 import com.May2Beez.May2BeezQoL;
-import com.May2Beez.Module;
+import com.May2Beez.modules.Module;
 import com.May2Beez.utils.BlockUtils;
 import com.May2Beez.utils.RenderUtils;
 import com.May2Beez.utils.RotationUtils;
