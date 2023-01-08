@@ -47,6 +47,7 @@ public class AOTVMacro extends Module {
     private final ArrayList<Structs.BlockData> blocksToMine = new ArrayList<>();
 
     private boolean killing = false;
+    private boolean refueling = false;
     private final ArrayList<String> miningTools = new ArrayList<String>(){{
         add("Pickaxe");
         add("Drill");
@@ -201,6 +202,14 @@ public class AOTVMacro extends Module {
         ArrayList<AOTVWaypointsGUI.Waypoint> Waypoints = May2BeezQoL.coordsConfig.getSelectedRoute().waypoints;
 
         if (May2BeezQoL.config.refuelWithAbiphone) {
+            if (FuelFilling.isRefueling() && !refueling) {
+                refueling = true;
+                return;
+            } else if (!FuelFilling.isRefueling() && refueling) {
+                refueling = false;
+                KeyBinding.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), false);
+                return;
+            }
             if (FuelFilling.isRefueling()) {
                 return;
             }
@@ -232,7 +241,7 @@ public class AOTVMacro extends Module {
                     if (searchingTimer.hasReached(May2BeezQoL.config.aotvStuckTimeThreshold)) {
                         LogUtils.addMessage(getName() + " - You are not at a valid waypoint!", EnumChatFormatting.DARK_RED);
                         currentState = State.WARPING;
-                        KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), false);
+//                        KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), false);
                         KeyBinding.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), false);
                     }
                     break;
@@ -328,6 +337,8 @@ public class AOTVMacro extends Module {
                     this.toggle();
                     return;
                 }
+
+                KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), true);
 
                 mc.thePlayer.inventory.currentItem = voidTool;
 

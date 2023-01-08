@@ -56,6 +56,7 @@ public class May2BeezQoL
     public static final String MODID = "May2BeezQoL";
     public static final String VERSION = "1.0.0";
     public static final PowderChest powderChestMacro = new PowderChest();
+
     public static Config config = new Config();
     public static GuiScreen display = null;
     public static CopyOnWriteArrayList<Module> modules = new CopyOnWriteArrayList<>();

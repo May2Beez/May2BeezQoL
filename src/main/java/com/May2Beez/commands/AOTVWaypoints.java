@@ -37,18 +37,22 @@ public class AOTVWaypoints implements ICommand {
             May2BeezQoL.display = new AOTVWaypointsGUI();
         }
         if (keyBinding2.isPressed()) {
+            if (May2BeezQoL.coordsConfig.getSelectedRoute() == null) return;
             May2BeezQoL.coordsConfig.addCoord(May2BeezQoL.coordsConfig.getSelectedRoute(), new AOTVWaypointsGUI.Waypoint(String.valueOf(May2BeezQoL.coordsConfig.getSelectedRoute().waypoints.size()), BlockUtils.getPlayerLoc().down()));
+            AOTVWaypointsGUI.SaveWaypoints();
         }
         if (keyBinding3.isPressed()) {
             AOTVWaypointsGUI.Waypoint waypointToDelete = null;
+            if (May2BeezQoL.coordsConfig.getSelectedRoute() == null) return;
             for (AOTVWaypointsGUI.Waypoint waypoint : May2BeezQoL.coordsConfig.getSelectedRoute().waypoints) {
                 if (BlockUtils.getPlayerLoc().down().equals(new BlockPos(waypoint.x, waypoint.y, waypoint.z))) {
                     waypointToDelete = waypoint;
                 }
             }
-            if (waypointToDelete != null)
+            if (waypointToDelete != null) {
                 May2BeezQoL.coordsConfig.removeCoord(May2BeezQoL.coordsConfig.getSelectedRoute(), waypointToDelete);
-            else {
+                AOTVWaypointsGUI.SaveWaypoints();
+            } else {
                 LogUtils.addMessage("AOTV Waypoints - No waypoint found at your current position", EnumChatFormatting.RED);
             }
         }

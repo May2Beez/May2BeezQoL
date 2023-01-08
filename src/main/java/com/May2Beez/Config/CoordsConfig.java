@@ -63,4 +63,14 @@ public class CoordsConfig {
         inner.showCoords = visible;
         WaypointLists.set(i, inner);
     }
+
+    public void enableRoute(AOTVWaypointsGUI.WaypointList wp) {
+        for (AOTVWaypointsGUI.WaypointList waypointList : WaypointLists) {
+            waypointList.enabled = false;
+        }
+        int index = WaypointLists.indexOf(wp);
+        AOTVWaypointsGUI.WaypointList inner = WaypointLists.get(index);
+        inner.enabled = true;
+        WaypointLists.set(index, inner);
+    }
 }

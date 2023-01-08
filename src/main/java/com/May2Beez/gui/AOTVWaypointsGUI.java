@@ -2,6 +2,7 @@ package com.May2Beez.gui;
 
 import com.May2Beez.Config.CoordsConfig;
 import com.May2Beez.May2BeezQoL;
+import com.May2Beez.commands.AOTVWaypoints;
 import com.May2Beez.utils.BlockUtils;
 import com.google.gson.annotations.Expose;
 import gg.essential.elementa.ElementaVersion;
@@ -10,7 +11,6 @@ import gg.essential.elementa.WindowScreen;
 import gg.essential.elementa.components.*;
 import gg.essential.elementa.components.Window;
 import gg.essential.elementa.components.input.UITextInput;
-import gg.essential.elementa.components.inspector.ArrowComponent;
 import gg.essential.elementa.constraints.*;
 import gg.essential.elementa.constraints.animation.Animations;
 import gg.essential.elementa.effects.OutlineEffect;
@@ -181,6 +181,7 @@ public class AOTVWaypointsGUI extends WindowScreen {
                 }
             }
             wp.enabled = !wp.enabled;
+            May2BeezQoL.coordsConfig.enableRoute(wp);
             wp.enabledComponent.setColor(wp.enabled ? Color.GREEN : Color.WHITE);
             ((ButtonComponent) wp.enabledComponent).setText(wp.enabled ? (EnumChatFormatting.BOLD + "Selected") : "Select");
             return Unit.INSTANCE;
@@ -283,6 +284,12 @@ public class AOTVWaypointsGUI extends WindowScreen {
             }
             return Unit.INSTANCE;
         });
+
+        container.getChildren().addObserver(((o, arg) -> {
+            Window.Companion.enqueueRenderOperation(() -> {
+                ((UITextInput) name).setText(wp.name + " (" + wp.waypoints.size() + " waypoints)");
+            });
+        }));
 
         return container;
     }

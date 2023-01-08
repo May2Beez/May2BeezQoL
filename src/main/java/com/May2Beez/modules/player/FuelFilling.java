@@ -5,6 +5,7 @@ import com.May2Beez.utils.LogUtils;
 import com.May2Beez.utils.SkyblockUtils;
 import com.May2Beez.utils.Timer;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.inventory.ContainerChest;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
@@ -39,6 +40,7 @@ public class FuelFilling {
 
     private void Reset() {
         currentState = states.NONE;
+        KeyBinding.setKeyBindState(Minecraft.getMinecraft().gameSettings.keyBindAttack.getKeyCode(), false);
         waitTimer.reset();
     }
 
