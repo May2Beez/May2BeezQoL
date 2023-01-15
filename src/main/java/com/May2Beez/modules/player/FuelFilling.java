@@ -287,6 +287,7 @@ public class FuelFilling {
 
                     mc.playerController.windowClick(drillAnvil.windowId, drillAnvil.inventorySlots.size() - 9 + drillSlotIndex, 0, 0, mc.thePlayer);
                     waitTimer.reset();
+                    currentState = states.EXIT;
                 }
                 break;
             }
@@ -304,6 +305,7 @@ public class FuelFilling {
 
                     mc.playerController.windowClick(drillAnvil.windowId, 49, 0, 0, mc.thePlayer);
                     waitTimer.reset();
+                    currentState = states.DONE;
                 }
                 break;
             }

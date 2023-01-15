@@ -4,6 +4,7 @@ import com.May2Beez.May2BeezQoL;
 import com.May2Beez.modules.Module;
 import com.May2Beez.utils.*;
 import com.May2Beez.utils.Timer;
+import com.May2Beez.utils.structs.Rotation;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.Entity;
@@ -202,7 +203,7 @@ public class MobKiller extends Module {
                     if (target == null) continue;
                     if (SkyblockUtils.getMobHp(stand) <= 0) continue;
 
-                    RotationUtils.Rotation rotation = RotationUtils.getRotation(target);
+                    Rotation rotation = RotationUtils.getRotation(target);
                     MovingObjectPosition ray = RaytracingUtils.raytrace(rotation.yaw, rotation.pitch, scanRange + 5);
 
                     if (ray == null || ray.typeOfHit != MovingObjectPosition.MovingObjectType.ENTITY || ray.entityHit != target) continue;
@@ -249,11 +250,11 @@ public class MobKiller extends Module {
 
                     mc.thePlayer.inventory.currentItem = weapon;
 
-                    if (target.distance() > 6) return;
+                    if (target.distance() > 5.5) return;
 
 
                     if (RotationUtils.done)
-                        RotationUtils.smoothLook(new RotationUtils.Rotation(89, mc.thePlayer.rotationYaw), May2BeezQoL.config.mobKillerCameraSpeed);
+                        RotationUtils.smoothLook(new Rotation(mc.thePlayer.rotationYaw, 89), May2BeezQoL.config.mobKillerCameraSpeed);
 
                     if (RotationUtils.IsDiffLowerThan(0.1f)) {
                         RotationUtils.reset();
@@ -295,7 +296,7 @@ public class MobKiller extends Module {
 
                     if (!RotationUtils.done) return;
 
-                    RotationUtils.Rotation rotation = RotationUtils.getRotation(target.entity != null ? target.entity : target.stand);
+                    Rotation rotation = RotationUtils.getRotation(target.entity != null ? target.entity : target.stand);
 
                     MovingObjectPosition ray = RaytracingUtils.raytrace(rotation.yaw, rotation.pitch, scanRange + 5);
 
@@ -332,7 +333,7 @@ public class MobKiller extends Module {
                 break;
             case KILLED:
 
-                if (!afterKillDelay.hasReached(1000))
+                if (!afterKillDelay.hasReached(300))
                     return;
 
                 target = null;

@@ -4,6 +4,7 @@ import com.May2Beez.May2BeezQoL;
 import com.May2Beez.modules.Module;
 import com.May2Beez.utils.RotationUtils;
 import com.May2Beez.utils.SkyblockUtils;
+import com.May2Beez.utils.structs.Rotation;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
@@ -56,39 +57,39 @@ public class FarmingMacro extends Module {
         switch (May2BeezQoL.config.lookingDirection) {
             case 0: return;
             case 1: {
-                RotationUtils.smoothLook(new RotationUtils.Rotation(pitch, 0f), May2BeezQoL.config.cameraSpeed);
+                RotationUtils.smoothLook(new Rotation(0f, pitch), May2BeezQoL.config.cameraSpeed);
                 break;
             }
             case 2: {
-                RotationUtils.smoothLook(new RotationUtils.Rotation(pitch, 45f), May2BeezQoL.config.cameraSpeed);
+                RotationUtils.smoothLook(new Rotation(45f, pitch), May2BeezQoL.config.cameraSpeed);
                 break;
             }
             case 3: {
-                RotationUtils.smoothLook(new RotationUtils.Rotation(pitch, 90f), May2BeezQoL.config.cameraSpeed);
+                RotationUtils.smoothLook(new Rotation(90f, pitch), May2BeezQoL.config.cameraSpeed);
                 break;
             }
             case 4: {
-                RotationUtils.smoothLook(new RotationUtils.Rotation(pitch, 135f), May2BeezQoL.config.cameraSpeed);
+                RotationUtils.smoothLook(new Rotation(135f, pitch), May2BeezQoL.config.cameraSpeed);
                 break;
             }
             case 5: {
-                RotationUtils.smoothLook(new RotationUtils.Rotation(pitch, 180f), May2BeezQoL.config.cameraSpeed);
+                RotationUtils.smoothLook(new Rotation(180f, pitch), May2BeezQoL.config.cameraSpeed);
                 break;
             }
             case 6: {
-                RotationUtils.smoothLook(new RotationUtils.Rotation(pitch, -45f), May2BeezQoL.config.cameraSpeed);
+                RotationUtils.smoothLook(new Rotation(-45f, pitch), May2BeezQoL.config.cameraSpeed);
                 break;
             }
             case 7: {
-                RotationUtils.smoothLook(new RotationUtils.Rotation(pitch, -90f), May2BeezQoL.config.cameraSpeed);
+                RotationUtils.smoothLook(new Rotation(-90f, pitch), May2BeezQoL.config.cameraSpeed);
                 break;
             }
             case 8: {
-                RotationUtils.smoothLook(new RotationUtils.Rotation(pitch, -135f), May2BeezQoL.config.cameraSpeed);
+                RotationUtils.smoothLook(new Rotation(-135f, pitch), May2BeezQoL.config.cameraSpeed);
                 break;
             }
             case 9: {
-                RotationUtils.smoothLook(new RotationUtils.Rotation(pitch, -180f), May2BeezQoL.config.cameraSpeed);
+                RotationUtils.smoothLook(new Rotation(-180f, pitch), May2BeezQoL.config.cameraSpeed);
                 break;
             }
         }

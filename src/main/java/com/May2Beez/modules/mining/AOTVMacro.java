@@ -4,10 +4,10 @@ import com.May2Beez.gui.AOTVWaypointsGUI;
 import com.May2Beez.May2BeezQoL;
 import com.May2Beez.modules.Module;
 import com.May2Beez.events.BlockChangeEvent;
-import com.May2Beez.events.ReceivePacketEvent;
 import com.May2Beez.modules.combat.MobKiller;
 import com.May2Beez.modules.player.FuelFilling;
 import com.May2Beez.utils.*;
+import com.May2Beez.utils.structs.Rotation;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockColored;
 import net.minecraft.block.state.IBlockState;
@@ -15,7 +15,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.EnumDyeColor;
-import net.minecraft.network.play.server.S08PacketPlayerPosLook;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.MovingObjectPosition;
@@ -27,7 +26,6 @@ import org.lwjgl.input.Keyboard;
 
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.stream.Collectors;
 
 public class AOTVMacro extends Module {
 
@@ -187,20 +185,6 @@ public class AOTVMacro extends Module {
                 }
             }
         }
-    }
-
-    @SubscribeEvent
-    public void onPacket(ReceivePacketEvent event) {
-        if (!isToggled()) return;
-        if (mc.thePlayer == null || mc.theWorld == null) return;
-        if (!(event.packet instanceof S08PacketPlayerPosLook)) return;
-        if (mc.thePlayer.getHeldItem() != null && mc.thePlayer.getHeldItem().getDisplayName().contains("Void")) return;
-
-        toggle();
-        for (int i = 0; i < 5; i++) {
-            LogUtils.addMessage("Rotation check?", EnumChatFormatting.GOLD);
-        }
-        SkyblockUtils.sendPingAlert();
     }
 
 
@@ -448,7 +432,7 @@ public class AOTVMacro extends Module {
 
         Vec3 direction = new Vec3(endPos.xCoord - startPos.xCoord, endPos.yCoord - startPos.yCoord, endPos.zCoord - startPos.zCoord);
 
-        RotationUtils.Rotation rotation = RotationUtils.getRotation(endPos, startPos);
+        Rotation rotation = RotationUtils.getRotation(endPos, startPos);
 
         double maxDistance = startPos.distanceTo(endPos);
 

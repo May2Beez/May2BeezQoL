@@ -8,6 +8,7 @@ import com.May2Beez.utils.LogUtils;
 import com.May2Beez.utils.RenderUtils;
 import com.May2Beez.utils.RotationUtils;
 import com.May2Beez.utils.SkyblockUtils;
+import com.May2Beez.utils.structs.Rotation;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
@@ -67,7 +68,7 @@ public class PowderMacro extends Module {
 
     private boolean killing = false;
 
-    private RotationUtils.Rotation startRotation;
+    private Rotation startRotation;
 
     public PowderMacro() {
         super("Powder Macro", new KeyBinding("Powder Macro", 0, May2BeezQoL.MODID + " - Mining"));
@@ -124,15 +125,15 @@ public class PowderMacro extends Module {
         }
 
         if (RotationUtils.wrapAngleTo180(mc.thePlayer.rotationYaw) > -45 && RotationUtils.wrapAngleTo180(mc.thePlayer.rotationYaw) < 45) {
-            startRotation = new RotationUtils.Rotation(27, 0);
+            startRotation = new Rotation(0, 27);
         } else if (RotationUtils.wrapAngleTo180(mc.thePlayer.rotationYaw) > 45 && RotationUtils.wrapAngleTo180(mc.thePlayer.rotationYaw) < 135) {
-            startRotation = new RotationUtils.Rotation(27, 90);
+            startRotation = new Rotation(90, 27);
         } else if (RotationUtils.wrapAngleTo180(mc.thePlayer.rotationYaw) > 135 && RotationUtils.wrapAngleTo180(mc.thePlayer.rotationYaw) < 180) {
-            startRotation = new RotationUtils.Rotation(27, 180);
+            startRotation = new Rotation(180, 27);
         } else if (RotationUtils.wrapAngleTo180(mc.thePlayer.rotationYaw) > -180 && RotationUtils.wrapAngleTo180(mc.thePlayer.rotationYaw) < -135) {
-            startRotation = new RotationUtils.Rotation(27, -180);
+            startRotation = new Rotation(-180, 27);
         } else if (RotationUtils.wrapAngleTo180(mc.thePlayer.rotationYaw) > -135 && RotationUtils.wrapAngleTo180(mc.thePlayer.rotationYaw) < -45) {
-            startRotation = new RotationUtils.Rotation(27, -90);
+            startRotation = new Rotation(-90, 27);
         }
 
         if (startRotation != null) {
@@ -192,7 +193,7 @@ public class PowderMacro extends Module {
 //                        mc.thePlayer.inventory.currentItem = aotv;
 
                         if (RotationUtils.done)
-                            RotationUtils.smoothLook(new RotationUtils.Rotation(89, mc.thePlayer.rotationYaw), 500);
+                            RotationUtils.smoothLook(new Rotation(mc.thePlayer.rotationYaw, 89), 500);
 
                         if (RotationUtils.IsDiffLowerThan(0.1f)) {
                             RotationUtils.reset();
@@ -233,10 +234,10 @@ public class PowderMacro extends Module {
                         IBlockState leg_level_state = mc.theWorld.getBlockState(leg_level_block);
 
                         if (eye_level_state.getBlock().equals(Blocks.bedrock) || leg_level_state.getBlock().equals(Blocks.bedrock)) {
-                            startRotation = new RotationUtils.Rotation(27, startRotation.yaw + 90);
+                            startRotation = new Rotation(startRotation.yaw + 90, 27);
                             RotationUtils.smoothLook(startRotation, 500);
                         } else {
-                            startRotation = new RotationUtils.Rotation(27, startRotation.yaw - 90);
+                            startRotation = new Rotation(startRotation.yaw - 90, 27);
                             RotationUtils.smoothLook(startRotation, 500);
                         }
 

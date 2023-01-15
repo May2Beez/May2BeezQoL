@@ -2,14 +2,11 @@ package com.May2Beez.modules;
 
 import com.May2Beez.May2BeezQoL;
 import com.May2Beez.utils.BlockUtils;
-import com.May2Beez.utils.LogUtils;
 import com.May2Beez.utils.RenderUtils;
+import com.May2Beez.utils.RotationUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.EnumChatFormatting;
-import net.minecraft.util.MovingObjectPosition;
-import net.minecraft.util.Vec3;
+import net.minecraft.util.*;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
@@ -17,6 +14,7 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.lwjgl.input.Keyboard;
 
 import java.awt.*;
+import java.util.Random;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class Debug extends Module {
@@ -34,13 +32,14 @@ public class Debug extends Module {
         super.onEnable();
     }
 
+    public static boolean isUngrabbed = false;
+    private static MouseHelper oldMouseHelper;
+    private static boolean doesGameWantUngrabbed;
+
     @Override
     public void onKeyInput(InputEvent.KeyInputEvent event) {
         if (this.keyBinding != null && this.keyBinding.isPressed()) {
-            MovingObjectPosition objectMouseOver = mc.objectMouseOver;
-            if (objectMouseOver != null && objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
-                testBlock = objectMouseOver.getBlockPos();
-            }
+
         }
     }
 

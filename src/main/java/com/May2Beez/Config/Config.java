@@ -24,6 +24,7 @@ public class Config extends Vigilant {
     private static final String ESP = "ESP";
     private static final String WORLD_SCANNER = "World Scanner";
     private static final String POWDER_MACRO = "Powder Macro";
+    private static final String FAILSAFES = "FailSafes";
 
     private static final int maxCameraSpeedMS = 500;
 
@@ -417,6 +418,19 @@ public class Config extends Vigilant {
 
     @Property(type = PropertyType.SWITCH, name = "Kill Scathas and worms", category = POWDER_MACRO)
     public boolean killScathasAndWorms = false;
+
+    //endregion
+
+    //region FAILSAFES
+
+    @Property(type = PropertyType.SWITCH, name = "World change", category = FAILSAFES)
+    public boolean stopMacrosOnWorldChange = true;
+
+    @Property(type = PropertyType.SWITCH, name = "Rotation check", category = FAILSAFES)
+    public boolean stopMacrosOnRotationCheck = true;
+
+    @Property(type = PropertyType.SWITCH, name = "Fake camera move after rotation check", category = FAILSAFES)
+    public boolean fakeMoveAfterRotationCheck = true;
 
     //endregion
 

@@ -34,7 +34,13 @@ public class MithrilMiner extends Module {
 
     private final Timer stuckTimer = new Timer();
     private final Timer searchingTimer = new Timer();
+    private final Timer afterRefuelTimer = new Timer();
+
     private BlockPos blockToIgnoreBecauseOfStuck = null;
+
+    private final ArrayList<Structs.BlockData> blocksToMine = new ArrayList<>();
+
+    private boolean refueling = false;
 
     private enum State {
         SEARCHING,
@@ -43,6 +49,12 @@ public class MithrilMiner extends Module {
 
     private State currentState = State.SEARCHING;
 
+    private final ArrayList<String> miningTools = new ArrayList<String>(){{
+        add("Pickaxe");
+        add("Drill");
+        add("Gauntlet");
+    }};
+
     public MithrilMiner() {
         super("Mithril Miner", new KeyBinding("Mithril Miner", Keyboard.KEY_NONE, May2BeezQoL.MODID + " - Mining"));
     }
@@ -50,7 +62,7 @@ public class MithrilMiner extends Module {
     @Override
     public void onEnable() {
 
-        int miningTool = SkyblockUtils.findItemInHotbar("Drill", "Pickaxe", "Gauntlet");
+        int miningTool = SkyblockUtils.findItemInHotbar(miningTools.toArray(new String[0]));
 
         if (miningTool == -1) {
             LogUtils.addMessage(getName() + " - You don't have a mining tool!", EnumChatFormatting.RED);
@@ -67,9 +79,12 @@ public class MithrilMiner extends Module {
         target = null;
         oldTarget = null;
         blockToIgnoreBecauseOfStuck = null;
+        refueling = false;
         currentState = State.SEARCHING;
         stuckTimer.reset();
         searchingTimer.reset();
+        afterRefuelTimer.reset();
+        blocksToMine.clear();
         RotationUtils.reset();
         KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), false);
         KeyBinding.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), false);
@@ -87,6 +102,7 @@ public class MithrilMiner extends Module {
             currentState = State.SEARCHING;
             oldTarget = target;
             target = null;
+            RotationUtils.reset();
         }
     }
 
@@ -98,10 +114,21 @@ public class MithrilMiner extends Module {
         if (SkyblockUtils.hasOpenContainer()) return;
 
         if (May2BeezQoL.config.refuelWithAbiphone) {
+            if (FuelFilling.isRefueling() && !refueling) {
+                refueling = true;
+                return;
+            } else if (!FuelFilling.isRefueling() && refueling) {
+                refueling = false;
+                KeyBinding.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), false);
+                afterRefuelTimer.reset();
+                return;
+            }
             if (FuelFilling.isRefueling()) {
                 return;
             }
         }
+
+
 
         switch (currentState) {
             case SEARCHING: {
@@ -112,12 +139,18 @@ public class MithrilMiner extends Module {
 
                 KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), true);
                 KeyBinding.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), false);
+
+                if (blocksToMine.isEmpty()) {
+                    blocksToMine.addAll(getBlocksToMine());
+                }
+
                 target = getClosestBlock();
                 blockToIgnoreBecauseOfStuck = null;
+
                 if (target != null) {
                     currentState = State.MINING;
 
-                    int miningTool = SkyblockUtils.findItemInHotbar("Drill", "Pickaxe", "Gauntlet");
+                    int miningTool = SkyblockUtils.findItemInHotbar(miningTools.toArray(new String[0]));
 
                     if (miningTool == -1) {
                         LogUtils.addMessage(getName() + " - You don't have a mining tool!", EnumChatFormatting.RED);
@@ -126,9 +159,11 @@ public class MithrilMiner extends Module {
                     }
                     mc.thePlayer.inventory.currentItem = miningTool;
                 } else {
-
                     if (!searchingTimer.hasReached(2000))
                         break;
+
+                    blocksToMine.clear();
+
 
                     LogUtils.addMessage(getName() + " - No blocks found!", EnumChatFormatting.RED);
                     target = null;
@@ -160,15 +195,15 @@ public class MithrilMiner extends Module {
 
                 KeyBinding.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), lookingAtTarget);
 
-                if (stuckTimer.hasReached(May2BeezQoL.config.maxBreakTime) && RotationUtils.done) {
+                if (stuckTimer.hasReached(May2BeezQoL.miningSpeedActive ? May2BeezQoL.config.aotvStuckTimeThreshold / 2 : May2BeezQoL.config.aotvStuckTimeThreshold) && RotationUtils.IsDiffLowerThan(0.1f)) {
                     KeyBinding.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), false);
                     LogUtils.addMessage(getName() + " - Stuck for " + May2BeezQoL.config.maxBreakTime + " ms, restarting.", EnumChatFormatting.DARK_RED);
                     stuckTimer.reset();
                     currentState = State.SEARCHING;
                     searchingTimer.reset();
                     blockToIgnoreBecauseOfStuck = target.getPos();
+                    oldTarget = target;
                     target = null;
-                    oldTarget = null;
                 }
                 break;
             }
@@ -177,7 +212,84 @@ public class MithrilMiner extends Module {
 
     private Structs.BlockData getClosestBlock() {
         Structs.BlockData blockPos = null;
-        int range = 6;
+
+        double distance = 9999;
+
+        for (Structs.BlockData block : blocksToMine) {
+            Structs.BlockData blockPos1 = block;
+
+            double currentDistance;
+
+            if (mc.theWorld.getBlockState(blockPos1.getPos()) == null || mc.theWorld.isAirBlock(blockPos1.getPos()) || mc.theWorld.getBlockState(blockPos1.getPos()).getBlock() == Blocks.bedrock) continue;
+            if (blockPos1.getPos().equals(blockToIgnoreBecauseOfStuck)) continue;
+
+            Vec3 vec3 = BlockUtils.getRandomVisibilityLine(blockPos1.getPos());
+            if (vec3 == null) continue;
+
+            blockPos1 = new Structs.BlockData(blockPos1.getPos(), blockPos1.getBlock(), blockPos1.getState(), vec3);
+
+            if (oldTarget != null) {
+                currentDistance = oldTarget.getPos().distanceSq(blockPos1.getPos());
+            } else if (mc.objectMouseOver != null && mc.objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
+                currentDistance = mc.objectMouseOver.getBlockPos().distanceSq(blockPos1.getPos());
+            } else {
+                currentDistance = BlockUtils.getPlayerLoc().distanceSq(blockPos1.getPos());;
+            }
+            if (currentDistance < distance) {
+                distance = currentDistance;
+                blockPos = blockPos1;
+            }
+        }
+
+        return blockPos;
+    }
+
+
+    private double CompareDistance(Structs.BlockData blockData) {
+        if (oldTarget != null) {
+            return oldTarget.getPos().distanceSq(blockData.getPos());
+        } else {
+
+            if (mc.objectMouseOver != null && mc.objectMouseOver.getBlockPos() != null) {
+                return mc.objectMouseOver.getBlockPos().distanceSq(blockData.getPos());
+            } else {
+                return BlockUtils.getPlayerLoc().distanceSq(blockData.getPos());
+            }
+        }
+    }
+
+    private boolean isTitanium(BlockPos pos) {
+        IBlockState state = this.mc.theWorld.getBlockState(pos);
+        return (state.getBlock() == Blocks.stone && (state.getValue(BlockStone.VARIANT)).equals(BlockStone.EnumType.DIORITE_SMOOTH));
+    }
+
+    private boolean BlockMatchConfig(BlockPos blockPos) {
+        IBlockState state = this.mc.theWorld.getBlockState(blockPos);
+        if (isTitanium(blockPos))
+            return true;
+
+        if (Blocks.stained_hardened_clay.equals(state.getBlock())) {
+            return May2BeezQoL.config.filterClay;
+        }
+
+        if (Blocks.prismarine.equals(state.getBlock())) {
+            return May2BeezQoL.config.filterPrismarine;
+        }
+
+        if (Blocks.wool.equals(state.getBlock()) && state.getValue(BlockColored.COLOR) == EnumDyeColor.LIGHT_BLUE) {
+            return May2BeezQoL.config.filterBlueWool;
+        }
+
+        if (Blocks.wool.equals(state.getBlock()) && state.getValue(BlockColored.COLOR) == EnumDyeColor.GRAY) {
+            return May2BeezQoL.config.filterGrayWool;
+        }
+
+        return false;
+    }
+
+    private ArrayList<Structs.BlockData> getBlocksToMine() {
+        float range = May2BeezQoL.config.scanRange + 0.5f;
+
         ArrayList<Structs.BlockData> blocks = new ArrayList<>();
         Iterable<BlockPos> blockss = BlockPos.getAllInBox(BlockUtils.getPlayerLoc().add(-range, -range, -range), BlockUtils.getPlayerLoc().add(range, range, range));
 
@@ -187,26 +299,21 @@ public class MithrilMiner extends Module {
 
             if (blockState.getBlock() == Blocks.air) continue;
             if (BlockMatchConfig(blockPos1)) {
-                if (mc.thePlayer.getDistanceSq(blockPos1) < May2BeezQoL.config.scanRange * May2BeezQoL.config.scanRange) {
-                    Vec3 vec3 = BlockUtils.getRandomVisibilityLine(blockPos1);
-                    if (vec3 != null) {
-                        IBlockState bs = mc.theWorld.getBlockState(blockPos1);
-                        blocks.add(new Structs.BlockData(blockPos1, bs.getBlock(), bs, vec3));
-                    }
-                }
+                IBlockState bs = mc.theWorld.getBlockState(blockPos1);
+                blocks.add(new Structs.BlockData(blockPos1, bs.getBlock(), bs, null));
             }
         }
+
         ArrayList<Structs.BlockData> titaniumBlocks = blocks.stream().filter(blockData -> isTitanium(blockData.getPos())).sorted(Comparator.comparingDouble(this::CompareDistance)).collect(Collectors.toCollection(ArrayList::new));
+
+        if (May2BeezQoL.config.prioTitanium && titaniumBlocks.size() > 0 && titaniumBlocks.stream().anyMatch(blockData -> BlockUtils.getRandomVisibilityLine(blockData.getPos()) != null)) {
+            return titaniumBlocks;
+        }
+
         ArrayList<Structs.BlockData> blocksData = new ArrayList<>();
 
-        if (May2BeezQoL.config.prioTitanium) {
-            if (titaniumBlocks.size() > 0) {
-                return titaniumBlocks.get(0);
-            }
-        } else {
-            if (titaniumBlocks.size() > 0) {
-                blocksData.addAll(titaniumBlocks);
-            }
+        if (titaniumBlocks.size() > 0) {
+            blocksData.addAll(titaniumBlocks);
         }
 
 
@@ -238,72 +345,7 @@ public class MithrilMiner extends Module {
             }
         }
 
-        double distance = 9999;
-
-        for (Structs.BlockData block : blocksData) {
-            double currentDistance;
-
-            if (oldTarget != null) {
-                currentDistance = oldTarget.getPos().distanceSq(block.getPos());
-            } else {
-
-                if (mc.objectMouseOver != null && mc.objectMouseOver.getBlockPos() != null) {
-                    currentDistance = mc.objectMouseOver.getBlockPos().distanceSq(block.getPos());
-                } else {
-                    currentDistance = BlockUtils.getPlayerLoc().distanceSq(block.getPos());
-                }
-            }
-
-            if (currentDistance < distance) {
-                distance = currentDistance;
-                blockPos = block;
-            }
-        }
-
-        return blockPos;
-    }
-
-
-    private double CompareDistance(Structs.BlockData blockData) {
-        if (oldTarget != null) {
-            return oldTarget.getPos().distanceSq(blockData.getPos());
-        } else {
-
-            if (mc.objectMouseOver != null && mc.objectMouseOver.getBlockPos() != null) {
-                return mc.objectMouseOver.getBlockPos().distanceSq(blockData.getPos());
-            } else {
-                return BlockUtils.getPlayerLoc().distanceSq(blockData.getPos());
-            }
-        }
-    }
-
-    private boolean isTitanium(BlockPos pos) {
-        IBlockState state = this.mc.theWorld.getBlockState(pos);
-        return (state.getBlock() == Blocks.stone && (state.getValue(BlockStone.VARIANT)).equals(BlockStone.EnumType.DIORITE_SMOOTH));
-    }
-
-    private boolean BlockMatchConfig(BlockPos blockPos) {
-        IBlockState state = this.mc.theWorld.getBlockState(blockPos);
-        if (isTitanium(blockPos))
-            return May2BeezQoL.config.prioTitanium;
-
-        if (Blocks.stained_hardened_clay.equals(state.getBlock())) {
-            return May2BeezQoL.config.filterClay;
-        }
-
-        if (Blocks.prismarine.equals(state.getBlock())) {
-            return May2BeezQoL.config.filterPrismarine;
-        }
-
-        if (Blocks.wool.equals(state.getBlock()) && state.getValue(BlockColored.COLOR) == EnumDyeColor.LIGHT_BLUE) {
-            return May2BeezQoL.config.filterBlueWool;
-        }
-
-        if (Blocks.wool.equals(state.getBlock()) && state.getValue(BlockColored.COLOR) == EnumDyeColor.GRAY) {
-            return May2BeezQoL.config.filterGrayWool;
-        }
-
-        return false;
+        return blocksData;
     }
 
     @SubscribeEvent

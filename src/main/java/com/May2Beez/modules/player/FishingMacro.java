@@ -6,6 +6,7 @@ import com.May2Beez.events.SpawnParticleEvent;
 import com.May2Beez.modules.combat.MobKiller;
 import com.May2Beez.utils.*;
 import com.May2Beez.utils.Timer;
+import com.May2Beez.utils.structs.Rotation;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.projectile.EntityFishHook;
@@ -37,7 +38,7 @@ public class FishingMacro extends Module {
     private final Timer antiAfkTimer = new Timer();
 
     private double oldBobberPosY = 0.0D;
-    private RotationUtils.Rotation startRotation = null;
+    private Rotation startRotation = null;
 
     private static final CopyOnWriteArrayList<ParticleEntry> particles = new CopyOnWriteArrayList<>();
     private boolean killing = false;
@@ -80,7 +81,7 @@ public class FishingMacro extends Module {
             this.toggle();
             return;
         }
-        startRotation = new RotationUtils.Rotation(mc.thePlayer.rotationPitch, mc.thePlayer.rotationYaw);
+        startRotation = new Rotation(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch);
         KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), May2BeezQoL.config.sneakWhileFishing);
         May2BeezQoL.mobKiller.Toggle();
         MobKiller.setMobsNames(false, fishingMobs.toArray(new String[0]));
@@ -132,7 +133,7 @@ public class FishingMacro extends Module {
             if (RotationUtils.done) {
                 switch (antiAfkState) {
                     case AWAY: {
-                        RotationUtils.smoothLook(new RotationUtils.Rotation(startRotation.pitch + (-2 + new Random().nextInt(4)), startRotation.yaw + (-2 + new Random().nextInt(4))), 160);
+                        RotationUtils.smoothLook(new Rotation(startRotation.yaw + (-2 + new Random().nextInt(4)), startRotation.pitch + (-2 + new Random().nextInt(4))), 160);
                         antiAfkState = AntiAfkState.BACK;
                         break;
                     }

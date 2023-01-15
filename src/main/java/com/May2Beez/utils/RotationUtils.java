@@ -2,6 +2,7 @@ package com.May2Beez.utils;
 
 import com.May2Beez.May2BeezQoL;
 import com.May2Beez.events.PlayerMoveEvent;
+import com.May2Beez.utils.structs.Rotation;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.BlockPos;
@@ -9,6 +10,7 @@ import net.minecraft.util.Vec3;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import org.jetbrains.annotations.NotNull;
 
 public class RotationUtils {
 
@@ -31,26 +33,6 @@ public class RotationUtils {
 
     private static RotationType rotationType;
 
-    public static class Rotation {
-        public float pitch;
-        public float yaw;
-
-        public Rotation(float pitch, float yaw) {
-            this.pitch = pitch;
-            this.yaw = yaw;
-        }
-
-        public float getValue() {
-            return Math.abs(this.yaw) + Math.abs(this.pitch);
-        }
-
-        @Override
-        public String toString() {
-            return "pitch=" + pitch +
-                    ", yaw=" + yaw;
-        }
-    }
-
     public static double wrapAngleTo180(double angle) {
         return angle - Math.floor(angle / 360 + 0.5) * 360;
     }
@@ -66,40 +48,38 @@ public class RotationUtils {
         return (float) (yaw * -1.0);
     }
 
-    public static Rotation getRotation(Vec3 vec3) {
-        double diffX = vec3.xCoord - mc.thePlayer.posX;
-        double diffY = vec3.yCoord - mc.thePlayer.posY - mc.thePlayer.getEyeHeight();
-        double diffZ = vec3.zCoord - mc.thePlayer.posZ;
-        double dist = Math.sqrt(diffX * diffX + diffZ * diffZ);
-
-        float pitch = (float) -Math.atan2(dist, diffY);
-        float yaw = (float) Math.atan2(diffZ, diffX);
-        pitch = (float) wrapAngleTo180((pitch * 180F / Math.PI + 90) * -1);
-        yaw = (float) wrapAngleTo180((yaw * 180 / Math.PI) - 90);
-
-        return new Rotation(pitch, yaw);
-    }
-
-    public static Rotation getRotation(Vec3 from, Vec3 to) {
-        double diffX = from.xCoord - to.xCoord;
-        double diffY = from.yCoord - to.yCoord;
-        double diffZ = from.zCoord - to.zCoord;
-        double dist = Math.sqrt(diffX * diffX + diffZ * diffZ);
-
-        float pitch = (float) -Math.atan2(dist, diffY);
-        float yaw = (float) Math.atan2(diffZ, diffX);
-        pitch = (float) wrapAngleTo180((pitch * 180F / Math.PI + 90) * -1);
-        yaw = (float) wrapAngleTo180((yaw * 180 / Math.PI) - 90);
-
-        return new Rotation(pitch, yaw);
-    }
-
     public static Rotation getRotation(BlockPos block) {
         return getRotation(new Vec3(block.getX() + 0.5, block.getY() + 0.5, block.getZ() + 0.5));
     }
 
     public static Rotation getRotation(Entity entity) {
         return getRotation(new Vec3(entity.posX, entity.posY + entity.getEyeHeight(), entity.posZ));
+    }
+
+    public static Rotation getRotation(Vec3 vec3) {
+        double diffX = vec3.xCoord - mc.thePlayer.posX;
+        double diffY = vec3.yCoord - mc.thePlayer.posY - mc.thePlayer.getEyeHeight();
+        double diffZ = vec3.zCoord - mc.thePlayer.posZ;
+        return getRotationTo(diffX, diffY, diffZ);
+    }
+
+
+    public static Rotation getRotation(Vec3 from, Vec3 to) {
+        double diffX = from.xCoord - to.xCoord;
+        double diffY = from.yCoord - to.yCoord;
+        double diffZ = from.zCoord - to.zCoord;
+        return getRotationTo(diffX, diffY, diffZ);
+    }
+
+    private static Rotation getRotationTo(double diffX, double diffY, double diffZ) {
+        double dist = Math.sqrt(diffX * diffX + diffZ * diffZ);
+
+        float pitch = (float) -Math.atan2(dist, diffY);
+        float yaw = (float) Math.atan2(diffZ, diffX);
+        pitch = (float) wrapAngleTo180((pitch * 180F / Math.PI + 90) * -1);
+        yaw = (float) wrapAngleTo180((yaw * 180 / Math.PI) - 90);
+
+        return new Rotation(yaw, pitch);
     }
 
     public static boolean IsDiffLowerThan(float diff) {
@@ -121,11 +101,11 @@ public class RotationUtils {
             yawDiff -= 360;
         }
 
-        return new Rotation(endRot.pitch - startRot.pitch, yawDiff);
+        return new Rotation(yawDiff, endRot.pitch - startRot.pitch);
     }
 
     public static Rotation getNeededChange(Rotation endRot) {
-        return getNeededChange(new Rotation(mc.thePlayer.rotationPitch, mc.thePlayer.rotationYaw), endRot);
+        return getNeededChange(new Rotation(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch), endRot);
     }
 
     private static float interpolate(float start, float end) {
@@ -139,11 +119,11 @@ public class RotationUtils {
     public static void smoothLook(Rotation rotation, long time) {
         rotationType = RotationType.NORMAL;
         done = false;
-        startRot = new Rotation(mc.thePlayer.rotationPitch, mc.thePlayer.rotationYaw);
+        startRot = new Rotation(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch);
 
         neededChange = getNeededChange(startRot, rotation);
 
-        endRot = new Rotation(startRot.pitch + neededChange.pitch, startRot.yaw + neededChange.yaw);
+        endRot = new Rotation(startRot.yaw + neededChange.yaw, startRot.pitch + neededChange.pitch);
 
         startTime = System.currentTimeMillis();
         endTime = System.currentTimeMillis() + time;
@@ -156,11 +136,11 @@ public class RotationUtils {
         if (currentFakePitch == 0) currentFakePitch = mc.thePlayer.rotationPitch;
         if (currentFakeYaw == 0) currentFakeYaw = mc.thePlayer.rotationYaw;
 
-        startRot = new Rotation(currentFakePitch, currentFakeYaw);
+        startRot = new Rotation(currentFakeYaw, currentFakePitch);
 
         neededChange = getNeededChange(startRot, rotation);
 
-        endRot = new Rotation(startRot.pitch + neededChange.pitch, startRot.yaw + neededChange.yaw);
+        endRot = new Rotation(startRot.yaw + neededChange.yaw, startRot.pitch + neededChange.pitch);
 
         startTime = System.currentTimeMillis();
         endTime = System.currentTimeMillis() + time;

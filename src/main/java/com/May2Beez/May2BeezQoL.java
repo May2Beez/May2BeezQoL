@@ -9,6 +9,7 @@ import com.May2Beez.events.MillisecondEvent;
 import com.May2Beez.events.SecondEvent;
 import com.May2Beez.gui.AOTVWaypointsGUI;
 import com.May2Beez.modules.Debug;
+import com.May2Beez.modules.FailSafes;
 import com.May2Beez.modules.Module;
 import com.May2Beez.modules.combat.MobKiller;
 import com.May2Beez.modules.farming.FarmingMacro;
@@ -176,6 +177,7 @@ public class May2BeezQoL
         MinecraftForge.EVENT_BUS.register(openSettings);
         MinecraftForge.EVENT_BUS.register(new LocationUtils());
         MinecraftForge.EVENT_BUS.register(fuelFilling);
+        MinecraftForge.EVENT_BUS.register(new FailSafes());
 
         modules.add(new MithrilMiner());
         modules.add(new ForagingMacro());
@@ -215,16 +217,6 @@ public class May2BeezQoL
         ScheduledExecutorService threadPool = Executors.newScheduledThreadPool(1);
         threadPool.scheduleAtFixedRate(() -> MinecraftForge.EVENT_BUS.post(new SecondEvent()), initialDelaySeconds, 1, TimeUnit.SECONDS);
         threadPool.scheduleAtFixedRate(() -> MinecraftForge.EVENT_BUS.post(new MillisecondEvent()), initialDelaySeconds, 1, TimeUnit.MILLISECONDS);
-    }
-
-    @SubscribeEvent
-    public void onWorldChange(WorldEvent.Unload event) {
-        if (modules.stream().anyMatch(Module::isToggled)) {
-            LogUtils.addMessage("Detected World Change, Stopping All Macros", EnumChatFormatting.DARK_RED);
-        }
-        for (Module m : modules) {
-            if (m.isToggled()) m.toggle();
-        }
     }
 
     @SubscribeEvent
