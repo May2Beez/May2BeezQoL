@@ -33,7 +33,9 @@ public class FuelFilling {
         REFILLING_FUEL,
         ACCEPTING,
         CLOSING,
-        EXIT
+        PUT_BACK_DRILL,
+        EXIT,
+        DONE
     }
 
     public static states currentState = states.NONE;
@@ -90,6 +92,8 @@ public class FuelFilling {
             case NONE: {
                 LogUtils.addMessage("Fuel Refuelling - Low fuel. Refilling now.", EnumChatFormatting.GOLD);
                 currentState = states.WAITING;
+                KeyBinding.setKeyBindState(Minecraft.getMinecraft().gameSettings.keyBindAttack.getKeyCode(), false);
+                KeyBinding.setKeyBindState(Minecraft.getMinecraft().gameSettings.keyBindSneak.getKeyCode(), false);
                 waitTimer.reset();
                 break;
             }
@@ -250,7 +254,7 @@ public class FuelFilling {
             }
 
             case CLOSING: {
-                if (!waitTimer.hasReached(500)) return;
+                if (!waitTimer.hasReached(750)) return;
 
                 if (mc.thePlayer.openContainer instanceof ContainerChest) {
                     ContainerChest drillAnvil = (ContainerChest) mc.thePlayer.openContainer;
@@ -262,14 +266,14 @@ public class FuelFilling {
 
                     if (drillAnvil.getSlot(29) != null && drillAnvil.getSlot(29).getStack() == null) {
                         mc.playerController.windowClick(drillAnvil.windowId, 13, 0, 0, mc.thePlayer);
-                        currentState = states.EXIT;
+                        currentState = states.PUT_BACK_DRILL;
                         waitTimer.reset();
                     }
                 }
                 break;
             }
 
-            case EXIT: {
+            case PUT_BACK_DRILL: {
                 if (mc.thePlayer.openContainer instanceof ContainerChest) {
                     ContainerChest drillAnvil = (ContainerChest) mc.thePlayer.openContainer;
                     IInventory inv = drillAnvil.getLowerChestInventory();
@@ -282,15 +286,51 @@ public class FuelFilling {
                     if (!waitTimer.hasReached(500)) return;
 
                     mc.playerController.windowClick(drillAnvil.windowId, drillAnvil.inventorySlots.size() - 9 + drillSlotIndex, 0, 0, mc.thePlayer);
+                    waitTimer.reset();
+                }
+                break;
+            }
+            case EXIT: {
+                if (mc.thePlayer.openContainer instanceof ContainerChest) {
+                    ContainerChest drillAnvil = (ContainerChest) mc.thePlayer.openContainer;
+                    IInventory inv = drillAnvil.getLowerChestInventory();
 
-                    if (mc.thePlayer.openContainer != null) {
-                        mc.thePlayer.closeScreen();
+                    if (!inv.getDisplayName().getFormattedText().toLowerCase().contains("drill anvil")) {
+                        //Not in drill anvil
+                        return;
                     }
 
-                    mc.thePlayer.inventory.currentItem = drillSlotIndex;
+                    if (!waitTimer.hasReached(500)) return;
 
-                    Reset();
+                    mc.playerController.windowClick(drillAnvil.windowId, 49, 0, 0, mc.thePlayer);
+                    waitTimer.reset();
                 }
+                break;
+            }
+
+            case DONE: {
+                if (!waitTimer.hasReached(500)) return;
+
+                if (mc.thePlayer.openContainer instanceof ContainerChest) {
+                    ContainerChest drillAnvil = (ContainerChest) mc.thePlayer.openContainer;
+                    IInventory inv = drillAnvil.getLowerChestInventory();
+
+                    if (!inv.getDisplayName().getFormattedText().toLowerCase().contains("drill anvil")) {
+                        //Not in drill anvil
+                        return;
+                    }
+                    waitTimer.reset();
+                    return;
+                }
+
+                if (mc.thePlayer.openContainer != null) {
+                    mc.thePlayer.closeScreen();
+                    waitTimer.reset();
+                    return;
+                }
+
+                mc.thePlayer.inventory.currentItem = drillSlotIndex;
+                Reset();
                 break;
             }
         }

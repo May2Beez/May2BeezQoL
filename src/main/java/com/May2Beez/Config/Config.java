@@ -235,9 +235,6 @@ public class Config extends Vigilant {
     @Property(type = PropertyType.SLIDER, name = "Accuracy checks per dimension", subcategory = "Targetting", description = "Higher value means that macro will check more times if the block is visible", category = MINING, min = 1, max = 16)
     public int miningAccuracyChecks = 8;
 
-    @Property(type = PropertyType.DECIMAL_SLIDER, name = "Space from cobblestone to the center", subcategory = "Targetting", description = "Increase if macro destroys cobblestone too often", category = MINING, minF = 0f, maxF = 0.3f, decimalPlaces = 3)
-    public float miningCobblestoneAccuracy = 0.05f;
-
     @Property(type = PropertyType.SWITCH, name = "Refuel with abiphone", subcategory = "General", category = MINING)
     public boolean refuelWithAbiphone = false;
 
@@ -289,6 +286,9 @@ public class Config extends Vigilant {
     @Property(type = PropertyType.DECIMAL_SLIDER, name = "AOTV Vision blocks accuracy", decimalPlaces = 1, description = "Smaller == more checks per line between waypoints", category = AOTV_MACRO, minF = 0.1f, maxF = 1f, subcategory = "Drawing")
     public float aotvVisionBlocksAccuracy = 0.1f;
 
+    @Property(type = PropertyType.DECIMAL_SLIDER, name = "AOTV Vision blocks width of sight", decimalPlaces = 2, description = "Smaller == less blocks will check for vision", category = AOTV_MACRO, minF = 0.1f, maxF = 1f, subcategory = "Drawing")
+    public float aotvVisionBlocksWidthOfSight = 0.15f;
+
     @Property(type = PropertyType.COLOR, name = "AOTV Vision blocks color", category = AOTV_MACRO, subcategory = "Drawing")
     public Color aotvVisionBlocksColor = new Color(255, 0, 0, 120);
 
@@ -306,6 +306,12 @@ public class Config extends Vigilant {
 
     @Property(type = PropertyType.SWITCH, name = "Stop macro if cobblestone on route has been destroyed", subcategory = "Additions", category = AOTV_MACRO)
     public boolean stopIfCobblestoneDestroyed = true;
+
+    @Property(type = PropertyType.DECIMAL_SLIDER, name = "Space from cobblestone to the center", subcategory = "Targetting", description = "Increase if macro destroys cobblestone too often", category = AOTV_MACRO, minF = 0f, maxF = 0.35f, decimalPlaces = 3)
+    public float miningCobblestoneAccuracy = 0.15f;
+
+    @Property(type = PropertyType.DECIMAL_SLIDER, name = "Seconds threshold to stop macro if teleported between routes too fast", description = "If there is no veins on the spot, macro will teleport to the next and to the next etc", category = AOTV_MACRO, minF = 0f, maxF = 3f, decimalPlaces = 1)
+    public float teleportThreshold = 1.5f;
 
     //endregion
 

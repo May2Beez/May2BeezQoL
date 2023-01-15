@@ -95,6 +95,7 @@ public class MithrilMiner extends Module {
         if (event.phase == TickEvent.Phase.END) return;
         if (!isToggled()) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
+        if (SkyblockUtils.hasOpenContainer()) return;
 
         if (May2BeezQoL.config.refuelWithAbiphone) {
             if (FuelFilling.isRefueling()) {

@@ -148,11 +148,10 @@ public class MobKiller extends Module {
         if (!isToggled()) return;
         if (!ShouldScan) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
+        if (SkyblockUtils.hasOpenContainer()) return;
 
         if (mobsNames == null || mobsNames.length == 0) return;
 
-        if (mc.currentScreen != null && !(mc.currentScreen instanceof net.minecraft.client.gui.GuiChat))
-            return;
 
         switch (currentState) {
             case SEARCHING:

@@ -2,10 +2,12 @@ package com.May2Beez.modules;
 
 import com.May2Beez.May2BeezQoL;
 import com.May2Beez.utils.BlockUtils;
+import com.May2Beez.utils.LogUtils;
 import com.May2Beez.utils.RenderUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.util.BlockPos;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
@@ -62,6 +64,9 @@ public class Debug extends Module {
         testPoints.clear();
         if (testBlock == null) return;
 
-        testPoints.addAll(BlockUtils.getAllVisibilityLines(testBlock, mc.thePlayer.getPositionVector().add(new Vec3(0, mc.thePlayer.getDefaultEyeHeight(), 0)).subtract(new Vec3(0, 0.125, 0)).subtract(new Vec3(0, testBlock.getY() <= mc.thePlayer.posY ? May2BeezQoL.config.miningCobblestoneAccuracy : 0, 0))));
+        BlockPos playerLoc = BlockUtils.getPlayerLoc();
+
+        boolean lowerY = (testBlock.getY() < playerLoc.getY() && Math.abs(testBlock.getX() - playerLoc.getX()) <= 1 && Math.abs(testBlock.getZ() - playerLoc.getZ()) <= 1);
+        testPoints.addAll(BlockUtils.getAllVisibilityLines(testBlock, mc.thePlayer.getPositionVector().add(new Vec3(0, mc.thePlayer.getEyeHeight(), 0)).subtract(new Vec3(0, lowerY ? May2BeezQoL.config.miningCobblestoneAccuracy : 0, 0)), lowerY));
     }
 }

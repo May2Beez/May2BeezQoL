@@ -40,7 +40,12 @@ public class AOTVMacro extends Module {
     private final Timer stuckTimer = new Timer();
     private final Timer searchingTimer = new Timer();
     private final Timer stuckTimer2 = new Timer();
+    private final Timer afterRefuelTimer = new Timer();
+    private final Timer timeBetweenLastWaypoint = new Timer();
+    private final Timer waitForVeinsTimer = new Timer();
     private BlockPos blockToIgnoreBecauseOfStuck = null;
+    private boolean tooFastTp = false;
+    private boolean firstTp = true;
 
     private final ArrayList<BlockPos> blocksBlockingVision = new ArrayList<>();
 
@@ -124,6 +129,8 @@ public class AOTVMacro extends Module {
         }
 
         searchingTimer.reset();
+        timeBetweenLastWaypoint.reset();
+        tooFastTp = false;
         super.onEnable();
     }
 
@@ -133,10 +140,15 @@ public class AOTVMacro extends Module {
         target = null;
         oldTarget = null;
         currentWaypoint = -1;
+        tooFastTp = false;
+        firstTp = true;
         currentState = State.SEARCHING;
         stuckTimer.reset();
         searchingTimer.reset();
         stuckTimer2.reset();
+        afterRefuelTimer.reset();
+        timeBetweenLastWaypoint.reset();
+        waitForVeinsTimer.reset();
         RotationUtils.reset();
         KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), false);
         KeyBinding.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), false);
@@ -199,7 +211,15 @@ public class AOTVMacro extends Module {
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (May2BeezQoL.coordsConfig.getSelectedRoute() == null) return;
 
+        if (SkyblockUtils.hasOpenContainer()) return;
+
         ArrayList<AOTVWaypointsGUI.Waypoint> Waypoints = May2BeezQoL.coordsConfig.getSelectedRoute().waypoints;
+
+        if (tooFastTp && !waitForVeinsTimer.hasReached(10000)) {
+            return;
+        } else if (tooFastTp && waitForVeinsTimer.hasReached(10000)) {
+            tooFastTp = false;
+        }
 
         if (May2BeezQoL.config.refuelWithAbiphone) {
             if (FuelFilling.isRefueling() && !refueling) {
@@ -208,11 +228,17 @@ public class AOTVMacro extends Module {
             } else if (!FuelFilling.isRefueling() && refueling) {
                 refueling = false;
                 KeyBinding.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), false);
+                afterRefuelTimer.reset();
                 return;
             }
             if (FuelFilling.isRefueling()) {
                 return;
             }
+        }
+
+        if (!afterRefuelTimer.hasReached(1000)) {
+            KeyBinding.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), false);
+            return;
         }
 
         if (May2BeezQoL.config.yogKiller) {
@@ -241,7 +267,6 @@ public class AOTVMacro extends Module {
                     if (searchingTimer.hasReached(May2BeezQoL.config.aotvStuckTimeThreshold)) {
                         LogUtils.addMessage(getName() + " - You are not at a valid waypoint!", EnumChatFormatting.DARK_RED);
                         currentState = State.WARPING;
-//                        KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), false);
                         KeyBinding.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), false);
                     }
                     break;
@@ -332,6 +357,15 @@ public class AOTVMacro extends Module {
 
                 int voidTool = SkyblockUtils.findItemInHotbar("Void");
 
+                if (May2BeezQoL.config.teleportThreshold > 0) {
+                    if (!firstTp && !timeBetweenLastWaypoint.hasReached((long) (May2BeezQoL.config.teleportThreshold * 1000))) {
+                        LogUtils.addMessage(getName() + " - You are warping too fast! Probably veins didn't respawn in time. Waiting 10 seconds.", EnumChatFormatting.RED);
+                        waitForVeinsTimer.reset();
+                        tooFastTp = true;
+                        return;
+                    }
+                }
+
                 if (voidTool == -1) {
                     LogUtils.addMessage(getName() + " - You don't have an Aspect of the Void!", EnumChatFormatting.RED);
                     this.toggle();
@@ -359,7 +393,9 @@ public class AOTVMacro extends Module {
                         blocksToMine.clear();
                         currentState = State.SEARCHING;
                         searchingTimer.reset();
+                        timeBetweenLastWaypoint.reset();
                         oldTarget = null;
+                        if (firstTp) firstTp = false;
                     } else {
                         if (stuckTimer.hasReached(2000) && RotationUtils.done) {
                             LogUtils.addMessage(getName() + " - Path is not cleared. Block: " + movingObjectPosition.getBlockPos().toString() + " is on the way.", EnumChatFormatting.RED);
@@ -427,7 +463,7 @@ public class AOTVMacro extends Module {
 
         while (currentPos.distanceTo(startPos) < maxDistance) {
 
-            ArrayList<BlockPos> blocks = SkyblockUtils.AnyBlockAroundVec3(currentPos, 0.15f);
+            ArrayList<BlockPos> blocks = SkyblockUtils.AnyBlockAroundVec3(currentPos, May2BeezQoL.config.aotvVisionBlocksWidthOfSight);
 
             for (BlockPos pos : blocks) {
 

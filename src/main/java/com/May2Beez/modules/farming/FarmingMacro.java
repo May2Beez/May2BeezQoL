@@ -3,6 +3,7 @@ package com.May2Beez.modules.farming;
 import com.May2Beez.May2BeezQoL;
 import com.May2Beez.modules.Module;
 import com.May2Beez.utils.RotationUtils;
+import com.May2Beez.utils.SkyblockUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
@@ -106,6 +107,7 @@ public class FarmingMacro extends Module {
     @SubscribeEvent
     public void onTick(TickEvent.ClientTickEvent event) {
         if (!isToggled()) return;
+        if (SkyblockUtils.hasOpenContainer()) return;
 
         double currentPosition = 0;
 

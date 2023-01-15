@@ -163,7 +163,7 @@ public class SkyblockUtils {
 
         while (currentPos.distanceTo(startPos) < maxDistance) {
 
-            ArrayList<BlockPos> blocks = AnyBlockAroundVec3(currentPos, 0.1f);
+            ArrayList<BlockPos> blocks = AnyBlockAroundVec3(currentPos, 0.15f);
 
             boolean flag = false;
 
@@ -255,5 +255,9 @@ public class SkyblockUtils {
                 }
         }
         return (int)Math.ceil(mobHp);
+    }
+
+    public static boolean hasOpenContainer() {
+        return mc.currentScreen != null && !(mc.currentScreen instanceof net.minecraft.client.gui.GuiChat);
     }
 }

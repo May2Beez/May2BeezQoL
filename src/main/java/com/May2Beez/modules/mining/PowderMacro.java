@@ -154,6 +154,7 @@ public class PowderMacro extends Module {
         if (event.phase == TickEvent.Phase.END) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (!isToggled()) return;
+        if (SkyblockUtils.hasOpenContainer()) return;
 
 
         if (May2BeezQoL.config.killScathasAndWorms) {

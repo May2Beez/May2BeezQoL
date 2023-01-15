@@ -103,10 +103,8 @@ public class FishingMacro extends Module {
     @SubscribeEvent
     public void onTick(TickEvent.ClientTickEvent event) {
         if (event.phase != TickEvent.Phase.START || !isToggled()) return;
-
+        if (SkyblockUtils.hasOpenContainer()) return;
         ItemStack heldItem;
-        if (mc.currentScreen != null && !(mc.currentScreen instanceof net.minecraft.client.gui.GuiChat))
-            return;
 
         particles.removeIf(p -> (System.currentTimeMillis() - p.timeAdded) > 1000);
 

@@ -4,6 +4,7 @@ import com.May2Beez.modules.Module;
 import com.May2Beez.May2BeezQoL;
 import com.May2Beez.utils.RenderUtils;
 import com.May2Beez.utils.RotationUtils;
+import com.May2Beez.utils.SkyblockUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityOtherPlayerMP;
 import net.minecraft.client.settings.KeyBinding;
@@ -44,6 +45,8 @@ public class GhostGrinder extends Module {
     @SubscribeEvent
     public void onTick(TickEvent.ClientTickEvent event) {
         if (!isToggled()) return;
+        if (SkyblockUtils.hasOpenContainer()) return;
+
         if (Minecraft.getMinecraft().theWorld.playerEntities.stream().anyMatch(playerEntity -> (!playerEntity.equals(Minecraft.getMinecraft().thePlayer) && playerEntity instanceof EntityOtherPlayerMP && playerEntity.getDistanceToEntity(Minecraft.getMinecraft().thePlayer) < 10.0F && (!playerEntity.isInvisible() || playerEntity.posY - Minecraft.getMinecraft().thePlayer.posY <= 5.0D)))) {
             BlockPos location = Minecraft.getMinecraft().thePlayer.getPosition();
             Minecraft.getMinecraft().theWorld.playSound(location.getX(), location.getY(), location.getZ(), "may2beez:alarm", 1.0f, 1.0f, false);

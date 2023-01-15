@@ -5,6 +5,7 @@ import com.May2Beez.modules.Module;
 import com.May2Beez.utils.LogUtils;
 import com.May2Beez.utils.RenderUtils;
 import com.May2Beez.utils.RotationUtils;
+import com.May2Beez.utils.SkyblockUtils;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
@@ -89,6 +90,7 @@ public class ForagingMacro extends Module {
     @SubscribeEvent
     public void onTick(TickEvent.ClientTickEvent event) {
         if (!isToggled() || event.phase == TickEvent.Phase.END) return;
+        if (SkyblockUtils.hasOpenContainer()) return;
 
         if (thread == null || !thread.isAlive()) {
             thread = new Thread(() -> {

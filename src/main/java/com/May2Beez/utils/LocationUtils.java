@@ -50,39 +50,27 @@ public class LocationUtils {
 
     public static Island currentIsland;
 
-    public static String serverName;
+    public static String serverName = "Hypixel";
     public static boolean onSkyblock = false;
-//    @SubscribeEvent
-//    public void onChat(ClientChatReceivedEvent event) {
-//        String unformatted = event.message.getUnformattedText();
-//        if (!unformatted.startsWith("{") || !unformatted.endsWith("}")) return;
-//
-//        try {
-//            JsonObject obj = gson.fromJson(unformatted, JsonObject.class);
-//            if (!obj.has("gametype") || !obj.has("map")) return;
-//
-//            if (obj.getAsJsonPrimitive("gametype").getAsString().equals("limbo")) {
-//                if (obj.getAsJsonPrimitive("server").getAsString().equals("limbo")) {
-//                    currentIsland = Island.LIMBO;
-//                } else {
-//                    currentIsland = Island.LOBBY;
-//                }
-//            } else {
-//                onSkyblock = obj.getAsJsonPrimitive("gametype").getAsString().equals("SKYBLOCK");
-//                if (onSkyblock) {
-//                    serverName = obj.getAsJsonPrimitive("server").getAsString();
-//                    for (Island island : Island.values()) {
-//                        if (obj.getAsJsonPrimitive("map").getAsString().equals(island.getName())) {
-//                            currentIsland = island;
-//                            break;
-//                        }
-//                    }
-//                }
-//            }
-//        } catch (SerializationException e) {
-//            e.printStackTrace();
-//        }
-//    }
+    @SubscribeEvent
+    public void onChat(ClientChatReceivedEvent event) {
+        String unformatted = event.message.getUnformattedText();
+        if (!unformatted.startsWith("{") || !unformatted.endsWith("}")) return;
+
+        try {
+            JsonObject obj = gson.fromJson(unformatted, JsonObject.class);
+            if (!obj.has("gametype") || !obj.has("map")) return;
+
+            if (!obj.getAsJsonPrimitive("gametype").getAsString().equals("limbo")) {
+                onSkyblock = obj.getAsJsonPrimitive("gametype").getAsString().equals("SKYBLOCK");
+                if (onSkyblock) {
+                    serverName = obj.getAsJsonPrimitive("server").getAsString();
+                }
+            }
+        } catch (SerializationException e) {
+            e.printStackTrace();
+        }
+    }
 
     @SubscribeEvent
     public void onWorldChange(WorldEvent.Load event)

@@ -6,6 +6,7 @@ import com.May2Beez.events.BlockChangeEvent;
 import com.May2Beez.events.ReceivePacketEvent;
 import com.May2Beez.utils.RenderUtils;
 import com.May2Beez.utils.RotationUtils;
+import com.May2Beez.utils.SkyblockUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.init.Blocks;
@@ -60,6 +61,7 @@ public class PowderChest extends Module {
     public void onTick(TickEvent event) {
         if (event.phase == TickEvent.Phase.END) return;
         if (!isToggled() || mc.thePlayer == null) return;
+        if (SkyblockUtils.hasOpenContainer()) return;
 
         closestChest = getClosestChest();
 

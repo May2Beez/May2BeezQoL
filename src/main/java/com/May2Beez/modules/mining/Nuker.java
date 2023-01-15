@@ -54,6 +54,7 @@ public class Nuker extends Module {
     @SubscribeEvent
     public void onTick(TickEvent.ClientTickEvent event) {
         if (event.phase == TickEvent.Phase.END) return;
+
         if (!isEnabled()) {
             if (current != null && mc.thePlayer != null) {
                 mc.thePlayer.sendQueue.addToSendQueue(new C07PacketPlayerDigging(
@@ -65,6 +66,8 @@ public class Nuker extends Module {
             current = null;
             return;
         }
+        if (SkyblockUtils.hasOpenContainer()) return;
+
         blocksInRange.clear();
         EntityPlayerSP player =  mc.thePlayer;
         BlockPos playerPos = new BlockPos((int) Math.floor(player.posX), (int) Math.floor(player.posY) + 1, (int) Math.floor(player.posZ));
