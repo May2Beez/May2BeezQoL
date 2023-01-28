@@ -23,6 +23,7 @@ import org.lwjgl.input.Keyboard;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
 
 public class FishingMacro extends Module {
 
@@ -84,7 +85,7 @@ public class FishingMacro extends Module {
         startRotation = new Rotation(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch);
         KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), May2BeezQoL.config.sneakWhileFishing);
         May2BeezQoL.mobKiller.Toggle();
-        MobKiller.setMobsNames(false, fishingMobs.toArray(new String[0]));
+        MobKiller.setMobsNames(false, fishingMobs.stream().filter(name -> !name.toLowerCase().contains("squid")).toArray(String[]::new));
         MobKiller.scanRange = May2BeezQoL.config.scScanRange;
         MobKiller.ShouldScan = true;
     }

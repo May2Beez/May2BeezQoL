@@ -6,14 +6,15 @@ import net.minecraft.client.entity.EntityOtherPlayerMP;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.inventory.GuiChest;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityArmorStand;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.ContainerChest;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.scoreboard.*;
 import net.minecraft.util.*;
+import org.lwjgl.Sys;
 
 import java.lang.reflect.Method;
 import java.util.*;
@@ -70,10 +71,11 @@ public class SkyblockUtils {
     }
 
     public static boolean isNPC(Entity entity) {
-        if (!(entity instanceof EntityOtherPlayerMP))
+        if (!(entity instanceof EntityPlayerMP)) {
             return false;
-        EntityLivingBase entityLivingBase = (EntityLivingBase)entity;
-        return (entity.getUniqueID().version() == 2 && entityLivingBase.getHealth() == 20.0F);
+        }
+
+        return !TablistUtils.getTabListPlayersSkyblock().contains(entity.getName());
     }
 
     public static void rightClick() {
@@ -234,25 +236,38 @@ public class SkyblockUtils {
 
     public static int getMobHp(EntityArmorStand aStand) {
         double mobHp = -1.0D;
-        Pattern pattern = Pattern.compile(".+? ([.\\d]+)[BMk]?/[.\\d]+[BMk]?");
-        String stripped = stripString(aStand.getName());
+        Pattern pattern = Pattern.compile(".+?\\s([.\\d]+)[BMk]?/[.\\d]+[BMk]?.*");
+
+        String stripped = StringUtils.stripControlCodes(aStand.getName());
         Matcher mat = pattern.matcher(stripped);
-        if (mat.matches())
+
+        if (mat.matches()) {
             try {
                 mobHp = Double.parseDouble(mat.group(1));
             } catch (NumberFormatException ignored) {
 
             }
-        else {
-            pattern = Pattern.compile("\\[Lv(\\d+)]\\s+(\\w+)\\s+(\\d+)+[BMk]?");
-            stripped = stripString(aStand.getName());
-            mat = pattern.matcher(stripped);
-            if (mat.matches())
-                try {
-                    mobHp = Double.parseDouble(mat.group(3));
-                } catch (NumberFormatException ignored) {
+        }
 
-                }
+        Pattern pattern2 = Pattern.compile(".+?\\s(\\d+)+[BMk]?.*");
+        Matcher mat2 = pattern2.matcher(stripped);
+        if (mat2.matches()) {
+            try {
+                mobHp = Double.parseDouble(mat2.group(1));
+            } catch (NumberFormatException ignored) {
+
+            }
+        }
+
+        Pattern pattern3 = Pattern.compile(".*\\s(\\d+)\\sHits");
+        Matcher mat3 = pattern3.matcher(stripped);
+        if (mat3.matches()) {
+            // Pattern for Jerry
+            try {
+                mobHp = Integer.parseInt(mat3.group(1));
+            } catch (NumberFormatException ex) {
+                ex.printStackTrace();
+            }
         }
         return (int)Math.ceil(mobHp);
     }

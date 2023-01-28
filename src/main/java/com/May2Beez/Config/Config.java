@@ -1,5 +1,9 @@
 package com.May2Beez.Config;
 
+import com.May2Beez.gui.ChangeLocationGUI;
+import com.May2Beez.modules.combat.MobKiller;
+import com.May2Beez.modules.farming.ForagingMacro;
+import com.May2Beez.modules.features.GemstoneMoney;
 import gg.essential.vigilance.Vigilant;
 import gg.essential.vigilance.data.*;
 import org.jetbrains.annotations.NotNull;
@@ -25,6 +29,7 @@ public class Config extends Vigilant {
     private static final String WORLD_SCANNER = "World Scanner";
     private static final String POWDER_MACRO = "Powder Macro";
     private static final String FAILSAFES = "FailSafes";
+    private static final String CUSTOM_COMMAND = "Custom Command";
 
     private static final int maxCameraSpeedMS = 500;
 
@@ -212,6 +217,24 @@ public class Config extends Vigilant {
     @Property(type = PropertyType.SLIDER, name = "Max idle", category = FORAGING_MACRO, max = 60)
     public int maxIdleTicks = 0;
 
+    @Property(type = PropertyType.NUMBER, name = "Target info location X", category = FORAGING_MACRO, hidden = true)
+    public int foragingInfoLocationX = 100;
+
+    @Property(type = PropertyType.NUMBER, name = "Target info location Y", category = FORAGING_MACRO, hidden = true)
+    public int foragingInfoLocationY = 100;
+
+    @Property(type = PropertyType.BUTTON, name = "Set foraging info location", category = FORAGING_MACRO)
+    public void setForagingInfoLocation() {
+        ChangeLocationGUI.open(ForagingMacro::drawFunction, this::saveForagingInfoLocation);
+    }
+
+    public Void saveForagingInfoLocation(int x, int y) {
+        foragingInfoLocationX = x;
+        foragingInfoLocationY = y;
+        return null;
+    }
+
+
     //endregion
 
     //region Mining
@@ -230,20 +253,56 @@ public class Config extends Vigilant {
     @Property(type = PropertyType.SWITCH, name = "Powder chest rotation only if object under mouse is a treasure chest", subcategory = "Powder Chests", category = MINING)
     public boolean onlyRotateIfTreasureChest = false;
 
-    @Property(type = PropertyType.DECIMAL_SLIDER, name = "Space from edge block to the center for accuracy checks", subcategory = "Targetting", description = "Lower value means that macro will check closes to the block's edge if the block is visible", category = MINING, minF = 0f, maxF = 0.5f, decimalPlaces = 2)
+    @Property(type = PropertyType.DECIMAL_SLIDER, name = "Space from edge block to the center for accuracy checks", subcategory = "Targeting", description = "Lower value means that macro will check closes to the block's edge if the block is visible", category = MINING, minF = 0f, maxF = 0.5f, decimalPlaces = 2)
     public float miningAccuracy = 0.1f;
 
-    @Property(type = PropertyType.SLIDER, name = "Accuracy checks per dimension", subcategory = "Targetting", description = "Higher value means that macro will check more times if the block is visible", category = MINING, min = 1, max = 16)
+    @Property(type = PropertyType.SLIDER, name = "Accuracy checks per dimension", subcategory = "Targeting", description = "Higher value means that macro will check more times if the block is visible", category = MINING, min = 1, max = 16)
     public int miningAccuracyChecks = 8;
 
-    @Property(type = PropertyType.SWITCH, name = "Refuel with abiphone", subcategory = "General", category = MINING)
+    @Property(type = PropertyType.SWITCH, name = "Refuel with abiphone", subcategory = "Refill fuel", category = MINING)
     public boolean refuelWithAbiphone = false;
 
-    @Property(type = PropertyType.SLIDER, name = "Fuel threshold", subcategory = "General", category = MINING, min = 100, max = 5000)
+    @Property(type = PropertyType.SLIDER, name = "Fuel threshold", subcategory = "Refill fuel", category = MINING, min = 100, max = 5000)
     public int fuelThreshold = 2000;
 
-    @Property(type = PropertyType.SELECTOR, name = "Type of fuel", subcategory = "General", category = MINING, options = {"Goblin Egg", "Biofuel", "Volta", "Oil Barrel"})
+    @Property(type = PropertyType.SELECTOR, name = "Type of fuel", subcategory = "Refill fuel", category = MINING, options = {"Goblin Egg", "Biofuel", "Volta", "Oil Barrel"})
     public int fuelType = 3;
+
+    @Property(type = PropertyType.SWITCH, name = "Turn all glass panes into full block", subcategory = "General", category = MINING)
+    public boolean turnGlassPanesIntoFullBlock = false;
+
+    @Property(type = PropertyType.SWITCH, name = "Show money per hour from gemstones", subcategory = "Gemstone info", category = MINING)
+    public boolean showMoneyPerHourFromGemstones = false;
+
+    @Property(type = PropertyType.NUMBER, name = "Gemstone info location X", category = MINING, hidden = true)
+    public int gemstoneMoneyInfoLocationX = 100;
+
+    @Property(type = PropertyType.NUMBER, name = "Gemstone info location Y", category = MINING, hidden = true)
+    public int gemstoneMoneyInfoLocationY = 100;
+
+    @Property(type = PropertyType.BUTTON, name = "Set gemstone info location", category = MINING, subcategory = "Gemstone info")
+    public void setGemstoneInfoLocation() {
+        ChangeLocationGUI.open(GemstoneMoney::drawInfo, this::saveGemstoneInfoLocation, this::saveGemstoneInfoScale);
+    }
+
+    @Property(type = PropertyType.DECIMAL_SLIDER, name = "Gemstone info scale", category = MINING, subcategory = "Gemstone info", minF = 0.1f, maxF = 2f, decimalPlaces = 1, hidden = true)
+    public float gemstoneInfoScale = 1f;
+
+    public Void saveGemstoneInfoLocation(int x, int y) {
+        gemstoneMoneyInfoLocationX = x;
+        gemstoneMoneyInfoLocationY = y;
+        return null;
+    }
+
+    public Void saveGemstoneInfoScale(float scale) {
+        if (gemstoneInfoScale <= 0.5f && scale < 0) {
+            return null;
+        } else if (gemstoneInfoScale >= 2f && scale > 0) {
+            return null;
+        }
+        gemstoneInfoScale += scale;
+        return null;
+    }
 
     //endregion
 
@@ -308,7 +367,7 @@ public class Config extends Vigilant {
     @Property(type = PropertyType.SWITCH, name = "Stop macro if cobblestone on route has been destroyed", subcategory = "Additions", category = AOTV_MACRO)
     public boolean stopIfCobblestoneDestroyed = true;
 
-    @Property(type = PropertyType.DECIMAL_SLIDER, name = "Space from cobblestone to the center", subcategory = "Targetting", description = "Increase if macro destroys cobblestone too often", category = AOTV_MACRO, minF = 0f, maxF = 0.35f, decimalPlaces = 3)
+    @Property(type = PropertyType.DECIMAL_SLIDER, name = "Space from cobblestone to the center", subcategory = "Targeting", description = "Increase if macro destroys cobblestone too often", category = AOTV_MACRO, minF = 0f, maxF = 0.35f, decimalPlaces = 3)
     public float miningCobblestoneAccuracy = 0.15f;
 
     @Property(type = PropertyType.DECIMAL_SLIDER, name = "Seconds threshold to stop macro if teleported between routes too fast", description = "If there is no veins on the spot, macro will teleport to the next and to the next etc", category = AOTV_MACRO, minF = 0f, maxF = 3f, decimalPlaces = 1)
@@ -338,6 +397,23 @@ public class Config extends Vigilant {
 
     @Property(type = PropertyType.SELECTOR, name = "Button to attack with", description = "Doesn't override 'Use Hyperion under player'", category = MOB_KILLER, options = {"Left", "Right"})
     public int attackButton = 0;
+
+    @Property(type = PropertyType.NUMBER, name = "Target info location X", category = MOB_KILLER, hidden = true)
+    public int targetInfoLocationX = 100;
+
+    @Property(type = PropertyType.NUMBER, name = "Target info location Y", category = MOB_KILLER, hidden = true)
+    public int targetInfoLocationY = 100;
+
+    @Property(type = PropertyType.BUTTON, name = "Set target info location", category = MOB_KILLER)
+    public void setTargetInfoLocation() {
+        ChangeLocationGUI.open(MobKiller::drawInfo, this::saveTargetInfoLocation);
+    }
+
+    public Void saveTargetInfoLocation(int x, int y) {
+        targetInfoLocationX = x;
+        targetInfoLocationY = y;
+        return null;
+    }
 
     //endregion
 
@@ -429,8 +505,18 @@ public class Config extends Vigilant {
     @Property(type = PropertyType.SWITCH, name = "Rotation check", category = FAILSAFES)
     public boolean stopMacrosOnRotationCheck = true;
 
+    @Property(type = PropertyType.SWITCH, name = "Swap item check", category = FAILSAFES)
+    public boolean stopMacrosOnSwapItemCheck = true;
+
     @Property(type = PropertyType.SWITCH, name = "Fake camera move after rotation check", category = FAILSAFES)
     public boolean fakeMoveAfterRotationCheck = true;
+
+    //endregion
+
+    //region CUSTOM_COMMAND
+
+    @Property(type = PropertyType.TEXT, name = "Custom command to execute with slash", category = CUSTOM_COMMAND)
+    public String customCommand = "";
 
     //endregion
 

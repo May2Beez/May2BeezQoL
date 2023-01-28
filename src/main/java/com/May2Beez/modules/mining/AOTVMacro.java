@@ -5,8 +5,9 @@ import com.May2Beez.May2BeezQoL;
 import com.May2Beez.modules.Module;
 import com.May2Beez.events.BlockChangeEvent;
 import com.May2Beez.modules.combat.MobKiller;
-import com.May2Beez.modules.player.FuelFilling;
+import com.May2Beez.modules.features.FuelFilling;
 import com.May2Beez.utils.*;
+import com.May2Beez.utils.Timer;
 import com.May2Beez.utils.structs.Rotation;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockColored;
@@ -15,10 +16,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.EnumDyeColor;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.EnumChatFormatting;
-import net.minecraft.util.MovingObjectPosition;
-import net.minecraft.util.Vec3;
+import net.minecraft.util.*;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
@@ -38,7 +36,6 @@ public class AOTVMacro extends Module {
     private final Timer stuckTimer = new Timer();
     private final Timer searchingTimer = new Timer();
     private final Timer stuckTimer2 = new Timer();
-    private final Timer afterRefuelTimer = new Timer();
     private final Timer timeBetweenLastWaypoint = new Timer();
     private final Timer waitForVeinsTimer = new Timer();
     private BlockPos blockToIgnoreBecauseOfStuck = null;
@@ -67,9 +64,6 @@ public class AOTVMacro extends Module {
 
     public AOTVMacro() {
         super("AOTV Macro", new KeyBinding("AOTV Macro", Keyboard.KEY_NONE, May2BeezQoL.MODID + " - Mining"));
-    }
-
-    public static void getAOTVWaypoints() {
     }
 
     @Override
@@ -144,7 +138,6 @@ public class AOTVMacro extends Module {
         stuckTimer.reset();
         searchingTimer.reset();
         stuckTimer2.reset();
-        afterRefuelTimer.reset();
         timeBetweenLastWaypoint.reset();
         waitForVeinsTimer.reset();
         RotationUtils.reset();
@@ -212,7 +205,9 @@ public class AOTVMacro extends Module {
             } else if (!FuelFilling.isRefueling() && refueling) {
                 refueling = false;
                 KeyBinding.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), false);
-                afterRefuelTimer.reset();
+                mc.mouseHelper.grabMouseCursor();
+                stuckTimer.reset();
+                stuckTimer2.reset();
                 return;
             }
             if (FuelFilling.isRefueling()) {
@@ -220,10 +215,6 @@ public class AOTVMacro extends Module {
             }
         }
 
-        if (!afterRefuelTimer.hasReached(1000)) {
-            KeyBinding.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), false);
-            return;
-        }
 
         if (May2BeezQoL.config.yogKiller) {
             if (MobKiller.hasTarget()) {
@@ -329,7 +320,7 @@ public class AOTVMacro extends Module {
                     currentState = State.SEARCHING;
                     searchingTimer.reset();
                     blockToIgnoreBecauseOfStuck = target.getPos();
-                    oldTarget = target;
+                    oldTarget = null;
                     target = null;
                     stuckTimer2.reset();
                 }

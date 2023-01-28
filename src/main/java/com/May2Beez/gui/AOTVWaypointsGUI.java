@@ -2,8 +2,10 @@ package com.May2Beez.gui;
 
 import com.May2Beez.Config.CoordsConfig;
 import com.May2Beez.May2BeezQoL;
-import com.May2Beez.commands.AOTVWaypoints;
 import com.May2Beez.utils.BlockUtils;
+import com.May2Beez.utils.structs.OldWaypoint;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.annotations.Expose;
 import gg.essential.elementa.ElementaVersion;
 import gg.essential.elementa.UIComponent;
@@ -18,14 +20,19 @@ import gg.essential.vigilance.gui.settings.ButtonComponent;
 import kotlin.Unit;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.ReportedException;
 import net.minecraft.util.Tuple;
+import org.apache.logging.log4j.core.appender.routing.Routes;
 
 import java.awt.*;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Map;
 
 public class AOTVWaypointsGUI extends WindowScreen {
 
@@ -140,6 +147,11 @@ public class AOTVWaypointsGUI extends WindowScreen {
                 .setY(new PixelConstraint(40))
                 .setChildOf(topContainer);
 
+        new ButtonComponent("Import routes from previous version (0.7 and older)", this::importFromPreviousVersion)
+                .setX(new PixelConstraint(40))
+                .setY(new AdditiveConstraint(new PixelConstraint(getWindow().getHeight()), new PixelConstraint(-30)))
+                .setChildOf(getWindow());
+
 
         scrollComponent = new ScrollComponent("", 10f)
                 .setX(new CenterConstraint())
@@ -155,7 +167,64 @@ public class AOTVWaypointsGUI extends WindowScreen {
                 AddNewWaypoint(wl, w, container);
             }
         }
+    }
 
+    private Unit importFromPreviousVersion() {
+        try {
+            String data = (String) Toolkit.getDefaultToolkit()
+                    .getSystemClipboard().getData(DataFlavor.stringFlavor);
+
+            if (data == null || !data.startsWith("{") || !data.endsWith("}")) {
+                return Unit.INSTANCE;
+            }
+
+            OldWaypoint.Root routes = May2BeezQoL.gson.fromJson(data, OldWaypoint.Root.class);
+
+            if (routes.getRoutes() == null) {
+                return Unit.INSTANCE;
+            }
+
+            System.out.println("Importing " + routes.getRoutes() + " routes");
+
+
+            for (Map.Entry<String, JsonElement> route : routes.getRoutes().entrySet()) {
+                String routeName = route.getKey();
+                JsonObject waypoint = route.getValue().getAsJsonObject();
+
+                if (waypoint == null) {
+                    continue;
+                }
+
+                System.out.println("Importing route " + routeName);
+                System.out.println("Waypoint: " + waypoint);
+
+                ArrayList<Waypoint> waypoints = new ArrayList<>();
+
+                for (Map.Entry<String, JsonElement> entry : waypoint.entrySet()) {
+                    String waypointName = entry.getKey();
+                    JsonObject waypointJson = entry.getValue().getAsJsonObject();
+                    int x = waypointJson.get("x").getAsInt();
+                    int y = waypointJson.get("y").getAsInt();
+                    int z = waypointJson.get("z").getAsInt();
+                    Waypoint w = new Waypoint(waypointName, x, y, z);
+                    waypoints.add(w);
+                }
+
+                System.out.println("Importing " + waypoints.size() + " waypoints for route " + routeName);
+
+                WaypointList waypointList = new WaypointList(routeName, false, false, waypoints);
+                May2BeezQoL.coordsConfig.getRoutes().add(waypointList);
+                UIComponent container = addNewWaypointList(waypointList);
+                for (Waypoint w : waypointList.waypoints) {
+                    AddNewWaypoint(waypointList, w, container);
+                }
+                SaveWaypoints();
+            }
+
+        } catch (UnsupportedFlavorException | IOException | IllegalArgumentException | ReportedException e) {
+            System.out.println("Failed to import routes");
+        }
+        return Unit.INSTANCE;
     }
 
     private UIComponent addNewWaypointList(WaypointList wp) {

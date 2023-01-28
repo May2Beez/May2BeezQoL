@@ -86,7 +86,7 @@ public class ESP extends Module {
 
                 if (SkyblockUtils.isNPC(target)) continue;
 
-                if (stand.getCustomNameTag().contains("§c") || stand.getCustomNameTag().contains("❤️") || SkyblockUtils.getMobHp(stand) > 0) {
+                if (SkyblockUtils.getMobHp(stand) > 0) {
                     RenderUtils.drawEntityBox(target, May2BeezQoL.config.espColor, 2);
 
                     if (SkyblockUtils.entityIsNotVisible(target) && May2BeezQoL.config.drawMobNames) {

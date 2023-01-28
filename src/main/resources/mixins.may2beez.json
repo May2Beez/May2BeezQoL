@@ -5,6 +5,7 @@
   "compatibilityLevel": "JAVA_8",
   "verbose": true,
   "mixins": [
+    "GlassPaneMixin",
     "ModListMixing",
     "NetHandlerPlayClientMixin",
     "NetworkManagerMixin"

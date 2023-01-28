@@ -1,7 +1,7 @@
 package com.May2Beez.utils;
 
 
-import java.awt.Color;
+import java.awt.*;
 import java.util.Arrays;
 import java.util.Comparator;
 
@@ -63,7 +63,7 @@ public class RenderUtils {
         drawFilledBoundingBox(aabb, color, 0.7f, lineWidth);
     }
 
-    public static void renderBoxedText(String[] text, int x, int y, Double scale) {
+    public static Rectangle renderBoxedText(String[] text, int x, int y, Double scale) {
         String longestString = Arrays.stream(text).max(Comparator.comparingInt(String::length)).get();
         GlStateManager.pushMatrix();
         GlStateManager.disableLighting();
@@ -73,21 +73,26 @@ public class RenderUtils {
         GlStateManager.color(0, 0, 0, 1f);
         FontRenderer fontRenderer = Minecraft.getMinecraft().fontRendererObj;
 
-        Gui.drawRect(x - 5, y - 5, x + fontRenderer.getStringWidth(longestString) + 5, y + (text.length * 9) + 5, new Color(0, 0, 0, 153).getRGB());
+        Gui.drawRect((int) (x / scale), (int) (y / scale), (int) ((x / scale) + fontRenderer.getStringWidth(longestString) + 10), (int) ((y / scale) + (text.length * 9) + 10), new Color(0, 0, 0, 125).getRGB());
 
         for (int i = 0; i < text.length; i++) {
-            int yOffset = (y + (i * 9));
-            String[] textArray = text[i].split("\n");
-            for (String s : textArray) {
-                Minecraft.getMinecraft().fontRendererObj.drawString(s, Math.round(x / scale), Math.round(yOffset / scale), Color.white.getRGB(), true);
-            }
+            int yOffset = (int) (((y / scale) + 5 + (i * 9)) * scale);
+            String s = text[i];
+
+            fontRenderer.drawString(s, Math.round((x / scale) + 5 / scale), Math.round(yOffset / scale), Color.white.getRGB(), true);
         }
 
         GlStateManager.disableBlend();
         GlStateManager.popMatrix();
+
+        return new Rectangle(x, y, (int) ((fontRenderer.getStringWidth(longestString) + 10) * scale), (int) ((text.length * 9 + 10) * scale));
     }
 
     public static void drawText(String str, double X, double Y, double Z) {
+        drawText(str, X, Y, Z, false);
+    }
+
+    public static void drawText(String str, double X, double Y, double Z, boolean showDistance) {
         float lScale = 1.0f;
         FontRenderer fontRenderer = Minecraft.getMinecraft().fontRendererObj;
 

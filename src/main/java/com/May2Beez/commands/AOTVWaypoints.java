@@ -38,7 +38,9 @@ public class AOTVWaypoints implements ICommand {
         }
         if (keyBinding2.isPressed()) {
             if (May2BeezQoL.coordsConfig.getSelectedRoute() == null) return;
-            May2BeezQoL.coordsConfig.addCoord(May2BeezQoL.coordsConfig.getSelectedRoute(), new AOTVWaypointsGUI.Waypoint(String.valueOf(May2BeezQoL.coordsConfig.getSelectedRoute().waypoints.size()), BlockUtils.getPlayerLoc().down()));
+            boolean added = May2BeezQoL.coordsConfig.addCoord(May2BeezQoL.coordsConfig.getSelectedRoute(), new AOTVWaypointsGUI.Waypoint(String.valueOf(May2BeezQoL.coordsConfig.getSelectedRoute().waypoints.size()), BlockUtils.getPlayerLoc().down()));
+            if (added)
+                LogUtils.addMessage("Added current position (" + BlockUtils.getPlayerLoc().getX() + ", " + BlockUtils.getPlayerLoc().getY() + ", " + BlockUtils.getPlayerLoc().getZ() + ") to " + May2BeezQoL.coordsConfig.getSelectedRoute().name + " list", EnumChatFormatting.GREEN);
             AOTVWaypointsGUI.SaveWaypoints();
         }
         if (keyBinding3.isPressed()) {
@@ -51,6 +53,7 @@ public class AOTVWaypoints implements ICommand {
             }
             if (waypointToDelete != null) {
                 May2BeezQoL.coordsConfig.removeCoord(May2BeezQoL.coordsConfig.getSelectedRoute(), waypointToDelete);
+                LogUtils.addMessage("Removed current position (" + BlockUtils.getPlayerLoc().getX() + ", " + BlockUtils.getPlayerLoc().getY() + ", " + BlockUtils.getPlayerLoc().getZ() + ") from selected waypoint list", EnumChatFormatting.RED);
                 AOTVWaypointsGUI.SaveWaypoints();
             } else {
                 LogUtils.addMessage("AOTV Waypoints - No waypoint found at your current position", EnumChatFormatting.RED);

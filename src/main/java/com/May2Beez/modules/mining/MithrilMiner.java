@@ -3,7 +3,7 @@ package com.May2Beez.modules.mining;
 import com.May2Beez.modules.Module;
 import com.May2Beez.May2BeezQoL;
 import com.May2Beez.events.BlockChangeEvent;
-import com.May2Beez.modules.player.FuelFilling;
+import com.May2Beez.modules.features.FuelFilling;
 import com.May2Beez.utils.*;
 import net.minecraft.block.BlockColored;
 import net.minecraft.block.BlockStone;

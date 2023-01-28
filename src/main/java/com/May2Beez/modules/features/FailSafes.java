@@ -1,7 +1,8 @@
-package com.May2Beez.modules;
+package com.May2Beez.modules.features;
 
 import com.May2Beez.May2BeezQoL;
 import com.May2Beez.events.ReceivePacketEvent;
+import com.May2Beez.modules.Module;
 import com.May2Beez.utils.LogUtils;
 import com.May2Beez.utils.RotationUtils;
 import com.May2Beez.utils.SkyblockUtils;
@@ -9,6 +10,7 @@ import com.May2Beez.utils.structs.Rotation;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.network.play.server.S08PacketPlayerPosLook;
+import net.minecraft.network.play.server.S09PacketHeldItemChange;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -31,6 +33,23 @@ public class FailSafes {
         for (Module m : May2BeezQoL.modules) {
             if (m.isToggled()) m.toggle();
         }
+    }
+
+    @SubscribeEvent
+    public void onPacket2(ReceivePacketEvent event) {
+        if (!May2BeezQoL.config.stopMacrosOnSwapItemCheck) return;
+        if (May2BeezQoL.modules.stream().noneMatch(Module::isToggled)) return;
+        if (mc.thePlayer == null || mc.theWorld == null) return;
+        if (!(event.packet instanceof S09PacketHeldItemChange)) return;
+
+        May2BeezQoL.modules.forEach(m -> {
+            if (m.isToggled()) m.toggle();
+        });
+
+        for (int i = 0; i < 5; i++) {
+            LogUtils.addMessage("Swap item check?", EnumChatFormatting.GOLD);
+        }
+        SkyblockUtils.sendPingAlert();
     }
 
     @SubscribeEvent

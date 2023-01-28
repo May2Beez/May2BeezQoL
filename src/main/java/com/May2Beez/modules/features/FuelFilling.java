@@ -1,4 +1,4 @@
-package com.May2Beez.modules.player;
+package com.May2Beez.modules.features;
 
 import com.May2Beez.May2BeezQoL;
 import com.May2Beez.utils.LogUtils;
@@ -325,11 +325,14 @@ public class FuelFilling {
                     return;
                 }
 
-                if (mc.thePlayer.openContainer != null) {
+                if (SkyblockUtils.hasOpenContainer()) {
                     mc.thePlayer.closeScreen();
                     waitTimer.reset();
                     return;
                 }
+
+                mc.inGameHasFocus = true;
+                mc.mouseHelper.grabMouseCursor();
 
                 mc.thePlayer.inventory.currentItem = drillSlotIndex;
                 Reset();

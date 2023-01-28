@@ -37,7 +37,7 @@ public class ForagingMacro extends Module {
     public ForagingMacro() {
         super("Foraging Macro", new KeyBinding("Foraging Macro", Keyboard.KEY_SECTION, May2BeezQoL.MODID + " - Farming"));
     }
-    private int idleTicks = 0;
+    private static int idleTicks = 0;
 
     private enum STATES {
         PLANTING,
@@ -66,15 +66,19 @@ public class ForagingMacro extends Module {
     @SubscribeEvent
     public void onGameRenderEvent(TickEvent.RenderTickEvent event) {
         if (!isToggled()) return;
+
+        drawFunction();
+    }
+
+    public static Rectangle drawFunction() {
         String[] textToDraw = new String[3];
-        ScaledResolution scaledResolution = new ScaledResolution(Minecraft.getMinecraft());
-        int width = scaledResolution.getScaledWidth();
-        int height = scaledResolution.getScaledHeight();
+        int x = May2BeezQoL.config.foragingInfoLocationX;
+        int y = May2BeezQoL.config.foragingInfoLocationY;
         long timeToNextAxe = axeCooldown - (System.currentTimeMillis() - lastAxeUse);
         textToDraw[0] = "§lState: §r" + state;
         textToDraw[1] = "§lIdle time: §r" + idleTicks;
         textToDraw[2] = "§lAxe ready in: §r" + (timeToNextAxe > 0 ? String.format("%.2f", ((double) timeToNextAxe / 1000)) + "s" : "READY");
-        RenderUtils.renderBoxedText(textToDraw, width - 130, height - 80, 1.0);
+        return RenderUtils.renderBoxedText(textToDraw, x, y, 1.0);
     }
 
     @SubscribeEvent

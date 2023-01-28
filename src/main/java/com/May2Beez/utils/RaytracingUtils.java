@@ -1,7 +1,6 @@
 package com.May2Beez.utils;
 
 import com.google.common.base.Predicates;
-import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.*;

@@ -9,11 +9,13 @@ import com.May2Beez.events.MillisecondEvent;
 import com.May2Beez.events.SecondEvent;
 import com.May2Beez.gui.AOTVWaypointsGUI;
 import com.May2Beez.modules.Debug;
-import com.May2Beez.modules.FailSafes;
+import com.May2Beez.modules.features.FailSafes;
 import com.May2Beez.modules.Module;
 import com.May2Beez.modules.combat.MobKiller;
 import com.May2Beez.modules.farming.FarmingMacro;
 import com.May2Beez.modules.farming.ForagingMacro;
+import com.May2Beez.modules.features.FuelFilling;
+import com.May2Beez.modules.features.GemstoneMoney;
 import com.May2Beez.modules.mining.AOTVMacro;
 import com.May2Beez.modules.mining.MithrilMiner;
 import com.May2Beez.modules.mining.Nuker;
@@ -21,24 +23,24 @@ import com.May2Beez.modules.player.*;
 import com.May2Beez.modules.singeplayer.AspectOfTheVoid;
 import com.May2Beez.modules.world.WorldScanner;
 import com.May2Beez.utils.LocationUtils;
-import com.May2Beez.utils.LogUtils;
 import com.May2Beez.utils.RotationUtils;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.util.StringUtils;
 import net.minecraftforge.client.ClientCommandHandler;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.world.WorldEvent;
+import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
+import org.lwjgl.input.Keyboard;
 
 import java.io.File;
 import java.io.Reader;
@@ -69,6 +71,8 @@ public class May2BeezQoL
 
     public static boolean miningSpeedReady = true;
     public static boolean miningSpeedActive = false;
+
+    private final KeyBinding customCommand = new KeyBinding("Custom command", Keyboard.KEY_NONE, May2BeezQoL.MODID + " - General");
 
     private void initConfigs(FMLPreInitializationEvent event) {
         File directory = new File(event.getModConfigurationDirectory(), "may2beez");
@@ -178,6 +182,7 @@ public class May2BeezQoL
         MinecraftForge.EVENT_BUS.register(new LocationUtils());
         MinecraftForge.EVENT_BUS.register(fuelFilling);
         MinecraftForge.EVENT_BUS.register(new FailSafes());
+        MinecraftForge.EVENT_BUS.register(new GemstoneMoney());
 
         modules.add(new MithrilMiner());
         modules.add(new ForagingMacro());
@@ -206,6 +211,7 @@ public class May2BeezQoL
         ClientCommandHandler.instance.registerCommand(aotvWaypoints);
         ClientCommandHandler.instance.registerCommand(openSettings);
         ClientCommandHandler.instance.registerCommand(new UseCooldown());
+        ClientRegistry.registerKeyBinding(customCommand);
     }
 
     @EventHandler
@@ -231,6 +237,12 @@ public class May2BeezQoL
                 e.printStackTrace();
             }
             display = null;
+        }
+
+        if (customCommand.isPressed()) {
+            if (config.customCommand.startsWith("/")) {
+                Minecraft.getMinecraft().thePlayer.sendChatMessage(config.customCommand);
+            }
         }
     }
 

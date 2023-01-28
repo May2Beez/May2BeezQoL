@@ -6,13 +6,17 @@ import com.May2Beez.utils.*;
 import com.May2Beez.utils.Timer;
 import com.May2Beez.utils.structs.Rotation;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityArmorStand;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.StringUtils;
+import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
@@ -29,7 +33,7 @@ import static com.May2Beez.utils.SkyblockUtils.rightClick;
 
 public class MobKiller extends Module {
 
-    private final Minecraft mc = Minecraft.getMinecraft();
+    private static final Minecraft mc = Minecraft.getMinecraft();
 
     public static Target target;
     public static int scanRange = 20;
@@ -47,7 +51,7 @@ public class MobKiller extends Module {
     private final CopyOnWriteArrayList<Target> potentialTargets = new CopyOnWriteArrayList<>();
 
     private static class Target {
-        public EntityLiving entity;
+        public EntityLivingBase entity;
         public EntityArmorStand stand;
         public boolean worm;
         public double distance() {
@@ -57,12 +61,12 @@ public class MobKiller extends Module {
                 return Minecraft.getMinecraft().thePlayer.getDistanceToEntity(stand);
         }
 
-        public Target(EntityLiving entity, EntityArmorStand stand) {
+        public Target(EntityLivingBase entity, EntityArmorStand stand) {
             this.entity = entity;
             this.stand = stand;
         }
 
-        public Target(EntityLiving entity, EntityArmorStand stand, boolean worm) {
+        public Target(EntityLivingBase entity, EntityArmorStand stand, boolean worm) {
             this.entity = entity;
             this.stand = stand;
             this.worm = worm;
@@ -201,6 +205,13 @@ public class MobKiller extends Module {
                     Entity target = SkyblockUtils.getEntityCuttingOtherEntity(stand, null);
 
                     if (target == null) continue;
+
+                    if (target instanceof EntityPlayerMP) {
+                        if (((EntityPlayerMP) target).ping == 1) continue;
+                    }
+
+                    if (SkyblockUtils.isNPC(target)) continue;
+
                     if (SkyblockUtils.getMobHp(stand) <= 0) continue;
 
                     Rotation rotation = RotationUtils.getRotation(target);
@@ -208,9 +219,9 @@ public class MobKiller extends Module {
 
                     if (ray == null || ray.typeOfHit != MovingObjectPosition.MovingObjectType.ENTITY || ray.entityHit != target) continue;
 
-                    if (target instanceof EntityLiving) {
+                    if (target instanceof EntityLivingBase) {
 
-                        Target target1 = new Target((EntityLiving) target, stand);
+                        Target target1 = new Target((EntityLivingBase) target, stand);
 
                         if (closestTarget != null) {
                             currentDistance = target.getDistanceToEntity(mc.thePlayer);
@@ -234,7 +245,7 @@ public class MobKiller extends Module {
                 break;
             case ATTACKING:
 
-                if (SkyblockUtils.getMobHp(target.stand) <= 0 || target.distance() > scanRange || target.stand == null || (target.entity != null && target.entity.isDead)) {
+                if (SkyblockUtils.getMobHp(target.stand) <= 0 || target.distance() > scanRange || target.stand == null || (target.entity != null && (target.entity.isDead || target.entity.getHealth() < 0.0))) {
                     currentState = States.KILLED;
                     afterKillDelay.reset();
                     break;
@@ -333,7 +344,7 @@ public class MobKiller extends Module {
                 break;
             case KILLED:
 
-                if (!afterKillDelay.hasReached(300))
+                if (!afterKillDelay.hasReached(150))
                     return;
 
                 target = null;
@@ -356,5 +367,29 @@ public class MobKiller extends Module {
         if (target != null) {
             RenderUtils.drawEntityBox(target.worm ? target.stand : target.entity, new Color(200, 100, 100, 200), 2);
         }
+    }
+
+    @SubscribeEvent
+    public void onRender2D(RenderGameOverlayEvent.Post event) {
+        if (event.type != RenderGameOverlayEvent.ElementType.ALL) return;
+        if (mc.thePlayer == null || mc.theWorld == null) return;
+        if (!isToggled()) return;
+
+        drawInfo();
+    }
+
+    public static Rectangle drawInfo() {
+        int x = May2BeezQoL.config.targetInfoLocationX;
+        int y = May2BeezQoL.config.targetInfoLocationY;
+
+        String[] text = new String[]{
+                "§c§lTarget:",
+                "§cName: §f" + (target != null ? target.stand.getCustomNameTag() : "None"),
+                "§cDistance: §f" + (target != null ? target.distance() : "No target"),
+                "§cHealth: §f" + (target != null ? (SkyblockUtils.getMobHp(target.stand) + "❤️") : "No target"),
+                "§cState: §f" + currentState.name()
+        };
+
+        return RenderUtils.renderBoxedText(text, x, y, 1.0D);
     }
  }
