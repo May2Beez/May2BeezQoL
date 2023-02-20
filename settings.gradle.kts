@@ -1,22 +1,26 @@
 pluginManagement {
     repositories {
-        mavenCentral()
         gradlePluginPortal()
-        maven("https://oss.sonatype.org/content/repositories/snapshots")
-        maven("https://maven.architectury.dev/")
-        maven("https://maven.fabricmc.net")
-        maven("https://maven.minecraftforge.net/")
-        maven("https://repo.spongepowered.org/maven/")
-        maven("https://repo.sk1er.club/repository/maven-releases/")
-        maven("https://repo.polyfrost.cc/releases")
+        mavenCentral()
+        maven("https://repo.polyfrost.cc/releases") // Adds the Polyfrost maven repository to get Polyfrost Gradle Toolkit
     }
-    resolutionStrategy {
-        eachPlugin {
-            when (requested.id.id) {
-                "gg.essential.loom" -> useModule("gg.essential:architectury-loom:${requested.version}")
-            }
-        }
+    plugins {
+        val pgtVersion = "0.1.27" // Sets the default versions for Polyfrost Gradle Toolkit
+        id("cc.polyfrost.multi-version.root") version pgtVersion
     }
 }
 
-rootProject.name = "May2BeezQoL"
+val mod_name: String by settings
+
+rootProject.name = mod_name
+rootProject.buildFileName = "root.gradle.kts"
+
+listOf(
+    "1.8.9-forge"
+).forEach { version ->
+    include(":$version")
+    project(":$version").apply {
+        projectDir = file("versions/$version")
+        buildFileName = "../../build.gradle.kts"
+    }
+}

@@ -88,7 +88,7 @@ public class Debug extends Module {
         BlockPos playerLoc = BlockUtils.getPlayerLoc();
 
         boolean lowerY = (testBlock.getY() < playerLoc.getY() && Math.abs(testBlock.getX() - playerLoc.getX()) <= 1 && Math.abs(testBlock.getZ() - playerLoc.getZ()) <= 1);
-        ArrayList<Vec3> points = BlockUtils.getAllVisibilityLines(testBlock, mc.thePlayer.getPositionVector().add(new Vec3(0, mc.thePlayer.getEyeHeight(), 0)).subtract(new Vec3(0, lowerY ? May2BeezQoL.config.miningCobblestoneAccuracy : 0, 0)), lowerY);
+        ArrayList<Vec3> points = BlockUtils.getAllVisibilityLines(testBlock, mc.thePlayer.getPositionVector().add(new Vec3(0, mc.thePlayer.getEyeHeight(), 0)).subtract(new Vec3(0, lowerY ? May2BeezQoL.config.miningAccuracy : 0, 0)), lowerY);
         ArrayList<Vec3> bounding = getBoundingPoints(points);
         switch (currentState) {
             case FIRST_TEST:

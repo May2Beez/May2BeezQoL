@@ -67,7 +67,7 @@ public class BlockUtils {
     public static Vec3 getRandomVisibilityLine(BlockPos pos) {
         BlockPos playerLoc = BlockUtils.getPlayerLoc();
         boolean lowerY = (pos.getY() < playerLoc.getY() && Math.abs(pos.getX() - playerLoc.getX()) <= 1 && Math.abs(pos.getZ() - playerLoc.getZ()) <= 1);
-        ArrayList<Vec3> lines = getAllVisibilityLines(pos, mc.thePlayer.getPositionVector().add(new Vec3(0, mc.thePlayer.getEyeHeight(), 0)).subtract(new Vec3(0, lowerY ? May2BeezQoL.config.miningCobblestoneAccuracy : 0, 0)), lowerY);
+        ArrayList<Vec3> lines = getAllVisibilityLines(pos, mc.thePlayer.getPositionVector().add(new Vec3(0, mc.thePlayer.getEyeHeight(), 0)).subtract(new Vec3(0, lowerY ? May2BeezQoL.config.miningAccuracy : 0, 0)), lowerY);
         if (lines.isEmpty()) {
             return null;
         } else {

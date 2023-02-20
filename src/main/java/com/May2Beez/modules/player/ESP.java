@@ -43,7 +43,7 @@ public class ESP extends Module {
         if (entity instanceof EntityCreeper && entity.onGround) {
             if (LocationUtils.currentIsland == LocationUtils.Island.DWARVEN_MINES) {
                 event.entity.setInvisible(false);
-                RenderUtils.drawEntityBox(event.entity, May2BeezQoL.config.espColor, 2);
+                RenderUtils.drawEntityBox(event.entity, May2BeezQoL.config.espColor.toJavaColor(), 2, 1);
             }
         }
     }
@@ -67,7 +67,7 @@ public class ESP extends Module {
                             stand.posZ - 0.5D,
                             stand.posX + 0.5D,
                             stand.posY + 0.5D,
-                            stand.posZ + 0.5D), May2BeezQoL.config.espColor, 2);
+                            stand.posZ + 0.5D), May2BeezQoL.config.espColor.toJavaColor(), 2);
 
                     if (SkyblockUtils.entityIsNotVisible(stand) && May2BeezQoL.config.drawMobNames) {
                         RenderUtils.drawText(stand.getName(), stand.posX, stand.posY + stand.height + 1, stand.posZ);
@@ -87,7 +87,8 @@ public class ESP extends Module {
                 if (SkyblockUtils.isNPC(target)) continue;
 
                 if (SkyblockUtils.getMobHp(stand) > 0) {
-                    RenderUtils.drawEntityBox(target, May2BeezQoL.config.espColor, 2);
+
+                    RenderUtils.drawEntityBox(target, May2BeezQoL.config.espColor.toJavaColor(), 2, event.partialTicks);
 
                     if (SkyblockUtils.entityIsNotVisible(target) && May2BeezQoL.config.drawMobNames) {
                         RenderUtils.drawText(stand.getName(), target.posX, target.posY + target.height + 1, target.posZ);
@@ -122,26 +123,26 @@ public class ESP extends Module {
 
             // check if chest is a double chest
             if (mc.theWorld.getBlockState(pos.add(1, 0, 0)).getBlock() == Blocks.chest || mc.theWorld.getBlockState(pos.add(1, 0, 0)).getBlock() == Blocks.trapped_chest) {
-                RenderUtils.drawDoubleChestBlockBox(pos, pos.add(1, 0, 0), May2BeezQoL.config.chestEspColor, 2);
+                RenderUtils.drawDoubleChestBlockBox(pos, pos.add(1, 0, 0), May2BeezQoL.config.chestEspColor.toJavaColor(), 2);
                 continue;
             }
 
             if (mc.theWorld.getBlockState(pos.add(-1, 0, 0)).getBlock() == Blocks.chest || mc.theWorld.getBlockState(pos.add(-1, 0, 0)).getBlock() == Blocks.trapped_chest) {
-                RenderUtils.drawDoubleChestBlockBox(pos.add(-1, 0, 0), pos, May2BeezQoL.config.chestEspColor, 2);
+                RenderUtils.drawDoubleChestBlockBox(pos.add(-1, 0, 0), pos, May2BeezQoL.config.chestEspColor.toJavaColor(), 2);
                 continue;
             }
 
             if (mc.theWorld.getBlockState(pos.add(0, 0, 1)).getBlock() == Blocks.chest || mc.theWorld.getBlockState(pos.add(0, 0, 1)).getBlock() == Blocks.trapped_chest) {
-                RenderUtils.drawDoubleChestBlockBox(pos, pos.add(0, 0, 1), May2BeezQoL.config.chestEspColor, 2);
+                RenderUtils.drawDoubleChestBlockBox(pos, pos.add(0, 0, 1), May2BeezQoL.config.chestEspColor.toJavaColor(), 2);
                 continue;
             }
 
             if (mc.theWorld.getBlockState(pos.add(0, 0, -1)).getBlock() == Blocks.chest || mc.theWorld.getBlockState(pos.add(0, 0, -1)).getBlock() == Blocks.trapped_chest) {
-                RenderUtils.drawDoubleChestBlockBox(pos.add(0, 0, -1), pos, May2BeezQoL.config.chestEspColor, 2);
+                RenderUtils.drawDoubleChestBlockBox(pos.add(0, 0, -1), pos, May2BeezQoL.config.chestEspColor.toJavaColor(), 2);
                 continue;
             }
 
-            RenderUtils.drawBlockBox(pos, May2BeezQoL.config.chestEspColor, 2);
+            RenderUtils.drawBlockBox(pos, May2BeezQoL.config.chestEspColor.toJavaColor(), 2);
         }
     }
 

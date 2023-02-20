@@ -134,7 +134,7 @@ public class PowderChest extends Module {
 
                     if (allChest.isOpen()) continue;
 
-                    RenderUtils.drawBlockBox(allChest.pos, May2BeezQoL.config.chestEspColor, 3);
+                    RenderUtils.drawBlockBox(allChest.pos, May2BeezQoL.config.chestEspColor.toJavaColor(), 3);
                 }
             }
         }

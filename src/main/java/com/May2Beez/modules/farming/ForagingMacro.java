@@ -38,12 +38,17 @@ public class ForagingMacro extends Module {
         super("Foraging Macro", new KeyBinding("Foraging Macro", Keyboard.KEY_SECTION, May2BeezQoL.MODID + " - Farming"));
     }
     private static int idleTicks = 0;
+    private static boolean running = false;
 
     private enum STATES {
         PLANTING,
         BONE_MEAL,
         CHOPPING,
         ROD
+    }
+
+    public static boolean isRunning() {
+        return running;
     }
 
     @Override
@@ -54,31 +59,25 @@ public class ForagingMacro extends Module {
         waitTicks = 0;
         waiting = 0;
         state = STATES.PLANTING;
-        axeCooldown = (long) Math.floor(2000 - (2000 * (Integer.parseInt(May2BeezQoL.config.monkeyLVL) * 0.5 / 100)));
+        axeCooldown = (long) Math.floor(2000 - (2000 * (May2BeezQoL.config.monkeyLVL * 0.5 / 100)));
+        running = true;
     }
 
     @Override
     public void onDisable() {
         super.onDisable();
         KeyBinding.setKeyBindState(Minecraft.getMinecraft().gameSettings.keyBindAttack.getKeyCode(), false);
+        KeyBinding.setKeyBindState(Minecraft.getMinecraft().gameSettings.keyBindUseItem.getKeyCode(), false);
+        running = false;
     }
 
-    @SubscribeEvent
-    public void onGameRenderEvent(TickEvent.RenderTickEvent event) {
-        if (!isToggled()) return;
-
-        drawFunction();
-    }
-
-    public static Rectangle drawFunction() {
+    public static String[] drawFunction() {
         String[] textToDraw = new String[3];
-        int x = May2BeezQoL.config.foragingInfoLocationX;
-        int y = May2BeezQoL.config.foragingInfoLocationY;
         long timeToNextAxe = axeCooldown - (System.currentTimeMillis() - lastAxeUse);
-        textToDraw[0] = "§lState: §r" + state;
-        textToDraw[1] = "§lIdle time: §r" + idleTicks;
-        textToDraw[2] = "§lAxe ready in: §r" + (timeToNextAxe > 0 ? String.format("%.2f", ((double) timeToNextAxe / 1000)) + "s" : "READY");
-        return RenderUtils.renderBoxedText(textToDraw, x, y, 1.0);
+        textToDraw[0] = "§r§lState: §f" + state;
+        textToDraw[1] = "§r§lIdle time: §f" + idleTicks;
+        textToDraw[2] = "§r§lAxe ready in: §f" + (timeToNextAxe > 0 ? String.format("%.2f", ((double) timeToNextAxe / 1000)) + "s" : "READY");
+        return textToDraw;
     }
 
     @SubscribeEvent

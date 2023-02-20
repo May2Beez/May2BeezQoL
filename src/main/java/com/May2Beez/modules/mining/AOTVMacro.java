@@ -1,6 +1,6 @@
 package com.May2Beez.modules.mining;
 
-import com.May2Beez.gui.AOTVWaypointsGUI;
+import com.May2Beez.Config.AOTVWaypointsStructs;
 import com.May2Beez.May2BeezQoL;
 import com.May2Beez.modules.Module;
 import com.May2Beez.events.BlockChangeEvent;
@@ -75,7 +75,7 @@ public class AOTVMacro extends Module {
             return;
         }
 
-        ArrayList<AOTVWaypointsGUI.Waypoint> Waypoints = May2BeezQoL.coordsConfig.getSelectedRoute().waypoints;
+        ArrayList<AOTVWaypointsStructs.Waypoint> Waypoints = May2BeezQoL.coordsConfig.getSelectedRoute().waypoints;
 
         BlockPos currentPos = BlockUtils.getPlayerLoc().down();
 
@@ -165,9 +165,9 @@ public class AOTVMacro extends Module {
 
         if (event.old.getBlock() == Blocks.cobblestone) {
             if (event.update.getBlock() == Blocks.air) {
-                ArrayList<AOTVWaypointsGUI.Waypoint> Waypoints = May2BeezQoL.coordsConfig.getSelectedRoute().waypoints;
+                ArrayList<AOTVWaypointsStructs.Waypoint> Waypoints = May2BeezQoL.coordsConfig.getSelectedRoute().waypoints;
 
-                AOTVWaypointsGUI.Waypoint wp = Waypoints.stream().filter(waypoint -> waypoint.x == pos.getX() && waypoint.y == pos.getY() && waypoint.z == pos.getZ()).findFirst().orElse(null);
+                AOTVWaypointsStructs.Waypoint wp = Waypoints.stream().filter(waypoint -> waypoint.x == pos.getX() && waypoint.y == pos.getY() && waypoint.z == pos.getZ()).findFirst().orElse(null);
                 if (wp != null) {
                     LogUtils.addMessage(getName() + " - Cobblestone at waypoint " + EnumChatFormatting.BOLD + wp.name + EnumChatFormatting.RESET + EnumChatFormatting.RED + " has been destroyed!", EnumChatFormatting.RED);
 
@@ -190,7 +190,7 @@ public class AOTVMacro extends Module {
 
         if (SkyblockUtils.hasOpenContainer()) return;
 
-        ArrayList<AOTVWaypointsGUI.Waypoint> Waypoints = May2BeezQoL.coordsConfig.getSelectedRoute().waypoints;
+        ArrayList<AOTVWaypointsStructs.Waypoint> Waypoints = May2BeezQoL.coordsConfig.getSelectedRoute().waypoints;
 
         if (tooFastTp && !waitForVeinsTimer.hasReached(10000)) {
             return;
@@ -398,7 +398,7 @@ public class AOTVMacro extends Module {
 
         blocksBlockingVision.clear();
 
-        ArrayList<AOTVWaypointsGUI.Waypoint> Waypoints = May2BeezQoL.coordsConfig.getSelectedRoute().waypoints;
+        ArrayList<AOTVWaypointsStructs.Waypoint> Waypoints = May2BeezQoL.coordsConfig.getSelectedRoute().waypoints;
 
 
         if (Waypoints.size() > 1) {
@@ -580,7 +580,7 @@ public class AOTVMacro extends Module {
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (LocationUtils.currentIsland != LocationUtils.Island.CRYSTAL_HOLLOWS) return;
         if (May2BeezQoL.coordsConfig.getSelectedRoute() == null) return;
-        ArrayList<AOTVWaypointsGUI.Waypoint> Waypoints = May2BeezQoL.coordsConfig.getSelectedRoute().waypoints;
+        ArrayList<AOTVWaypointsStructs.Waypoint> Waypoints = May2BeezQoL.coordsConfig.getSelectedRoute().waypoints;
         if (Waypoints == null || Waypoints.isEmpty()) return;
 
         if (target != null) {
@@ -589,9 +589,9 @@ public class AOTVMacro extends Module {
         }
 
         if (May2BeezQoL.config.showRouteBlocks) {
-            for (AOTVWaypointsGUI.Waypoint waypoint : Waypoints) {
+            for (AOTVWaypointsStructs.Waypoint waypoint : Waypoints) {
                 BlockPos pos = new BlockPos(waypoint.x, waypoint.y, waypoint.z);
-                RenderUtils.drawBlockBox(pos, May2BeezQoL.config.routeBlockColor, 4f);
+                RenderUtils.drawBlockBox(pos, May2BeezQoL.config.routeBlockColor.toJavaColor(), 4f);
             }
 
             if (May2BeezQoL.config.showRouteLines) {
@@ -600,11 +600,11 @@ public class AOTVMacro extends Module {
                     for (int i = 0; i < Waypoints.size() - 1; i++) {
                         BlockPos pos1 = new BlockPos(Waypoints.get(i).x, Waypoints.get(i).y, Waypoints.get(i).z);
                         BlockPos pos2 = new BlockPos(Waypoints.get(i + 1).x, Waypoints.get(i + 1).y, Waypoints.get(i + 1).z);
-                        RenderUtils.drawLineBetweenPoints(new Vec3(pos1), new Vec3(pos2), May2BeezQoL.config.routeLineColor, event.partialTicks, 5f);
+                        RenderUtils.drawLineBetweenPoints(new Vec3(pos1), new Vec3(pos2), May2BeezQoL.config.routeLineColor.toJavaColor(), event.partialTicks, 5f);
                     }
                     BlockPos pos1 = new BlockPos(Waypoints.get(Waypoints.size() - 1).x, Waypoints.get(Waypoints.size() - 1).y, Waypoints.get(Waypoints.size() - 1).z);
                     BlockPos pos2 = new BlockPos(Waypoints.get(0).x, Waypoints.get(0).y, Waypoints.get(0).z);
-                    RenderUtils.drawLineBetweenPoints(new Vec3(pos1), new Vec3(pos2), May2BeezQoL.config.routeLineColor, event.partialTicks, 5f);
+                    RenderUtils.drawLineBetweenPoints(new Vec3(pos1), new Vec3(pos2), May2BeezQoL.config.routeLineColor.toJavaColor(), event.partialTicks, 5f);
                 }
             }
         }
@@ -612,12 +612,12 @@ public class AOTVMacro extends Module {
         if (May2BeezQoL.config.drawBlocksBlockingAOTV && !isToggled()) {
             if (!blocksBlockingVision.isEmpty()) {
                 for (BlockPos pos : blocksBlockingVision) {
-                    RenderUtils.drawBlockBox(pos, May2BeezQoL.config.aotvVisionBlocksColor, 4f);
+                    RenderUtils.drawBlockBox(pos, May2BeezQoL.config.aotvVisionBlocksColor.toJavaColor(), 4f);
                 }
             }
         }
 
-        for (AOTVWaypointsGUI.Waypoint waypoint : Waypoints) {
+        for (AOTVWaypointsStructs.Waypoint waypoint : Waypoints) {
             BlockPos pos = new BlockPos(waypoint.x, waypoint.y, waypoint.z);
             RenderUtils.drawText("§l§3[§f " + waypoint.name + " §3]", pos.getX() + 0.5, pos.getY() + 1.5, pos.getZ() + 0.5);
         }

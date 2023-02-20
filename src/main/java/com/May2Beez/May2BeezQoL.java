@@ -1,27 +1,17 @@
 package com.May2Beez;
 
+import com.May2Beez.Config.AOTVWaypointsStructs;
 import com.May2Beez.Config.Config;
 import com.May2Beez.Config.CoordsConfig;
-import com.May2Beez.commands.AOTVWaypoints;
-import com.May2Beez.commands.OpenSettings;
-import com.May2Beez.commands.UseCooldown;
+import com.May2Beez.commands.*;
 import com.May2Beez.events.MillisecondEvent;
 import com.May2Beez.events.SecondEvent;
-import com.May2Beez.gui.AOTVWaypointsGUI;
-import com.May2Beez.modules.Debug;
-import com.May2Beez.modules.features.FailSafes;
-import com.May2Beez.modules.Module;
-import com.May2Beez.modules.combat.MobKiller;
-import com.May2Beez.modules.farming.FarmingMacro;
-import com.May2Beez.modules.farming.ForagingMacro;
-import com.May2Beez.modules.features.FuelFilling;
-import com.May2Beez.modules.features.GemstoneMoney;
-import com.May2Beez.modules.mining.AOTVMacro;
-import com.May2Beez.modules.mining.MithrilMiner;
-import com.May2Beez.modules.mining.Nuker;
+import com.May2Beez.modules.*;
+import com.May2Beez.modules.combat.*;
+import com.May2Beez.modules.farming.*;
+import com.May2Beez.modules.features.*;
+import com.May2Beez.modules.mining.*;
 import com.May2Beez.modules.player.*;
-import com.May2Beez.modules.singeplayer.AspectOfTheVoid;
-import com.May2Beez.modules.world.WorldScanner;
 import com.May2Beez.utils.LocationUtils;
 import com.May2Beez.utils.RotationUtils;
 import com.google.gson.Gson;
@@ -29,13 +19,16 @@ import com.google.gson.GsonBuilder;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.settings.KeyBinding;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.StringUtils;
 import net.minecraftforge.client.ClientCommandHandler;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
+import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -53,26 +46,24 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-@Mod(modid = May2BeezQoL.MODID, version = May2BeezQoL.VERSION)
+@Mod(modid = May2BeezQoL.MODID, version = "1.0.0")
 public class May2BeezQoL
 {
     public static final String MODID = "May2BeezQoL";
-    public static final String VERSION = "1.0.0";
-    public static final PowderChest powderChestMacro = new PowderChest();
 
-    public static Config config = new Config();
+    public static Config config;
     public static GuiScreen display = null;
     public static CopyOnWriteArrayList<Module> modules = new CopyOnWriteArrayList<>();
     public static Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().setPrettyPrinting().create();
     public static CoordsConfig coordsConfig;
-
     public static final MobKiller mobKiller = new MobKiller();
-    public static final FuelFilling fuelFilling = new FuelFilling();
-
     public static boolean miningSpeedReady = true;
     public static boolean miningSpeedActive = false;
-
     private final KeyBinding customCommand = new KeyBinding("Custom command", Keyboard.KEY_NONE, May2BeezQoL.MODID + " - General");
+
+    private boolean joinSkyblock = false;
+    private long lastWorldChange = 0;
+    private final Minecraft mc = Minecraft.getMinecraft();
 
     private void initConfigs(FMLPreInitializationEvent event) {
         File directory = new File(event.getModConfigurationDirectory(), "may2beez");
@@ -121,7 +112,7 @@ public class May2BeezQoL
             System.out.println("coordsConfig is null");
             System.out.println("Creating new CoordsConfig");
             coordsConfig = new CoordsConfig();
-            AOTVWaypointsGUI.SaveWaypoints();
+            AOTVWaypointsStructs.SaveWaypoints();
             System.out.println(coordsConfig.getRoutes());
         }
     }
@@ -180,38 +171,37 @@ public class May2BeezQoL
         MinecraftForge.EVENT_BUS.register(aotvWaypoints);
         MinecraftForge.EVENT_BUS.register(openSettings);
         MinecraftForge.EVENT_BUS.register(new LocationUtils());
-        MinecraftForge.EVENT_BUS.register(fuelFilling);
+        MinecraftForge.EVENT_BUS.register(new FuelFilling());
         MinecraftForge.EVENT_BUS.register(new FailSafes());
         MinecraftForge.EVENT_BUS.register(new GemstoneMoney());
+        MinecraftForge.EVENT_BUS.register(new AutoEnchanting());
 
         modules.add(new MithrilMiner());
         modules.add(new ForagingMacro());
-        modules.add(new Nuker());
+//        modules.add(new Nuker());
         modules.add(new FarmingMacro());
         modules.add(new CustomItemMacro());
-        modules.add(powderChestMacro);
+        modules.add(new PowderChest());
         modules.add(new FishingMacro());
         modules.add(new AOTVMacro());
-        modules.add(mobKiller); // sub-module for later usage
+        modules.add(mobKiller);
         modules.add(new ESP());
-        modules.add(new WorldScanner());
-        modules.add(new AspectOfTheVoid());
+//        modules.add(new WorldScanner());
+//        modules.add(new AspectOfTheVoid());
         modules.add(new Debug());
-
-//        modules.add(new GhostGrinder()); // not rly working
-//        modules.add(new PowderMacro());
-//        modules.add(new AutoMelody()); // kinda pointless
-//        modules.add(new CropNuker());
-//        modules.add(new AutoPlantCrops()); // meh
 
 
         for (Module m : modules)
             MinecraftForge.EVENT_BUS.register(m);
 
-        ClientCommandHandler.instance.registerCommand(aotvWaypoints);
         ClientCommandHandler.instance.registerCommand(openSettings);
         ClientCommandHandler.instance.registerCommand(new UseCooldown());
         ClientRegistry.registerKeyBinding(customCommand);
+    }
+
+    @EventHandler
+    public void init(FMLInitializationEvent event) {
+        config = new Config();
     }
 
     @EventHandler
@@ -225,8 +215,11 @@ public class May2BeezQoL
         threadPool.scheduleAtFixedRate(() -> MinecraftForge.EVENT_BUS.post(new MillisecondEvent()), initialDelaySeconds, 1, TimeUnit.MILLISECONDS);
     }
 
+    int ticks = 0;
+
     @SubscribeEvent
     public void onTick(TickEvent.ClientTickEvent event) {
+        ticks++;
         if (event.phase != TickEvent.Phase.START) return;
         if (Minecraft.getMinecraft().thePlayer == null || Minecraft.getMinecraft().theWorld == null) return;
 
@@ -243,6 +236,24 @@ public class May2BeezQoL
             if (config.customCommand.startsWith("/")) {
                 Minecraft.getMinecraft().thePlayer.sendChatMessage(config.customCommand);
             }
+        }
+
+        if (mc.currentScreen == null) {
+            final ItemStack held = mc.thePlayer.inventory.getCurrentItem();
+            if (held != null) {
+                final String displayName = held.getDisplayName();
+                if (config.autoJoinSkyblock && joinSkyblock && displayName.equals("§aGame Menu §7(Right Click)")) {
+                    joinSkyblock = false;
+                    mc.thePlayer.sendChatMessage("/play sb");
+                }
+            }
+        }
+
+        if (config.autoSprint) {
+            if (mc.thePlayer.motionX == 0 && mc.thePlayer.motionZ == 0) return;
+            KeyBinding sprint = mc.gameSettings.keyBindSprint;
+            if (sprint.isKeyDown()) return;
+            KeyBinding.setKeyBindState(mc.gameSettings.keyBindSprint.getKeyCode(), true);
         }
     }
 
@@ -261,5 +272,12 @@ public class May2BeezQoL
                 miningSpeedActive = false;
             }
         } catch (Exception ignored) {}
+    }
+
+    @SubscribeEvent
+    public void onWorldLoad(WorldEvent.Load event) {
+        if (System.currentTimeMillis() - lastWorldChange < 1400L) return;
+        lastWorldChange = System.currentTimeMillis();
+        joinSkyblock = true;
     }
 }

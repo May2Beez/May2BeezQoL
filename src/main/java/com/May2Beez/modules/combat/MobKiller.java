@@ -6,17 +6,14 @@ import com.May2Beez.utils.*;
 import com.May2Beez.utils.Timer;
 import com.May2Beez.utils.structs.Rotation;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.StringUtils;
-import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
@@ -360,36 +357,22 @@ public class MobKiller extends Module {
         if (potentialTargets.size() > 0) {
             potentialTargets.forEach(v -> {
                 if (v != target)
-                    RenderUtils.drawEntityBox(v.worm ? v.stand : v.entity, new Color(100, 200, 100, 200), 2);
+                    RenderUtils.drawEntityBox(v.worm ? v.stand : v.entity, new Color(100, 200, 100, 200), 2, event.partialTicks);
             });
         }
 
         if (target != null) {
-            RenderUtils.drawEntityBox(target.worm ? target.stand : target.entity, new Color(200, 100, 100, 200), 2);
+            RenderUtils.drawEntityBox(target.worm ? target.stand : target.entity, new Color(200, 100, 100, 200), 2, event.partialTicks);
         }
     }
 
-    @SubscribeEvent
-    public void onRender2D(RenderGameOverlayEvent.Post event) {
-        if (event.type != RenderGameOverlayEvent.ElementType.ALL) return;
-        if (mc.thePlayer == null || mc.theWorld == null) return;
-        if (!isToggled()) return;
-
-        drawInfo();
-    }
-
-    public static Rectangle drawInfo() {
-        int x = May2BeezQoL.config.targetInfoLocationX;
-        int y = May2BeezQoL.config.targetInfoLocationY;
-
-        String[] text = new String[]{
-                "§c§lTarget:",
-                "§cName: §f" + (target != null ? target.stand.getCustomNameTag() : "None"),
-                "§cDistance: §f" + (target != null ? target.distance() : "No target"),
-                "§cHealth: §f" + (target != null ? (SkyblockUtils.getMobHp(target.stand) + "❤️") : "No target"),
-                "§cState: §f" + currentState.name()
+    public static String[] drawInfo() {
+        return new String[]{
+                "§r§lTarget:",
+                "§rName: §f" + (target != null ? SkyblockUtils.stripString(target.stand.getCustomNameTag()) : "None"),
+                "§rDistance: §f" + (target != null ? (String.format("%.2f", target.distance()) + "m") : "No target"),
+                "§rHealth: §f" + (target != null ? (SkyblockUtils.getMobHp(target.stand)) : "No target"),
+                "§rState: §f" + currentState.name()
         };
-
-        return RenderUtils.renderBoxedText(text, x, y, 1.0D);
     }
  }

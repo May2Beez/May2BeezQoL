@@ -27,15 +27,26 @@ public class RenderUtils {
 
     private static final Minecraft mc = Minecraft.getMinecraft();
 
-    public static void drawEntityBox(final Entity entity, final Color color, final int lineWidth) {
-        RenderManagerAccessor rm = (RenderManagerAccessor) Minecraft.getMinecraft().getRenderManager();
+    public static void drawEntityBox(final Entity entity, final Color color, final int lineWidth, float partialTicks) {
+        RenderManagerAccessor rm = (RenderManagerAccessor) mc.getRenderManager();
 
         double renderPosX = rm.getRenderPosX();
         double renderPosY = rm.getRenderPosY();
         double renderPosZ = rm.getRenderPosZ();
 
+        double x = entity.lastTickPosX + (entity.posX - entity.lastTickPosX) * partialTicks - renderPosX;
+        double y = entity.lastTickPosY + (entity.posY - entity.lastTickPosY) * partialTicks - renderPosY;
+        double z = entity.lastTickPosZ + (entity.posZ - entity.lastTickPosZ) * partialTicks - renderPosZ;
+
         AxisAlignedBB bbox = entity.getEntityBoundingBox();
-        AxisAlignedBB aabb = bbox.offset(-mc.getRenderManager().viewerPosX, -mc.getRenderManager().viewerPosY, -mc.getRenderManager().viewerPosZ).expand(0.1, 0.1, 0.1);
+        AxisAlignedBB aabb = new AxisAlignedBB(
+                bbox.minX - entity.posX + x,
+                bbox.minY - entity.posY + y,
+                bbox.minZ - entity.posZ + z,
+                bbox.maxX - entity.posX + x,
+                bbox.maxY - entity.posY + y,
+                bbox.maxZ - entity.posZ + z
+        );
 
         drawFilledBoundingBox(aabb, color, 0.7f, lineWidth);
     }

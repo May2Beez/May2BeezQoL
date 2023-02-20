@@ -25,7 +25,7 @@ public class OpenSettings implements ICommand {
     @SubscribeEvent
     public void onKeyInput(InputEvent.KeyInputEvent event) {
         if (keyBinding.isPressed()) {
-            May2BeezQoL.display = May2BeezQoL.config.gui();
+            May2BeezQoL.config.openGui();
         }
     }
 
@@ -46,7 +46,7 @@ public class OpenSettings implements ICommand {
 
     @Override
     public void processCommand(ICommandSender sender, String[] args) {
-        May2BeezQoL.display = May2BeezQoL.config.gui();
+        May2BeezQoL.config.openGui();
     }
 
     @Override

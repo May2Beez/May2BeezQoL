@@ -2,7 +2,6 @@ package com.May2Beez.modules.features;
 
 import com.May2Beez.May2BeezQoL;
 import com.May2Beez.utils.JsonUtils;
-import com.May2Beez.utils.RenderUtils;
 import com.May2Beez.utils.SkyblockUtils;
 import com.May2Beez.utils.Timer;
 import com.google.gson.JsonElement;
@@ -15,7 +14,6 @@ import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
-import java.awt.*;
 import java.text.NumberFormat;
 import java.time.Duration;
 import java.util.*;
@@ -37,7 +35,7 @@ public class GemstoneMoney {
     @SubscribeEvent
     public void onTick(TickEvent.ClientTickEvent event) {
         if (mc.thePlayer == null || mc.theWorld == null) return;
-        if (!May2BeezQoL.config.showMoneyPerHourFromGemstones) return;
+        if (!May2BeezQoL.config.gemstoneMoney.isEnabled()) return;
 
         if (timeout && refreshTimeoutTimer.hasReached(5000)) {
             timeout = false;
@@ -84,37 +82,13 @@ public class GemstoneMoney {
         }).start();
     }
 
-    @SubscribeEvent
-    public void onRender2D(RenderGameOverlayEvent.Post event) {
-        if (event.type != RenderGameOverlayEvent.ElementType.ALL) return;
-        if (mc.thePlayer == null || mc.theWorld == null) return;
-        if (!May2BeezQoL.config.showMoneyPerHourFromGemstones) return;
-        if (SkyblockUtils.hasOpenContainer()) return;
-
-        drawInfo(false);
+    public static boolean shouldShow() {
+        return startTime != -1;
     }
 
-    public static Rectangle drawInfo() {
-        return drawInfo(true);
-    }
-
-    public static Rectangle drawInfo(boolean debug) {
-        int x = May2BeezQoL.config.gemstoneMoneyInfoLocationX;
-        int y = May2BeezQoL.config.gemstoneMoneyInfoLocationY;
+    public static String[] drawInfo() {
 
         NumberFormat formatter = NumberFormat.getCurrencyInstance(Locale.US);
-
-        if (debug) {
-            Duration duration = Duration.ofMillis(2300000);
-            String[] text = new String[] {
-                    EnumChatFormatting.AQUA + "Total earned $: " + EnumChatFormatting.GOLD + formatter.format(123456),
-                    EnumChatFormatting.AQUA + "$ / hour: " + EnumChatFormatting.GOLD + formatter.format((123456L * 3600000 / 2300000)),
-                    EnumChatFormatting.AQUA + "Mining for: " + EnumChatFormatting.GOLD + String.format("%02d:%02d:%02d", duration.toHours(), duration.toMinutes() % 60, duration.getSeconds() % 60)
-            };
-            return RenderUtils.renderBoxedText(text, x, y, (double) May2BeezQoL.config.gemstoneInfoScale);
-        }
-
-        if (startTime == -1) return new Rectangle(x, y, 0, 0);
 
         long time = lastRefreshTimer.lastMS - startTime + 1;
         long money = 0;
@@ -128,18 +102,17 @@ public class GemstoneMoney {
 
         Duration duration = Duration.ofMillis(time);
 
-        String[] text = new String[] {
-                EnumChatFormatting.AQUA + "Total earned $: " + EnumChatFormatting.GOLD + formatter.format(money),
-                EnumChatFormatting.AQUA + "$ / hour: " + EnumChatFormatting.GOLD + formatter.format((money * 3600000 / time)),
-                EnumChatFormatting.AQUA + "Mining for: " + EnumChatFormatting.GOLD + String.format("%02d:%02d:%02d", duration.toHours(), duration.toMinutes() % 60, duration.getSeconds() % 60)
+        return new String[] {
+                "§r§lTotal earned $: §r" + EnumChatFormatting.GOLD + formatter.format(money),
+                "§r§l$ / hour: §r" + EnumChatFormatting.GOLD + formatter.format((money * 3600000 / time)),
+                "§r§lMining for: §r" + EnumChatFormatting.GOLD + String.format("%02d:%02d:%02d", duration.toHours(), duration.toMinutes() % 60, duration.getSeconds() % 60)
         };
-        return RenderUtils.renderBoxedText(text, x, y, (double) May2BeezQoL.config.gemstoneInfoScale);
     }
 
     @SubscribeEvent
     public void onChat(ClientChatReceivedEvent event) {
         if (mc.thePlayer == null || mc.theWorld == null) return;
-        if (!May2BeezQoL.config.showMoneyPerHourFromGemstones) return;
+        if (!May2BeezQoL.config.gemstoneMoney.isEnabled()) return;
         String message = event.message.getUnformattedText();
         Pattern pattern = Pattern.compile("PRISTINE! You found .? (\\w+) (\\w+) Gemstone x(\\d+)!");
         Matcher matcher = pattern.matcher(StringUtils.stripControlCodes(message));
