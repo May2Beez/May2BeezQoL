@@ -3,7 +3,6 @@ package com.May2Beez.modules.player;
 import com.May2Beez.May2BeezQoL;
 import com.May2Beez.events.ChestBackgroundDrawnEvent;
 import com.May2Beez.utils.LocationUtils;
-import jdk.nashorn.internal.ir.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
@@ -12,9 +11,7 @@ import net.minecraft.inventory.Slot;
 import net.minecraft.item.Item;
 import net.minecraftforge.client.event.GuiOpenEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import org.lwjgl.Sys;
 
-import java.util.Arrays;
 import java.util.List;
 
 public class AutoEnchanting {

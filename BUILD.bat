@@ -1,1 +1,1 @@
-xcopy /s /Y ".\build\libs\May2BeezQoL-1.0.0-all.jar" "C:\Users\sebas\AppData\Roaming\.minecraft\mods\"
+xcopy /s /Y ".\versions\1.8.9-forge\build\libs\May2BeezQoL-1.0.0-all.jar" "C:\Users\sebas\AppData\Roaming\.minecraft\mods\"

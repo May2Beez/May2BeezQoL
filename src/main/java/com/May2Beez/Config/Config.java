@@ -8,9 +8,8 @@ import cc.polyfrost.oneconfig.config.data.ModType;
 import cc.polyfrost.oneconfig.config.data.PageLocation;
 import com.May2Beez.May2BeezQoL;
 import com.May2Beez.gui.AOTVWaypointsPage;
-import com.May2Beez.hud.ForagingHUD;
-import com.May2Beez.hud.GemstoneProfitHUD;
-import com.May2Beez.hud.MobKillerHUD;
+import com.May2Beez.hud.*;
+import net.minecraft.util.Vec3;
 
 public class Config extends cc.polyfrost.oneconfig.config.Config {
 
@@ -26,6 +25,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
     private transient static final String FAILSAFES = "FailSafes";
     private transient static final String CUSTOM_COMMAND = "Custom Command";
     private transient static final String OTHER_OPTIONS = "Other Options";
+    private transient static final String VISITORS_MACRO = "Visitors Macro";
 
     private transient static final int maxCameraSpeedMS = 500;
 
@@ -302,6 +302,16 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 
     //endregion
 
+    //region VISITORS_MACRO
+
+    @Switch(name = "Highlight desk position", category = VISITORS_MACRO)
+    public boolean highlightDeskPosition = true;
+
+    @HUD(name = "Visitor info", category = VISITORS_MACRO)
+    public NextVisitorHUD visitorHUD = new NextVisitorHUD();
+
+    //endregion
+
     //region CUSTOM_COMMAND
 
     @Text(name = "Custom command to execute", category = CUSTOM_COMMAND, size = 2, placeholder = "/say Hello World")
@@ -325,6 +335,9 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 
     @Switch(name = "Auto Sprint", category = OTHER_OPTIONS, subcategory = "Skyblock")
     public boolean autoSprint = true;
+
+//    @HUD(name = "Looking at mob HUD", category = OTHER_OPTIONS, subcategory = "Skyblock")
+//    public LookingAtMobHUD lookingAtMobHUD = new LookingAtMobHUD();
 
     //endregion
 

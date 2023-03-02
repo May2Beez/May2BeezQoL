@@ -7,6 +7,7 @@ import com.May2Beez.commands.*;
 import com.May2Beez.events.MillisecondEvent;
 import com.May2Beez.events.SecondEvent;
 import com.May2Beez.modules.*;
+import com.May2Beez.modules.Module;
 import com.May2Beez.modules.combat.*;
 import com.May2Beez.modules.farming.*;
 import com.May2Beez.modules.features.*;
@@ -14,11 +15,14 @@ import com.May2Beez.modules.mining.*;
 import com.May2Beez.modules.player.*;
 import com.May2Beez.utils.LocationUtils;
 import com.May2Beez.utils.RotationUtils;
+import com.May2Beez.utils.SkyblockUtils;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.settings.KeyBinding;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.monster.EntityCreeper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.StringUtils;
 import net.minecraftforge.client.ClientCommandHandler;
@@ -41,6 +45,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -189,6 +194,7 @@ public class May2BeezQoL
 //        modules.add(new WorldScanner());
 //        modules.add(new AspectOfTheVoid());
         modules.add(new Debug());
+        modules.add(new VisitorsMacro());
 
 
         for (Module m : modules)

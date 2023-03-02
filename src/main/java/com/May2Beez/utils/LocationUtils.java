@@ -35,6 +35,7 @@ public class LocationUtils {
         DUNGEON_HUB("Dungeon Hub"),
         LIMBO("UNKNOWN"),
         LOBBY("PROTOTYPE"),
+        GARDEN("Garden"),
         DUNGEON("Dungeon");
 
         private final String name;
@@ -75,7 +76,6 @@ public class LocationUtils {
     @SubscribeEvent
     public void onWorldChange(WorldEvent.Load event)
     {
-//        map = null;
         currentIsland = null;
     }
 
