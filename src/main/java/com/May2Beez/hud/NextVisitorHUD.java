@@ -2,7 +2,7 @@ package com.May2Beez.hud;
 
 import cc.polyfrost.oneconfig.config.core.OneColor;
 import cc.polyfrost.oneconfig.hud.TextHud;
-import com.May2Beez.modules.farming.VisitorsMacro;
+import com.May2Beez.modules.garden.VisitorsMacro;
 import com.May2Beez.utils.LocationUtils;
 import com.May2Beez.utils.TablistUtils;
 import net.minecraft.client.Minecraft;
@@ -24,6 +24,7 @@ public class NextVisitorHUD extends TextHud {
 
         if (example) {
             lines.addAll(new ArrayList<String>() {{
+                add("§r§lVisitors Macro Status");
                 add("§r§lState: §f" + "TURNED_OFF");
                 add("§r§lNext Visitor in: §f" + "0m" + "56s");
             }});

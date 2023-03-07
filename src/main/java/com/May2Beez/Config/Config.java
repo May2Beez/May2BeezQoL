@@ -1,15 +1,17 @@
 package com.May2Beez.Config;
 
-import cc.polyfrost.oneconfig.config.annotations.*;
 import cc.polyfrost.oneconfig.config.annotations.Number;
+import cc.polyfrost.oneconfig.config.annotations.*;
 import cc.polyfrost.oneconfig.config.core.OneColor;
 import cc.polyfrost.oneconfig.config.data.Mod;
 import cc.polyfrost.oneconfig.config.data.ModType;
 import cc.polyfrost.oneconfig.config.data.PageLocation;
 import com.May2Beez.May2BeezQoL;
 import com.May2Beez.gui.AOTVWaypointsPage;
-import com.May2Beez.hud.*;
-import net.minecraft.util.Vec3;
+import com.May2Beez.hud.ForagingHUD;
+import com.May2Beez.hud.GemstoneProfitHUD;
+import com.May2Beez.hud.MobKillerHUD;
+import com.May2Beez.hud.NextVisitorHUD;
 
 public class Config extends cc.polyfrost.oneconfig.config.Config {
 
@@ -26,6 +28,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
     private transient static final String CUSTOM_COMMAND = "Custom Command";
     private transient static final String OTHER_OPTIONS = "Other Options";
     private transient static final String VISITORS_MACRO = "Visitors Macro";
+    private transient static final String GARDEN = "Garden";
 
     private transient static final int maxCameraSpeedMS = 500;
 
@@ -302,13 +305,29 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 
     //endregion
 
-    //region VISITORS_MACRO
+    //region GARDEN
 
-    @Switch(name = "Highlight desk position", category = VISITORS_MACRO)
+    @Switch(name = "Highlight desk position", subcategory = VISITORS_MACRO, category = GARDEN)
     public boolean highlightDeskPosition = true;
 
-    @HUD(name = "Visitor info", category = VISITORS_MACRO)
+    @HUD(name = "Visitor info", subcategory = VISITORS_MACRO, category = GARDEN)
     public NextVisitorHUD visitorHUD = new NextVisitorHUD();
+
+    @Switch(name = "Plot Cleaner ESP", subcategory = "Plot Cleaner", category = GARDEN)
+    public boolean plotCleanerEsp = true;
+
+    @Color(name = "Plot Cleaner ESP color", subcategory = "Plot Cleaner", category = GARDEN)
+    public OneColor plotCleanerEspColor = new OneColor(255, 0, 0, 120);
+
+    @Switch(name = "Grass ESP", subcategory = "Plot Cleaner FILTER", category = GARDEN)
+    public boolean grassEsp = true;
+
+    @Switch(name = "Leaves ESP", subcategory = "Plot Cleaner FILTER", category = GARDEN)
+    public boolean leavesEsp = true;
+
+    @Switch(name = "Flowers ESP", subcategory = "Plot Cleaner FILTER", category = GARDEN)
+    public boolean flowersEsp = true;
+
 
     //endregion
 
