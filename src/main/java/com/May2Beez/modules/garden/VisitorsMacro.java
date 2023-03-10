@@ -178,7 +178,10 @@ public class VisitorsMacro extends Module {
             case CLICK_SEARCH:
                 if (!waitTimer.hasReached(400)) return;
                 if (!(mc.currentScreen instanceof GuiChest)) return;
-                if (mc.thePlayer.openContainer.getSlot(45) == null || !mc.thePlayer.openContainer.getSlot(45).getStack().getDisplayName().contains("Search")) return;
+                if (mc.thePlayer.openContainer == null ||
+                    mc.thePlayer.openContainer.getSlot(45) == null ||
+                    mc.thePlayer.openContainer.getSlot(45).getStack() == null ||
+                    !mc.thePlayer.openContainer.getSlot(45).getStack().getDisplayName().contains("Search")) return;
 
                 mc.playerController.windowClick(mc.thePlayer.openContainer.windowId, 45, 0, 0, mc.thePlayer);
                 currentState = States.INPUT_SEARCH_VALUE;
@@ -241,7 +244,10 @@ public class VisitorsMacro extends Module {
             case SELECT_PRODUCT:
                 if (!waitTimer.hasReached(500)) return;
                 if (!(mc.currentScreen instanceof GuiChest)) return;
-                if (mc.thePlayer.openContainer.getSlot(11) == null || mc.thePlayer.openContainer.getSlot(11).getStack().getDisplayName().isEmpty()) return;
+                if (mc.thePlayer.openContainer == null ||
+                    mc.thePlayer.openContainer.getSlot(11) == null ||
+                    mc.thePlayer.openContainer.getSlot(11).getStack() == null ||
+                    mc.thePlayer.openContainer.getSlot(11).getStack().getDisplayName().isEmpty()) return;
 
                 boolean found = false;
 
@@ -272,7 +278,10 @@ public class VisitorsMacro extends Module {
             case CLICK_BIN:
                 if (!waitTimer.hasReached(400)) return;
                 if (!(mc.currentScreen instanceof GuiChest)) return;
-                if (mc.thePlayer.openContainer.getSlot(10) == null || !mc.thePlayer.openContainer.getSlot(10).getStack().getDisplayName().contains("Buy Instantly")) return;
+                if (mc.thePlayer.openContainer == null ||
+                    mc.thePlayer.openContainer.getSlot(10) == null ||
+                    mc.thePlayer.openContainer.getSlot(10).getStack() == null ||
+                    !mc.thePlayer.openContainer.getSlot(10).getStack().getDisplayName().contains("Buy Instantly")) return;
 
                 mc.playerController.windowClick(mc.thePlayer.openContainer.windowId, 10, 0, 0, mc.thePlayer);
                 currentState = States.CLICK_CUSTOM_AMOUNT;
@@ -281,7 +290,10 @@ public class VisitorsMacro extends Module {
             case CLICK_CUSTOM_AMOUNT:
                 if (!waitTimer.hasReached(400)) return;
                 if (!(mc.currentScreen instanceof GuiChest)) return;
-                if (mc.thePlayer.openContainer.getSlot(16) == null || !mc.thePlayer.openContainer.getSlot(16).getStack().getDisplayName().contains("Custom Amount")) return;
+                if (mc.thePlayer.openContainer == null ||
+                    mc.thePlayer.openContainer.getSlot(16) == null ||
+                    mc.thePlayer.openContainer.getSlot(16).getStack() == null ||
+                    !mc.thePlayer.openContainer.getSlot(16).getStack().getDisplayName().contains("Custom Amount")) return;
 
                 mc.playerController.windowClick(mc.thePlayer.openContainer.windowId, 16, 0, 0, mc.thePlayer);
                 currentState = States.INPUT_CUSTOM_AMOUNT;
@@ -343,7 +355,10 @@ public class VisitorsMacro extends Module {
             case CLICK_BUY:
                 if (!waitTimer.hasReached(400)) return;
                 if (!(mc.currentScreen instanceof GuiChest)) return;
-                if (mc.thePlayer.openContainer.getSlot(13) == null || !mc.thePlayer.openContainer.getSlot(13).getStack().getDisplayName().contains("Custom Amount")) return;
+                if (mc.thePlayer.openContainer == null ||
+                    mc.thePlayer.openContainer.getSlot(13) == null ||
+                    mc.thePlayer.openContainer.getSlot(13).getStack() == null ||
+                    !mc.thePlayer.openContainer.getSlot(13).getStack().getDisplayName().contains("Custom Amount")) return;
 
                 mc.playerController.windowClick(mc.thePlayer.openContainer.windowId, 13, 0, 0, mc.thePlayer);
                 currentState = States.WAITING_FOR_BUY;

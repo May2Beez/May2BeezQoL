@@ -37,6 +37,7 @@ public class NextVisitorHUD extends TextHud {
         for (String line : tablist) {
             String strippedLine = StringUtils.stripControlCodes(line).trim();
             if (strippedLine.contains("Next Visitor:")) {
+                lines.add("§r§lVisitors Macro Status");
                 lines.add("§r§lState: §f" + VisitorsMacro.currentState);
                 lines.add("§r§lNext Visitor in: §f" + strippedLine.replace("Next Visitor: ", ""));
                 return;
