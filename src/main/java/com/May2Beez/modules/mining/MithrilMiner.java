@@ -222,6 +222,7 @@ public class MithrilMiner extends Module {
 
             if (mc.theWorld.getBlockState(blockPos1.getPos()) == null || mc.theWorld.isAirBlock(blockPos1.getPos()) || mc.theWorld.getBlockState(blockPos1.getPos()).getBlock() == Blocks.bedrock) continue;
             if (blockPos1.getPos().equals(blockToIgnoreBecauseOfStuck)) continue;
+            if (!BlockUtils.isBlockVisible(blockPos1.getPos())) continue;
 
             Vec3 vec3 = BlockUtils.getRandomVisibilityLine(blockPos1.getPos());
             if (vec3 == null) continue;
@@ -306,7 +307,7 @@ public class MithrilMiner extends Module {
 
         ArrayList<Structs.BlockData> titaniumBlocks = blocks.stream().filter(blockData -> isTitanium(blockData.getPos())).sorted(Comparator.comparingDouble(this::CompareDistance)).collect(Collectors.toCollection(ArrayList::new));
 
-        if (May2BeezQoL.config.prioTitanium && titaniumBlocks.size() > 0 && titaniumBlocks.stream().anyMatch(blockData -> BlockUtils.getRandomVisibilityLine(blockData.getPos()) != null)) {
+        if (May2BeezQoL.config.prioTitanium && titaniumBlocks.size() > 0 && titaniumBlocks.stream().anyMatch(blockData -> BlockUtils.isBlockVisible(blockData.getPos()))) {
             return titaniumBlocks;
         }
 

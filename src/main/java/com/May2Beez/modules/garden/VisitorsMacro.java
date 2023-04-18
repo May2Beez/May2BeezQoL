@@ -1,23 +1,21 @@
 package com.May2Beez.modules.garden;
 
-import com.May2Beez.May2BeezQoL;
 import com.May2Beez.modules.Module;
-import com.May2Beez.utils.Timer;
 import com.May2Beez.utils.*;
-import com.May2Beez.utils.structs.Rotation;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiChest;
 import net.minecraft.client.gui.inventory.GuiEditSign;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.inventory.Slot;
-import net.minecraft.util.*;
+import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.MovingObjectPosition;
+import net.minecraft.util.StringUtils;
+import net.minecraft.util.Tuple;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
-import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.lwjgl.input.Keyboard;
 
-import java.awt.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -51,7 +49,9 @@ public class VisitorsMacro extends Module {
         BUYING,
         FINISHING_VISITOR_1,
         FINISHING_VISITOR_2,
-        FINISHING_VISITOR_3
+        FINISHING_VISITOR_3,
+        CANCEL_VISITOR_1,
+        CANCEL_VISITOR_2
     }
 
     private final Timer waitTimer = new Timer();
@@ -59,7 +59,6 @@ public class VisitorsMacro extends Module {
     private boolean waitForNextVisitor = false;
 
     public static States currentState = States.TURNED_OFF;
-    private final BlockPos deskPosition = new BlockPos(5, 71, -21);
     private final ArrayList<Tuple<String, Integer>> requiredItems = new ArrayList<>();
     private Thread buyingThread;
 
@@ -73,13 +72,7 @@ public class VisitorsMacro extends Module {
     @Override
     public void onEnable() {
         currentState = States.WAITING_FOR_VISITOR;
-        if (!BlockUtils.getPlayerLoc().down().equals(deskPosition)) {
-            LogUtils.addMessage("You are not standing at the desk!", EnumChatFormatting.RED);
-            this.toggle();
-            return;
-        }
         findingItemTries = 0;
-        RotationUtils.smoothLook(new Rotation(0, 5), 300);
         waitTimer.reset();
         stuckTimer.reset();
         waitForNextVisitor = false;
@@ -265,13 +258,16 @@ public class VisitorsMacro extends Module {
                 if (!found) {
                     if (findingItemTries > 5) {
                         LogUtils.addMessage("Could not find " + requiredItems.get(0).getFirst() + "!", EnumChatFormatting.RED);
-                        this.toggle();
+                        waitTimer.reset();
+                        mc.thePlayer.closeScreen();
+                        currentState = States.CANCEL_VISITOR_1;
                     } else {
                         findingItemTries++;
                         waitTimer.reset();
                     }
                     return;
                 }
+                findingItemTries = 0;
                 currentState = States.CLICK_BIN;
                 waitTimer.reset();
                 break;
@@ -402,6 +398,24 @@ public class VisitorsMacro extends Module {
                 currentState = States.WAITING_FOR_VISITOR;
                 waitForNextVisitor = true;
                 break;
+            case CANCEL_VISITOR_1:
+                if (!waitTimer.hasReached(400)) return;
+                MovingObjectPosition cancelMop = mc.objectMouseOver;
+                if (cancelMop != null && cancelMop.typeOfHit == MovingObjectPosition.MovingObjectType.ENTITY) {
+                    rightClick();
+                    waitTimer.reset();
+                    currentState = States.CANCEL_VISITOR_2;
+                }
+                break;
+            case CANCEL_VISITOR_2:
+                if (!waitTimer.hasReached(250)) return;
+                Slot cancelSlot = mc.thePlayer.openContainer.getSlot(33);
+                if (cancelSlot.getStack() == null || !cancelSlot.getStack().getDisplayName().contains("Refuse Offer")) return;
+                mc.playerController.windowClick(mc.thePlayer.openContainer.windowId, 33, 0, 0, mc.thePlayer);
+                waitTimer.reset();
+                currentState = States.WAITING_FOR_VISITOR;
+                waitForNextVisitor = true;
+                break;
         }
     }
 
@@ -412,14 +426,5 @@ public class VisitorsMacro extends Module {
         if (message.contains("[Bazaar] Bought ")) {
             mc.thePlayer.closeScreen();
         }
-    }
-
-    @SubscribeEvent
-    public void onLastWorldRender(RenderWorldLastEvent event) {
-        if (mc.theWorld == null || mc.thePlayer == null) return;
-        if (LocationUtils.currentIsland != LocationUtils.Island.GARDEN) return;
-        if (!May2BeezQoL.config.highlightDeskPosition) return;
-        if (deskPosition == null) return;
-        RenderUtils.drawBlockBox(deskPosition, Color.RED, 1);
     }
 }

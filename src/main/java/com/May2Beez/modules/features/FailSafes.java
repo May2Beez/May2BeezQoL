@@ -38,35 +38,31 @@ public class FailSafes {
     @SubscribeEvent
     public void onPacket2(ReceivePacketEvent event) {
         if (!May2BeezQoL.config.stopMacrosOnSwapItemCheck) return;
-        if (May2BeezQoL.modules.stream().noneMatch(Module::isToggled)) return;
+        if (May2BeezQoL.modules.stream().noneMatch(m -> m.isToggled() && m.disableOnFailsafe)) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (!(event.packet instanceof S09PacketHeldItemChange)) return;
 
         May2BeezQoL.modules.forEach(m -> {
-            if (m.isToggled()) m.toggle();
+            if (m.isToggled() && m.disableOnFailsafe) m.toggle();
         });
 
-        for (int i = 0; i < 5; i++) {
-            LogUtils.addMessage("Swap item check?", EnumChatFormatting.GOLD);
-        }
+        LogUtils.addMessage("Swap item check?", EnumChatFormatting.GOLD);
         SkyblockUtils.sendPingAlert();
     }
 
     @SubscribeEvent
     public void onPacket(ReceivePacketEvent event) {
         if (!May2BeezQoL.config.stopMacrosOnRotationCheck) return;
-        if (May2BeezQoL.modules.stream().noneMatch(Module::isToggled)) return;
+        if (May2BeezQoL.modules.stream().noneMatch(m -> m.isToggled() && m.disableOnFailsafe)) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (!(event.packet instanceof S08PacketPlayerPosLook)) return;
         if (mc.thePlayer.getHeldItem() != null && Arrays.stream(teleportItems).anyMatch(i -> mc.thePlayer.getHeldItem().getDisplayName().contains(i))) return;
 
         May2BeezQoL.modules.forEach(m -> {
-            if (m.isToggled()) m.toggle();
+            if (m.isToggled() && m.disableOnFailsafe) m.toggle();
         });
 
-        for (int i = 0; i < 5; i++) {
-            LogUtils.addMessage("Rotation check?", EnumChatFormatting.GOLD);
-        }
+        LogUtils.addMessage("Rotation check?", EnumChatFormatting.GOLD);
         SkyblockUtils.sendPingAlert();
 
         if (May2BeezQoL.config.fakeMoveAfterRotationCheck) {

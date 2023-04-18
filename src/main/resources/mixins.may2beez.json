@@ -14,9 +14,11 @@
     "ChunkMixin",
     "ContainerGUIMixin",
     "EntityPlayerSPMixin",
+    "MinecraftMixin",
     "ModelBipedMixin",
     "accessors.EntityPlayerSPAccessor",
     "accessors.MinecraftAccessor",
+    "accessors.RendererLivingEntityAccessor",
     "accessors.RenderManagerAccessor"
   ]
 }

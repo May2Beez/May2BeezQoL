@@ -71,10 +71,6 @@ public class SkyblockUtils {
     }
 
     public static boolean isNPC(Entity entity) {
-        if (!(entity instanceof EntityPlayerMP)) {
-            return false;
-        }
-
         return !TablistUtils.getTabListPlayersSkyblock().contains(entity.getName());
     }
 
@@ -152,39 +148,7 @@ public class SkyblockUtils {
     }
 
     public static boolean entityIsNotVisible(Entity entityToCheck) {
-        Vec3 startPos = new Vec3(mc.thePlayer.posX, mc.thePlayer.posY + mc.thePlayer.getEyeHeight(), mc.thePlayer.posZ);
-        Vec3 endPos = new Vec3(entityToCheck.posX, entityToCheck.posY + entityToCheck.height / 2, entityToCheck.posZ);
-
-        Vec3 direction = new Vec3(endPos.xCoord - startPos.xCoord, endPos.yCoord - startPos.yCoord, endPos.zCoord - startPos.zCoord);
-
-        double maxDistance = startPos.distanceTo(endPos);
-
-        double increment = 0.05;
-
-        Vec3 currentPos = startPos;
-
-        while (currentPos.distanceTo(startPos) < maxDistance) {
-
-            ArrayList<BlockPos> blocks = AnyBlockAroundVec3(currentPos, 0.15f);
-
-            boolean flag = false;
-
-            for (BlockPos pos : blocks) {
-                // Add the block to the list if it hasn't been added already
-                if (!mc.theWorld.isAirBlock(pos)) {
-                    flag = true;
-                }
-            }
-
-            if (flag) {
-                return true;
-            }
-
-            // Move along the line by the specified increment
-            Vec3 scaledDirection = new Vec3(direction.xCoord * increment, direction.yCoord * increment, direction.zCoord * increment);
-            currentPos = currentPos.add(scaledDirection);
-        }
-        return false;
+        return !mc.thePlayer.canEntityBeSeen(entityToCheck);
     }
 
     public static ArrayList<BlockPos> AnyBlockAroundVec3(Vec3 pos, float around) {

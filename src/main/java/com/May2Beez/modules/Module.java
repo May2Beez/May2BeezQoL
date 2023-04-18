@@ -29,6 +29,10 @@ public class Module {
 
     public KeyBinding keyBinding;
 
+    @Expose
+    @SerializedName("disableOnFailsafe")
+    public boolean disableOnFailsafe = true;
+
     public Module(String name, int keycode) {
         this.name = name;
         this.keycode = keycode;

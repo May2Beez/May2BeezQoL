@@ -6,20 +6,31 @@ import java.util.Arrays;
 import java.util.Comparator;
 
 import com.May2Beez.mixins.accessors.RenderManagerAccessor;
+import com.May2Beez.mixins.accessors.RendererLivingEntityAccessor;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.Gui;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.RenderGlobal;
-import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.WorldRenderer;
+import net.minecraft.client.model.ModelBase;
+import net.minecraft.client.renderer.*;
+import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.client.renderer.entity.RenderManager;
+import net.minecraft.client.renderer.entity.layers.LayerArmorBase;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.client.shader.Framebuffer;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.monster.EntitySkeleton;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EnumPlayerModelParts;
+import net.minecraft.item.ItemArmor;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.*;
+import org.lwjgl.opengl.EXTFramebufferObject;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL14;
+import org.lwjgl.opengl.GL30;
 
 public class RenderUtils {
 
@@ -49,6 +60,243 @@ public class RenderUtils {
         );
 
         drawFilledBoundingBox(aabb, color, 0.7f, lineWidth);
+    }
+
+    public static void drawEntityESP(EntityLivingBase entity, ModelBase model, Color color, float partialTicks) {
+        ModelData modelData = preModelDraw(entity, model, partialTicks);
+        outlineEntity(
+                model,
+                entity,
+                modelData.limbSwing,
+                modelData.limbSwingAmount,
+                modelData.age,
+                modelData.rotationYaw,
+                modelData.rotationPitch,
+                0.0625f,
+                partialTicks,
+                color
+        );
+        GlStateManager.resetColor();
+        GlStateManager.disableRescaleNormal();
+        GlStateManager.enableTexture2D();
+        GlStateManager.enableCull();
+        GlStateManager.popMatrix();
+    }
+
+    public static void outlineEntity(
+            ModelBase model,
+            EntityLivingBase entity,
+            float limbSwing,
+            float limbSwingAmount,
+            float ageInTicks,
+            float headYaw,
+            float headPitch,
+            float scaleFactor,
+            float partialTicks,
+            Color color
+    ) {
+        RendererLivingEntityAccessor renderer = (RendererLivingEntityAccessor) mc.getRenderManager().getEntityRenderObject(entity);
+        boolean fancyGraphics = mc.gameSettings.fancyGraphics;
+        float gamma = mc.gameSettings.gammaSetting;
+        mc.gameSettings.fancyGraphics = false;
+        mc.gameSettings.gammaSetting = Float.MAX_VALUE;
+        float f3 = color.getAlpha() / 255f;
+        float f = color.getRed() / 255f;
+        float f1 = color.getGreen() / 255f;
+        float f2 = color.getBlue() / 255f;
+        GlStateManager.resetColor();
+        GlStateManager.color(f, f1, f2, f3);
+        renderOne();
+        model.render(entity, limbSwing, limbSwingAmount, ageInTicks, headYaw, headPitch, scaleFactor);
+        GlStateManager.color(f, f1, f2, f3);
+        renderLayers(renderer, entity, limbSwing, limbSwingAmount, partialTicks, ageInTicks, headYaw, headPitch, scaleFactor, f, f1, f2, f3);
+        GlStateManager.color(f, f1, f2, f3);
+        renderTwo();
+        model.render(entity, limbSwing, limbSwingAmount, ageInTicks, headYaw, headPitch, scaleFactor);
+        GlStateManager.color(f, f1, f2, f3);
+        renderLayers(renderer, entity, limbSwing, limbSwingAmount, partialTicks, ageInTicks, headYaw, headPitch, scaleFactor, f, f1, f2, f3);
+        GlStateManager.color(f, f1, f2, f3);
+        renderThree();
+        model.render(entity, limbSwing, limbSwingAmount, ageInTicks, headYaw, headPitch, scaleFactor);
+        renderLayers(renderer, entity, limbSwing, limbSwingAmount, partialTicks, ageInTicks, headYaw, headPitch, scaleFactor, f, f1, f2, f3);
+        GlStateManager.color(f, f1, f2, f3);
+        GlStateManager.color(f, f1, f2, f3);
+        renderFour();
+        model.render(entity, limbSwing, limbSwingAmount, ageInTicks, headYaw, headPitch, scaleFactor);
+        GlStateManager.color(f, f1, f2, f3);
+        renderLayers(renderer, entity, limbSwing, limbSwingAmount, partialTicks, ageInTicks, headYaw, headPitch, scaleFactor, f, f1, f2, f3);
+        GlStateManager.color(f, f1, f2, f3);
+        renderFive();
+        mc.gameSettings.fancyGraphics = fancyGraphics;
+        mc.gameSettings.gammaSetting = gamma;
+    }
+
+    static void renderLayers(
+            RendererLivingEntityAccessor renderer,
+            EntityLivingBase entitylivingbaseIn,
+            float p_177093_2_,
+            float p_177093_3_,
+            float partialTicks,
+            float p_177093_5_,
+            float p_177093_6_,
+            float p_177093_7_,
+            float p_177093_8_,
+            float red,
+            float green,
+            float blue,
+            float alpha
+    ) {
+        if (!(entitylivingbaseIn instanceof EntitySkeleton)) return;
+        for (Object layerrenderer : renderer.getLayerRenderers()) {
+            if (layerrenderer instanceof LayerArmorBase<?>) {
+                for (int i = 1; i <= 4; i++) {
+                    ItemStack itemstack = entitylivingbaseIn.getCurrentArmor(i - 1);
+                    if (itemstack == null || !(itemstack.getItem() instanceof ItemArmor)) continue;
+
+                    ModelBase armorModel = ((LayerArmorBase<?>) layerrenderer).getArmorModel(i);
+                    armorModel.setLivingAnimations(entitylivingbaseIn, p_177093_2_, p_177093_3_, partialTicks);
+
+                    GlStateManager.color(red, green, blue, alpha);
+                    armorModel.render(entitylivingbaseIn, p_177093_2_, p_177093_3_, p_177093_5_, p_177093_6_, p_177093_7_, p_177093_8_);
+                }
+            }
+        }
+    }
+
+    private static void renderOne() {
+        checkSetupFBO();
+        GL11.glPushAttrib(1048575);
+        GL11.glDisable(3008);
+        GL11.glDisable(3553);
+        GL11.glDisable(2896);
+        GL11.glEnable(3042);
+        GL11.glBlendFunc(770, 771);
+        GL11.glLineWidth(5f);
+        GL11.glEnable(2848);
+        GL11.glEnable(2960);
+        GL11.glClear(1024);
+        GL11.glClearStencil(15);
+        GL11.glStencilFunc(512, 1, 15);
+        GL11.glStencilOp(7681, 7681, 7681);
+        GL11.glPolygonMode(1032, 6913);
+    }
+
+    private static void checkSetupFBO() {
+        Framebuffer fbo = mc.getFramebuffer();
+        if (fbo != null && fbo.depthBuffer > -1) {
+            setupFBO(fbo);
+            fbo.depthBuffer = -1;
+        }
+    }
+
+    private static void setupFBO(Framebuffer fbo) {
+        EXTFramebufferObject.glDeleteRenderbuffersEXT(fbo.depthBuffer);
+        int stencilDepthBufferId = EXTFramebufferObject.glGenRenderbuffersEXT();
+        EXTFramebufferObject.glBindRenderbufferEXT(36161, stencilDepthBufferId);
+        EXTFramebufferObject.glRenderbufferStorageEXT(
+                36161,
+                34041,
+                mc.displayWidth,
+                mc.displayHeight
+        );
+        EXTFramebufferObject.glFramebufferRenderbufferEXT(36160, 36128, 36161, stencilDepthBufferId);
+        EXTFramebufferObject.glFramebufferRenderbufferEXT(36160, 36096, 36161, stencilDepthBufferId);
+    }
+
+    private static void renderTwo() {
+        GL11.glStencilFunc(512, 0, 15);
+        GL11.glStencilOp(7681, 7681, 7681);
+        GL11.glPolygonMode(1032, 6914);
+    }
+
+    private static void renderThree() {
+        GL11.glStencilFunc(514, 1, 15);
+        GL11.glStencilOp(7680, 7680, 7680);
+        GL11.glPolygonMode(1032, 6913);
+    }
+
+    private static void renderFour() {
+        GL11.glDepthMask(false);
+        GL11.glDisable(2929);
+        GL11.glEnable(10754);
+        GL11.glPolygonOffset(1.0f, -2000000.0f);
+        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240.0f, 240.0f);
+    }
+
+    private static void renderFive() {
+        GL11.glPolygonOffset(1.0f, 2000000.0f);
+        GL11.glDisable(10754);
+        GL11.glEnable(2929);
+        GL11.glDepthMask(true);
+        GL11.glDisable(2960);
+        GL11.glDisable(2848);
+        GL11.glHint(3154, 4352);
+        GL11.glEnable(3042);
+        GL11.glEnable(2896);
+        GL11.glEnable(3553);
+        GL11.glEnable(3008);
+        GL11.glPopAttrib();
+    }
+
+    private static ModelData preModelDraw(EntityLivingBase entity, ModelBase model, float partialTicks) {
+        Render<Entity> render = mc.getRenderManager().getEntityRenderObject(entity);
+        RenderManagerAccessor renderManager = (RenderManagerAccessor) mc.getRenderManager();
+        RendererLivingEntityAccessor renderer = (RendererLivingEntityAccessor) render;
+        float renderYaw = interpolateRotation(entity.prevRenderYawOffset, entity.renderYawOffset, partialTicks);
+        float prevYaw = interpolateRotation(entity.prevRotationYawHead, entity.rotationYawHead, partialTicks);
+        float rotationYaw = prevYaw - renderYaw;
+        float rotationPitch = entity.prevRotationPitch + (entity.rotationPitch - entity.prevRotationPitch) * partialTicks;
+        float limbSwing = entity.limbSwing - entity.limbSwingAmount * (1f - partialTicks);
+        float limbSwingAmout = entity.prevLimbSwingAmount + (entity.limbSwingAmount - entity.prevLimbSwingAmount) * partialTicks;
+        float age = entity.ticksExisted + partialTicks;
+
+        GlStateManager.pushMatrix();
+        GlStateManager.disableCull();
+        model.swingProgress = entity.getSwingProgress(partialTicks);
+        model.isChild = entity.isChild();
+        double x = entity.lastTickPosX + (entity.posX - entity.lastTickPosX) * partialTicks;
+        double y = entity.lastTickPosY + (entity.posY - entity.lastTickPosY) * partialTicks;
+        double z = entity.lastTickPosZ + (entity.posZ - entity.lastTickPosZ) * partialTicks;
+        GlStateManager.translate(x - renderManager.getRenderPosX(), y - renderManager.getRenderPosY(), z - renderManager.getRenderPosZ());
+        float f = interpolateRotation(entity.prevRenderYawOffset, entity.renderYawOffset, partialTicks);
+        rotateCorpse(entity, age, f, partialTicks);
+        GlStateManager.enableRescaleNormal();
+        GlStateManager.scale(-1f, -1f, 1f);
+        GlStateManager.translate(0.0f, -1.5078125f, 0.0f);
+        model.setLivingAnimations(entity, limbSwing, limbSwingAmout, partialTicks);
+        model.setRotationAngles(limbSwing, limbSwingAmout, age, rotationYaw, rotationPitch, 0.0625f, entity);
+
+        return new ModelData(renderer, rotationYaw, rotationPitch, limbSwing, limbSwingAmout, age);
+    }
+
+
+    public static float interpolateRotation(float par1, float par2, float par3) {
+        float f = par2 - par1;
+        while (f < -180.0f) {
+            f += 360.0f;
+        }
+        while (f >= 180.0f) {
+            f -= 360.0f;
+        }
+        return par1 + par3 * f;
+    }
+
+    public static void rotateCorpse(EntityLivingBase bat, float p_77043_2_, float p_77043_3_, float partialTicks) {
+        GlStateManager.rotate(180.0f - p_77043_3_, 0.0f, 1.0f, 0.0f);
+        if (bat.deathTime > 0) {
+            float f = (bat.deathTime + partialTicks - 1.0f) / 20.0f * 1.6f;
+            f = MathHelper.sqrt_float(f);
+            if (f > 1.0f) {
+                f = 1.0f;
+            }
+            GlStateManager.rotate(f * 90.0f, 0.0f, 0.0f, 1.0f);
+        } else {
+            String s = EnumChatFormatting.getTextWithoutFormattingCodes(bat.getName());
+            if (s != null && (s.equals("Dinnerbone") || s.equals("Grumm")) && (!(bat instanceof EntityPlayer) || ((EntityPlayer) bat).isWearing(EnumPlayerModelParts.CAPE))) {
+                GlStateManager.translate(0.0f, bat.height + 0.1f, 0.0f);
+                GlStateManager.rotate(180.0f, 0.0f, 0.0f, 1.0f);
+            }
+        }
     }
 
     public static void miniBlockBox(Vec3 vec, Color color, float lineWidth) {
@@ -408,6 +656,24 @@ public class RenderUtils {
         GlStateManager.depthMask(true);
         GlStateManager.color(1.0f, 1.0f, 1.0f, 1.0f);
         GlStateManager.popMatrix();
+    }
+
+    public static class ModelData {
+        public RendererLivingEntityAccessor renderer;
+        public float rotationYaw;
+        public float rotationPitch;
+        public float limbSwing;
+        public float limbSwingAmount;
+        public float age;
+
+        public ModelData(RendererLivingEntityAccessor renderer, float rotationYaw, float rotationPitch, float limbSwing, float limbSwingAmount, float age) {
+            this.renderer = renderer;
+            this.rotationYaw = rotationYaw;
+            this.rotationPitch = rotationPitch;
+            this.limbSwing = limbSwing;
+            this.limbSwingAmount = limbSwingAmount;
+            this.age = age;
+        }
     }
 }
 

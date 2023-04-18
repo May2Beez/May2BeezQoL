@@ -498,6 +498,7 @@ public class AOTVMacro extends Module {
             if (mc.theWorld.getBlockState(blockPos1.getPos()) == null || mc.theWorld.isAirBlock(blockPos1.getPos())) continue;
 
             if (blockPos1.getPos().equals(blockToIgnoreBecauseOfStuck)) continue;
+            if (!BlockUtils.isBlockVisible(blockPos1.getPos())) continue;
 
             Vec3 vec3 = BlockUtils.getRandomVisibilityLine(blockPos1.getPos());
             if (vec3 == null) continue;

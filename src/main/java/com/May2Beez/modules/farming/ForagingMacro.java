@@ -2,50 +2,55 @@ package com.May2Beez.modules.farming;
 
 import com.May2Beez.May2BeezQoL;
 import com.May2Beez.modules.Module;
-import com.May2Beez.utils.LogUtils;
-import com.May2Beez.utils.RenderUtils;
-import com.May2Beez.utils.RotationUtils;
-import com.May2Beez.utils.SkyblockUtils;
+import com.May2Beez.utils.*;
+import com.google.common.base.Splitter;
 import net.minecraft.block.Block;
-import net.minecraft.block.material.Material;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockLog;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.init.Blocks;
-import net.minecraft.util.*;
+import net.minecraft.util.BlockPos;
+import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.StringUtils;
+import net.minecraft.util.Vec3;
+import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
+import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.lwjgl.input.Keyboard;
 
 import java.awt.*;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static com.May2Beez.utils.SkyblockUtils.*;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ForagingMacro extends Module {
-    public static ArrayList<Vec3> targets = null;
-    public static int placedSaplings = 0;
-    public static int waiting = 0;
-    public static int waitTicks = 0;
-    private Thread thread = null;
-    private static long lastAxeUse = 0;
-    private static long axeCooldown = 0;
-    private static STATES state = STATES.PLANTING;
-    public ForagingMacro() {
-        super("Foraging Macro", new KeyBinding("Foraging Macro", Keyboard.KEY_SECTION, May2BeezQoL.MODID + " - Farming"));
-    }
-    private static int idleTicks = 0;
-    private static boolean running = false;
+    public static Minecraft mc = Minecraft.getMinecraft();
 
-    private enum STATES {
-        PLANTING,
-        BONE_MEAL,
-        CHOPPING,
-        ROD
+    public ForagingMacro() {
+        super("Foraging Macro", new KeyBinding("Foraging Macro", Keyboard.KEY_NONE, "May2BeezQoL - Farming"));
     }
+
+    private enum MacroState {
+        LOOK, PLACE, PLACE_BONE, BREAK, FIND_ROD, FIND_BONE, THROW_ROD, THROW_BREAK_DELAY, SWITCH
+    };
+
+    private static MacroState macroState = MacroState.LOOK;
+    private static MacroState lastState = null;
+
+    private int boneTickCount = 0;
+    private int findRodTickCount = 0;
+    private int rodTickCound = 0;
+    private int throwBreakTickCount = 0;
+    private int cycleTickCount = 0;
+
+    public static Vec3 bestDirt;
+
+    public static boolean running = false;
+
+    private final Timer stuckTimer = new Timer();
+    private boolean stuck = false;
 
     public static boolean isRunning() {
         return running;
@@ -54,13 +59,19 @@ public class ForagingMacro extends Module {
     @Override
     public void onEnable() {
         super.onEnable();
-        placedSaplings = 0;
-        targets = null;
-        waitTicks = 0;
-        waiting = 0;
-        state = STATES.PLANTING;
-        axeCooldown = (long) Math.floor(2000 - (2000 * (May2BeezQoL.config.monkeyLVL * 0.5 / 100)));
         running = true;
+        bestDirt = null;
+        macroState = MacroState.LOOK;
+        cycleTickCount = 0;
+        boneTickCount = 0;
+        findRodTickCount = 0;
+        rodTickCound = 0;
+        throwBreakTickCount = 0;
+        startedAt = System.currentTimeMillis();
+        earnedXp = 0;
+        stuckTimer.reset();
+        stuck = false;
+        updateXpTimer.reset();
     }
 
     @Override
@@ -71,214 +82,241 @@ public class ForagingMacro extends Module {
         running = false;
     }
 
+    private static final Timer updateXpTimer = new Timer();
+    private static double xpPerHour = 0;
+
     public static String[] drawFunction() {
-        String[] textToDraw = new String[3];
-        long timeToNextAxe = axeCooldown - (System.currentTimeMillis() - lastAxeUse);
-        textToDraw[0] = "§r§lState: §f" + state;
-        textToDraw[1] = "§r§lIdle time: §f" + idleTicks;
-        textToDraw[2] = "§r§lAxe ready in: §f" + (timeToNextAxe > 0 ? String.format("%.2f", ((double) timeToNextAxe / 1000)) + "s" : "READY");
+        String[] textToDraw = new String[4];
+        if (updateXpTimer.hasReached(100)) {
+            xpPerHour = earnedXp / ((System.currentTimeMillis() - startedAt) / 3600000.0);
+            updateXpTimer.reset();
+        }
+        textToDraw[0] = "§r§lForaging Macro";
+        textToDraw[1] = "§r§lState: §f" + macroState;
+        textToDraw[2] = "§r§lXP/H: §f" + String.format("%.2f", xpPerHour);
+        textToDraw[3] = "§r§lXP Since start: §f" + String.format("%.2f", earnedXp);
         return textToDraw;
+    }
+
+    private static long startedAt = 0;
+    private static double earnedXp = 0;
+
+    private static final Splitter SPACE_SPLITTER = Splitter.on("  ").omitEmptyStrings().trimResults();
+    private static final Pattern SKILL_PATTERN = Pattern.compile("\\+([\\d.]+)\\s+([A-Za-z]+)\\s+\\((\\d+(\\.\\d+)?)%\\)");
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public void onClientChatReceivedEvent(ClientChatReceivedEvent event) {
+        if (!isToggled()) return;
+        if (event.type != 2) return;
+
+        String actionBar = StringUtils.stripControlCodes(event.message.getUnformattedText());
+
+        List<String> components = SPACE_SPLITTER.splitToList(actionBar);
+
+        for (String component : components) {
+            Matcher matcher = SKILL_PATTERN.matcher(component);
+            System.out.println(component);
+            if (matcher.matches()) {
+                String addedXp = matcher.group(1);
+                String skillName = matcher.group(2);
+                String percentage = matcher.group(3);
+                if (skillName.equalsIgnoreCase("foraging")) {
+                    earnedXp += Double.parseDouble(addedXp);
+                }
+                return;
+            }
+        }
     }
 
     @SubscribeEvent
     public void onRenderWorldLast(RenderWorldLastEvent event) {
         if (!isToggled()) return;
 
-        if (ForagingMacro.targets != null) {
-            for (Vec3 target : targets)
-                RenderUtils.miniBlockBox(new Vec3(target.xCoord + 0.5f, target.yCoord + 1, target.zCoord + 0.5f), Color.green, 2f);
+        if (bestDirt != null) {
+            RenderUtils.miniBlockBox(new Vec3(bestDirt.xCoord, bestDirt.yCoord, bestDirt.zCoord), Color.green, 2f);
         }
+    }
+
+    private Vec3 getDirt() {
+        Vec3 furthest = null;
+        Vec3 player = new Vec3(mc.thePlayer.posX, mc.thePlayer.posY + mc.thePlayer.eyeHeight, mc.thePlayer.posZ);
+        for (BlockPos pos : BlockPos.getAllInBox(new BlockPos(mc.thePlayer.posX + 4.0D, mc.thePlayer.posY, mc.thePlayer.posZ + 4.0D), new BlockPos(mc.thePlayer.posX - 4.0D, mc.thePlayer.posY - 1.0D, mc.thePlayer.posZ - 4.0D))) {
+            if (mc.theWorld.getBlockState(pos).getBlock() == Blocks.dirt || mc.theWorld.getBlockState(pos).getBlock() == Blocks.grass) {
+                Block block = mc.theWorld.getBlockState(new BlockPos(pos.getX(), pos.getY() + 1, pos.getZ())).getBlock();
+                if (!(block instanceof net.minecraft.block.BlockLog) && block != Blocks.sapling) {
+                    Vec3 distance = new Vec3(pos.getX() + 0.5D, (pos.getY() + 1), pos.getZ() + 0.5D);
+                    if (furthest == null || player.squareDistanceTo(distance) > player.squareDistanceTo(furthest))
+                        furthest = distance;
+                }
+            }
+        }
+        return furthest;
+    }
+
+    private void unstuck() {
+        LogUtils.addMessage("I'm stuck! Unstuck process activated", EnumChatFormatting.RED);
+        stuck = true;
     }
 
     @SubscribeEvent
     public void onTick(TickEvent.ClientTickEvent event) {
-        if (!isToggled() || event.phase == TickEvent.Phase.END) return;
-        if (SkyblockUtils.hasOpenContainer()) return;
+        if(!isToggled()) {
+            macroState = MacroState.LOOK;
+            return;
+        }
 
-        if (thread == null || !thread.isAlive()) {
-            thread = new Thread(() -> {
-                try {
-                    int sapling = findItemInHotbar("Jungle Sapling");
-                    int bonemeal = findItemInHotbar("Bone Meal");
-                    int treecap = findItemInHotbar("Treecap");
-                    int rod = findItemInHotbar("Rod");
-                    if (sapling == -1) {
-                        LogUtils.addMessage(getName() + " - No saplings in hotbar", EnumChatFormatting.RED);
+        if (!RotationUtils.done) return;
+
+
+        if (stuck) {
+            Vec3 closest = null;
+            Vec3 player = new Vec3(mc.thePlayer.posX, mc.thePlayer.posY + mc.thePlayer.eyeHeight, mc.thePlayer.posZ);
+            for (BlockPos pos : BlockPos.getAllInBox(new BlockPos(mc.thePlayer.posX + 4.0D, mc.thePlayer.posY, mc.thePlayer.posZ + 4.0D), new BlockPos(mc.thePlayer.posX - 4.0D, mc.thePlayer.posY - 1.0D, mc.thePlayer.posZ - 4.0D))) {
+                if (mc.theWorld.getBlockState(pos).getBlock() == Blocks.dirt || mc.theWorld.getBlockState(pos).getBlock() == Blocks.grass) {
+                    Block block = mc.theWorld.getBlockState(new BlockPos(pos.getX(), pos.getY() + 1, pos.getZ())).getBlock();
+                    if ((block instanceof net.minecraft.block.BlockLog) || block == Blocks.sapling) {
+                        Vec3 distance = new Vec3(pos.getX() + 0.5D, (pos.getY() + 1), pos.getZ() + 0.5D);
+                        if (closest == null || player.squareDistanceTo(distance) <= player.squareDistanceTo(closest))
+                            closest = distance;
                     }
-                    if (bonemeal == -1) {
-                        LogUtils.addMessage(getName() + " - No bonemeal in hotbar", EnumChatFormatting.RED);
+                }
+            }
+            if(closest != null) {
+                int treecapitator = SkyblockUtils.findItemInHotbar("Treecapitator");
+                if (treecapitator == -1) {
+                    LogUtils.addMessage("No Treecapitator found in hotbar!", EnumChatFormatting.RED);
+                    toggle();
+                    return;
+                }
+                mc.thePlayer.inventory.currentItem = treecapitator;
+                RotationUtils.smoothLook(RotationUtils.getRotation(closest), 125);
+                if (!RotationUtils.IsDiffLowerThan(0.1f)) {
+                    return;
+                }
+                KeyBinding.onTick(mc.gameSettings.keyBindUseItem.getKeyCode());
+            } else {
+                int treecapitator = SkyblockUtils.findItemInHotbar("Treecapitator");
+                if (treecapitator == -1) {
+                    LogUtils.addMessage("No Treecapitator found in hotbar!", EnumChatFormatting.RED);
+                    toggle();
+                    return;
+                }
+                mc.thePlayer.inventory.currentItem = treecapitator;
+                KeyBinding.onTick(mc.gameSettings.keyBindUseItem.getKeyCode());
+                stuck = false;
+                stuckTimer.reset();
+                return;
+            }
+        }
+
+        if (stuckTimer.hasReached(May2BeezQoL.config.stuckTimeout)) {
+            unstuck();
+            return;
+        }
+
+        switch (macroState) {
+            case LOOK:
+                int saplingSlot = SkyblockUtils.findItemInHotbar("Sapling");
+                if (saplingSlot == -1) {
+                    LogUtils.addMessage("No saplings found in hotbar!", EnumChatFormatting.RED);
+                    toggle();
+                    return;
+                }
+                mc.thePlayer.inventory.currentItem = saplingSlot;
+                bestDirt = getDirt();
+                if(bestDirt != null) {
+                    RotationUtils.smoothLook(RotationUtils.getRotation(bestDirt), 125);
+                    macroState = MacroState.PLACE;
+                } else {
+                    macroState = MacroState.FIND_BONE;
+                }
+                return;
+            case PLACE:
+                KeyBinding.onTick(mc.gameSettings.keyBindUseItem.getKeyCode());
+                macroState = MacroState.LOOK;
+                return;
+            case FIND_BONE:
+                int boneMeal = SkyblockUtils.findItemInHotbar("Bone Meal");
+                if (boneMeal == -1) {
+                    LogUtils.addMessage("No Bone Meal found in hotbar!", EnumChatFormatting.RED);
+                    toggle();
+                    return;
+                }
+                mc.thePlayer.inventory.currentItem = boneMeal;
+                boneTickCount = 0;
+                macroState = MacroState.PLACE_BONE;
+                return;
+            case PLACE_BONE:
+                boneTickCount++;
+                if(boneTickCount >= May2BeezQoL.config.foragingDelay / 20) {
+                    KeyBinding.onTick(mc.gameSettings.keyBindUseItem.getKeyCode());
+                    boneTickCount = 0;
+                    findRodTickCount = 0;
+                    if(May2BeezQoL.config.foragingUseRod) {
+                        macroState = MacroState.FIND_ROD;
+                    } else {
+                        macroState = MacroState.THROW_BREAK_DELAY;
                     }
-                    if (treecap == -1) {
-                        LogUtils.addMessage(getName() + " - No Treecapitator in hotbar", EnumChatFormatting.RED);
-                    }
+                }
+                return;
+            case FIND_ROD:
+                findRodTickCount++;
+                if(findRodTickCount >= May2BeezQoL.config.foragingDelay / 20) {
+                    int rod = SkyblockUtils.findItemInHotbar("Rod");
                     if (rod == -1) {
-                        LogUtils.addMessage(getName() + " - No Fishing Rod in hotbar", EnumChatFormatting.RED);
-                    }
-                    if (sapling == -1 || bonemeal == -1 || treecap == -1 || rod == -1) {
-                        playAlert();
+                        LogUtils.addMessage("No Fishing Rod found in hotbar!", EnumChatFormatting.RED);
                         toggle();
                         return;
                     }
-                    switch (state) {
-                        case PLANTING: {
-                            if (targets == null)
-                                targets = getAllDirts(true);
-                            if (targets.size() != 4) {
-                                Thread.sleep(new Random().nextInt(50) + May2BeezQoL.config.foragingDelay);
-                                if (getAllDirts(false).size() != 4) {
-                                    LogUtils.addMessage(getName() + " - There is no exactly 4 dirts around you", EnumChatFormatting.RED);
-                                    targets = null;
-                                    return;
-                                }
-                                LogUtils.addMessage(getName() + " - There are probably logs above dirts", EnumChatFormatting.RED);
-                                Thread.sleep(new Random().nextInt(50) + May2BeezQoL.config.foragingDelay);
-                                RemoveLogs();
-                                targets = null;
-                                return;
-                            } else {
-                                RotationUtils.smoothLook(RotationUtils.getRotation(new Vec3(ForagingMacro.targets.get(placedSaplings).xCoord + 0.5f, ForagingMacro.targets.get(placedSaplings).yCoord + 1, ForagingMacro.targets.get(placedSaplings).zCoord + 0.5)), May2BeezQoL.config.cameraSpeed);
-
-                                if (Minecraft.getMinecraft().objectMouseOver != null && Minecraft.getMinecraft().objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK && Objects.equals(Minecraft.getMinecraft().objectMouseOver.getBlockPos(), new BlockPos(ForagingMacro.targets.get(placedSaplings)))) {
-                                    Minecraft.getMinecraft().thePlayer.inventory.currentItem = sapling;
-                                    rightClick();
-
-                                    if (placedSaplings >= 3) {
-                                        idleTicks = 0;
-                                        state = STATES.BONE_MEAL;
-                                    } else {
-                                        placedSaplings++;
-                                    }
-                                }
-                            }
-                            break;
-                        }
-                        case BONE_MEAL: {
-                            Minecraft.getMinecraft().thePlayer.inventory.currentItem = bonemeal;
-                            if (Minecraft.getMinecraft().objectMouseOver != null && Minecraft.getMinecraft().objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK && Minecraft.getMinecraft().theWorld.getBlockState(Minecraft.getMinecraft().objectMouseOver.getBlockPos()).getBlock() == Blocks.sapling) {
-                                Thread.sleep(new Random().nextInt(100) + May2BeezQoL.config.foragingDelay);
-                                rightClick();
-                                if (May2BeezQoL.config.normalBoneMeal) {
-                                    Thread.sleep(new Random().nextInt(50) + 50);
-                                    if (Minecraft.getMinecraft().objectMouseOver != null && Minecraft.getMinecraft().objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK && Minecraft.getMinecraft().theWorld.getBlockState(Minecraft.getMinecraft().objectMouseOver.getBlockPos()).getBlock() == Blocks.log) {
-                                        Minecraft.getMinecraft().thePlayer.inventory.currentItem = treecap;
-                                        idleTicks = 0;
-                                        state = STATES.CHOPPING;
-                                    } else {
-                                        Thread.sleep(new Random().nextInt(50) + 50);
-                                    }
-                                } else {
-                                    Thread.sleep(new Random().nextInt(50) + May2BeezQoL.config.foragingDelay);
-                                    Minecraft.getMinecraft().thePlayer.inventory.currentItem = treecap;
-                                    idleTicks = 0;
-                                    state = STATES.CHOPPING;
-                                }
-                            }
-                            break;
-                        }
-                        case CHOPPING: {
-                            Block block = Minecraft.getMinecraft().theWorld.getBlockState(new BlockPos(ForagingMacro.targets.get(placedSaplings).xCoord, ForagingMacro.targets.get(placedSaplings).yCoord + 1, ForagingMacro.targets.get(placedSaplings).zCoord)).getBlock();
-                            if (block.getMaterial() == Material.wood && ForagingMacro.lastAxeUse == 0) {
-                                KeyBinding.setKeyBindState(Minecraft.getMinecraft().gameSettings.keyBindAttack.getKeyCode(), true);
-                            }
-
-                            if (ForagingMacro.lastAxeUse != 0) {
-                                if (System.currentTimeMillis() - lastAxeUse + May2BeezQoL.config.foragingDelay >= axeCooldown) {
-                                    ForagingMacro.lastAxeUse = 0;
-                                    return;
-                                }
-                            }
-
-                            if (block == Blocks.air) {
-                                Thread.sleep(new Random().nextInt(50) + May2BeezQoL.config.foragingDelay);
-                                KeyBinding.setKeyBindState(Minecraft.getMinecraft().gameSettings.keyBindAttack.getKeyCode(), false);
-                                ForagingMacro.placedSaplings = 0;
-                                ForagingMacro.targets = null;
-                                ForagingMacro.lastAxeUse = System.currentTimeMillis();
-                                if (May2BeezQoL.config.foragingUseRod) {
-                                    state = STATES.ROD;
-                                } else {
-                                    state = STATES.PLANTING;
-                                }
-                                idleTicks = 0;
-                                Thread.sleep(new Random().nextInt(50) + May2BeezQoL.config.foragingDelay);
-                            }
-                            break;
-                        }
-                        case ROD: {
-                            Thread.sleep(new Random().nextInt(50) + May2BeezQoL.config.preRodDelay);
-                            Minecraft.getMinecraft().thePlayer.inventory.currentItem = rod;
-                            Thread.sleep(new Random().nextInt(50) + May2BeezQoL.config.foragingDelay);
-                            rightClick();
-                            Thread.sleep(new Random().nextInt(50) + May2BeezQoL.config.foragingDelay);
-                            state = STATES.PLANTING;
-                            idleTicks = 0;
-                            break;
-                        }
-                    }
-                    if (idleTicks++ > May2BeezQoL.config.maxIdleTicks) {
-                        RemoveLogs();
-                        idleTicks = 0;
-                        state = STATES.PLANTING;
-                    }
-                } catch (Exception ignored) {}
-            });
-            thread.start();
-        }
-    }
-
-    private void RemoveLogs() throws InterruptedException {
-        ArrayList<Vec3> dirts = getAllDirts(false);
-        Minecraft.getMinecraft().thePlayer.inventory.currentItem = findItemInHotbar("Treecap");
-        for (int y = 1; y < 3; y++) {
-            for (Vec3 dirt : dirts) {
-                IBlockState blockAbove = Minecraft.getMinecraft().theWorld.getBlockState(new BlockPos(dirt.xCoord, dirt.yCoord + y, dirt.zCoord));
-                if (blockAbove.getBlock() == Blocks.log || blockAbove.getBlock() == Blocks.log2) {
-                    RotationUtils.smoothLook(RotationUtils.getRotation(new Vec3(dirt.xCoord + 0.5, dirt.yCoord + y + 0.5, dirt.zCoord + 0.5)), May2BeezQoL.config.cameraSpeed);
-                    Thread.sleep(new Random().nextInt(50) + 100);
-                    KeyBinding.setKeyBindState(Minecraft.getMinecraft().gameSettings.keyBindAttack.getKeyCode(), true);
-                    Thread.sleep(new Random().nextInt(250) + 200);
-                    KeyBinding.setKeyBindState(Minecraft.getMinecraft().gameSettings.keyBindAttack.getKeyCode(), false);
-                    lastAxeUse = System.currentTimeMillis();
+                    mc.thePlayer.inventory.currentItem = rod;
+                    rodTickCound = 0;
+                    macroState = MacroState.THROW_ROD;
                 }
-                if (blockAbove.getBlock() == Blocks.sapling) {
-                    RotationUtils.smoothLook(RotationUtils.getRotation(new Vec3(dirt.xCoord + 0.5, dirt.yCoord + y + 0.5, dirt.zCoord + 0.5)), May2BeezQoL.config.cameraSpeed);
-                    Thread.sleep(new Random().nextInt(50) + 100);
-                    leftClick();
+                return;
+            case THROW_ROD:
+                rodTickCound++;
+                if(rodTickCound >= May2BeezQoL.config.foragingDelay / 20) {
+                    KeyBinding.onTick(mc.gameSettings.keyBindUseItem.getKeyCode());
+                    rodTickCound = 0;
+                    throwBreakTickCount = 0;
+                    macroState = MacroState.THROW_BREAK_DELAY;
                 }
-            }
-        }
-        if (May2BeezQoL.config.foragingUseRod) {
-            Minecraft.getMinecraft().thePlayer.inventory.currentItem = findItemInHotbar("Rod");
-            Thread.sleep(new Random().nextInt(50) + May2BeezQoL.config.foragingDelay);
-            rightClick();
-        }
-        Thread.sleep(new Random().nextInt(50) + May2BeezQoL.config.foragingDelay);
-    }
-    private ArrayList<Vec3> getAllDirts(boolean onlyAir) {
-        int r = 5;
-        BlockPos playerPos = Minecraft.getMinecraft().thePlayer.getPosition();
-        playerPos.add(0, 1, 0);
-        Vec3i vec3i = new Vec3i(r, 0, r);
-        ArrayList<Tuple<Double, Vec3>> dirts = new ArrayList<>();
-        for (BlockPos blockPos : BlockPos.getAllInBox(playerPos.add(vec3i), playerPos.subtract(vec3i))) {
-            IBlockState blockState = Minecraft.getMinecraft().theWorld.getBlockState(blockPos);
-            IBlockState blockState2 = Minecraft.getMinecraft().theWorld.getBlockState(blockPos.add(0, 1, 0));
-            if ((blockState.getBlock() == Blocks.grass || blockState.getBlock() == Blocks.dirt)) {
-                if (onlyAir && blockState2.getBlock() != Blocks.air) {
-                    continue;
+                return;
+            case THROW_BREAK_DELAY:
+                throwBreakTickCount++;
+                if(throwBreakTickCount >= May2BeezQoL.config.foragingDelay / 20) {
+                    throwBreakTickCount = 0;
+                    macroState = MacroState.BREAK;
                 }
-                Vec3 vec = new Vec3(blockPos.getX(), blockPos.getY(), blockPos.getZ());
-                dirts.add(new Tuple<>(vec.distanceTo(Minecraft.getMinecraft().thePlayer.getPositionVector()), vec));
-            }
+                return;
+            case BREAK:
+                int treecapitator = SkyblockUtils.findItemInHotbar("Treecapitator");
+                if (treecapitator == -1) {
+                    LogUtils.addMessage("No Treecapitator found in hotbar!", EnumChatFormatting.RED);
+                    toggle();
+                    return;
+                }
+                mc.thePlayer.inventory.currentItem = treecapitator;
+                KeyBinding.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), true);
+                BlockPos logPos = mc.objectMouseOver.getBlockPos();
+                if(logPos != null && !(mc.theWorld.getBlockState(logPos).getBlock() instanceof BlockLog)) {
+                    KeyBinding.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), false);
+                    cycleTickCount = 0;
+                    macroState = MacroState.SWITCH;
+                }
+                return;
+            case SWITCH:
+                cycleTickCount++;
+                if(cycleTickCount >= 25) {
+                    cycleTickCount = 0;
+                    macroState = MacroState.LOOK;
+                }
         }
-        dirts.sort(Comparator.comparingDouble(Tuple::getFirst));
-        ArrayList<Vec3> newDirts = dirts.stream().map(Tuple::getSecond).collect(Collectors.toCollection(ArrayList::new));
-        Collections.reverse(newDirts);
-        return newDirts;
-    }
 
-    private static void playAlert() {
-        Minecraft.getMinecraft().thePlayer.playSound("random.orb", 1, 0.5F);
+        if (lastState != macroState) {
+            lastState = macroState;
+            stuckTimer.reset();
+        }
     }
 
 }

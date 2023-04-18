@@ -1,21 +1,25 @@
 package com.May2Beez.modules.player;
 
 import com.May2Beez.May2BeezQoL;
+import com.May2Beez.mixins.accessors.RendererLivingEntityAccessor;
 import com.May2Beez.modules.Module;
 import com.May2Beez.utils.LocationUtils;
 import com.May2Beez.utils.RenderUtils;
 import com.May2Beez.utils.SkyblockUtils;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.model.ModelBase;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.entity.monster.EntityCreeper;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.EnumDyeColor;
 import net.minecraft.tileentity.TileEntityChest;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
+import net.minecraft.util.StringUtils;
 import net.minecraftforge.client.event.RenderLivingEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
@@ -49,51 +53,125 @@ public class ESP extends Module {
     }
 
     @SubscribeEvent
-    public void onRenderWorldLastMobESP(RenderWorldLastEvent event) {
+    public void onRenderMob(RenderLivingEvent.Pre<EntityLivingBase> event) {
         if (mc.theWorld == null || mc.thePlayer == null) return;
         if (!May2BeezQoL.config.mobEsp) return;
 
-        List<Entity> entities = mc.theWorld.loadedEntityList.stream().filter(entity -> entity instanceof EntityArmorStand).collect(Collectors.toList());
+        Entity entity = event.entity;
 
-        for (Entity entity : entities) {
-            if (!entity.hasCustomName()) continue;
+        if (!entity.hasCustomName()) return;
 
-            if (entity instanceof EntityArmorStand) {
-                EntityArmorStand stand = (EntityArmorStand) entity;
+        if (entity instanceof EntityArmorStand) {
+            EntityArmorStand stand = (EntityArmorStand) entity;
+            if (!StringUtils.stripControlCodes(entity.getCustomNameTag()).startsWith("[Lv")) return;
 
-                if (stand.getCustomNameTag().contains("Scatha") || stand.getCustomNameTag().contains("Worm")) {
-                    RenderUtils.drawBlockBox(new AxisAlignedBB(stand.posX - 0.5D,
-                            stand.posY - 0.5D,
-                            stand.posZ - 0.5D,
-                            stand.posX + 0.5D,
-                            stand.posY + 0.5D,
-                            stand.posZ + 0.5D), May2BeezQoL.config.espColor.toJavaColor(), 2);
+            if (stand.getCustomNameTag().contains("Scatha") || stand.getCustomNameTag().contains("Worm")) {
+                RenderUtils.drawBlockBox(new AxisAlignedBB(stand.posX - 0.5D,
+                        stand.posY - 0.5D,
+                        stand.posZ - 0.5D,
+                        stand.posX + 0.5D,
+                        stand.posY + 0.5D,
+                        stand.posZ + 0.5D), May2BeezQoL.config.espColor.toJavaColor(), 2);
 
-                    if (SkyblockUtils.entityIsNotVisible(stand) && May2BeezQoL.config.drawMobNames) {
-                        RenderUtils.drawText(stand.getName(), stand.posX, stand.posY + stand.height + 1, stand.posZ);
-                    }
-
-                    continue;
+                if (SkyblockUtils.entityIsNotVisible(stand) && May2BeezQoL.config.drawMobNames) {
+                    RenderUtils.drawText(stand.getName(), stand.posX, stand.posY + stand.height + 1, stand.posZ);
                 }
 
-                Entity target = SkyblockUtils.getEntityCuttingOtherEntity(stand, null);
+                return;
+            }
 
-                if (target == null) continue;
+            Entity target = SkyblockUtils.getEntityCuttingOtherEntity(stand, null);
 
-                if (target instanceof EntityPlayerMP) {
-                    if (((EntityPlayerMP) target).ping == 1) continue;
+            if (target == null) return;
+
+            if (target instanceof EntityPlayerMP) {
+                if (((EntityPlayerMP) target).ping == 1) return;
+            }
+
+            System.out.println("Target: " + target.getName() + " " + (target instanceof EntityLivingBase));
+            if (!(target instanceof EntityLivingBase)) return;
+            EntityLivingBase living = (EntityLivingBase) target;
+            if (living.getHealth() > 0) {
+
+                ModelBase model = ((RendererLivingEntityAccessor) (mc.getRenderManager().getEntityRenderObject(target))).getMainModel();
+
+                RenderUtils.drawEntityESP((EntityLivingBase) target, model, May2BeezQoL.config.espColor.toJavaColor(), 1.0f);
+                if (SkyblockUtils.entityIsNotVisible(target) && May2BeezQoL.config.drawMobNames) {
+                    RenderUtils.drawText(stand.getName(), target.posX, target.posY + target.height + 1, target.posZ);
                 }
+            }
+        }
+    }
 
-                if (SkyblockUtils.isNPC(target)) continue;
+//    @SubscribeEvent
+//    public void onRenderWorldLastMobESP(RenderWorldLastEvent event) {
+//        if (mc.theWorld == null || mc.thePlayer == null) return;
+//        if (!May2BeezQoL.config.mobEsp) return;
+//
+//        List<Entity> entities = mc.theWorld.loadedEntityList.stream().filter(entity -> entity instanceof EntityArmorStand).collect(Collectors.toList());
+//
+//        for (Entity entity : entities) {
+//            if (!entity.hasCustomName()) continue;
+//
+//            if (entity instanceof EntityArmorStand) {
+//                EntityArmorStand stand = (EntityArmorStand) entity;
+//
+//                if (stand.getCustomNameTag().contains("Scatha") || stand.getCustomNameTag().contains("Worm")) {
+//                    RenderUtils.drawBlockBox(new AxisAlignedBB(stand.posX - 0.5D,
+//                            stand.posY - 0.5D,
+//                            stand.posZ - 0.5D,
+//                            stand.posX + 0.5D,
+//                            stand.posY + 0.5D,
+//                            stand.posZ + 0.5D), May2BeezQoL.config.espColor.toJavaColor(), 2);
+//
+//                    if (SkyblockUtils.entityIsNotVisible(stand) && May2BeezQoL.config.drawMobNames) {
+//                        RenderUtils.drawText(stand.getName(), stand.posX, stand.posY + stand.height + 1, stand.posZ);
+//                    }
+//
+//                    continue;
+//                }
+//
+//                Entity target = SkyblockUtils.getEntityCuttingOtherEntity(stand, null);
+//
+//                if (target == null) continue;
+//
+//                if (target instanceof EntityPlayerMP) {
+//                    if (((EntityPlayerMP) target).ping == 1) continue;
+//                }
+//
+//                if (SkyblockUtils.isNPC(target)) continue;
+//                System.out.println("Target: " + target.getName() + " " + (target instanceof EntityLivingBase));
+//                if (!(target instanceof EntityLivingBase)) continue;
+//
+//                if (((EntityLivingBase) target).getHealth() > 0) {
+//
+//                    ModelBase model = ((RendererLivingEntityAccessor) (mc.getRenderManager().getEntityRenderObject(target))).getMainModel();
+//
+//                    RenderUtils.drawEntityESP((EntityLivingBase) target, model, May2BeezQoL.config.espColor.toJavaColor(), event.partialTicks);
+//                    if (SkyblockUtils.entityIsNotVisible(target) && May2BeezQoL.config.drawMobNames) {
+//                        RenderUtils.drawText(stand.getName(), target.posX, target.posY + target.height + 1, target.posZ);
+//                    }
+//                }
+//            }
+//        }
+//    }
 
-                if (SkyblockUtils.getMobHp(stand) > 0) {
+    @SubscribeEvent
+    public void onRenderWorldLastPlayerESP(RenderWorldLastEvent event) {
+        if (mc.theWorld == null || mc.thePlayer == null) return;
+        if(!May2BeezQoL.config.playerEsp) return;
 
-                    RenderUtils.drawEntityBox(target, May2BeezQoL.config.espColor.toJavaColor(), 2, event.partialTicks);
+        List<EntityPlayer> players = mc.theWorld.playerEntities;
 
-                    if (SkyblockUtils.entityIsNotVisible(target) && May2BeezQoL.config.drawMobNames) {
-                        RenderUtils.drawText(stand.getName(), target.posX, target.posY + target.height + 1, target.posZ);
-                    }
-                }
+        for (EntityPlayer player : players) {
+            if (player == mc.thePlayer) continue;
+            if (SkyblockUtils.isNPC(player)) continue;
+            if (player.getDistanceToEntity(mc.thePlayer) > 50) continue;
+            ModelBase model = ((RendererLivingEntityAccessor) (mc.getRenderManager().getEntityRenderObject(player))).getMainModel();
+
+            RenderUtils.drawEntityESP(player, model, May2BeezQoL.config.playerEspColor.toJavaColor(), event.partialTicks);
+            if (SkyblockUtils.entityIsNotVisible(player)) {
+                RenderUtils.drawText(player.getName(), player.posX, player.posY + player.height + 1, player.posZ);
             }
         }
     }
@@ -120,6 +198,8 @@ public class ESP extends Module {
                 .collect(Collectors.toList());
 
         for (BlockPos pos : chests) {
+
+            TileEntityChest chest = (TileEntityChest) mc.theWorld.getTileEntity(pos);
 
             // check if chest is a double chest
             if (mc.theWorld.getBlockState(pos.add(1, 0, 0)).getBlock() == Blocks.chest || mc.theWorld.getBlockState(pos.add(1, 0, 0)).getBlock() == Blocks.trapped_chest) {

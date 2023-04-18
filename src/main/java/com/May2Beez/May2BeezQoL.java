@@ -182,18 +182,15 @@ public class May2BeezQoL
 
         modules.add(new MithrilMiner());
         modules.add(new ForagingMacro());
-//        modules.add(new Nuker());
-        modules.add(new FarmingMacro());
         modules.add(new CustomItemMacro());
         modules.add(new PowderChest());
         modules.add(new FishingMacro());
         modules.add(new AOTVMacro());
         modules.add(mobKiller);
         modules.add(new ESP());
-//        modules.add(new WorldScanner());
-//        modules.add(new AspectOfTheVoid());
         modules.add(new Debug());
         modules.add(new VisitorsMacro());
+        modules.add(new AutoClicker());
 
 
         for (Module m : modules)

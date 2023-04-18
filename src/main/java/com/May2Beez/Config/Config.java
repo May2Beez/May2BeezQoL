@@ -16,12 +16,11 @@ import com.May2Beez.hud.NextVisitorHUD;
 public class Config extends cc.polyfrost.oneconfig.config.Config {
 
     private transient static final String MITHRIL_MINER = "Mithril Miner";
-    private transient static final String GHOST_GRINDER = "Ghost Grinder";
-    private transient static final String FARMING_MACRO = "Farming Macro";
     private transient static final String FORAGING_MACRO = "Foraging Macro";
     private transient static final String FISHING = "Fishing Macro";
     private transient static final String MINING = "Mining";
     private transient static final String AOTV_MACRO = "AOTV Macro";
+    private transient static final String COMBAT = "Combat";
     private transient static final String MOB_KILLER = "Mob Killer";
     private transient static final String ESP = "ESP";
     private transient static final String FAILSAFES = "FailSafes";
@@ -100,62 +99,18 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 
     //endregion
 
-    //region Ghost Grinder
-//    @Slider(name = "Line width", category = GHOST_GRINDER, min = 1, max = 10)
-//    public int lineWidth = 2;
-//
-//    @Slider(name = "Radius", category = GHOST_GRINDER, max = 100, min = 0.0F)
-//    public int radius = 15;
-//
-//    @Slider(name = "Click delay", category = GHOST_GRINDER, min = 1, max = 20)
-//    public int clickDelay = 5;
-
-    //endregion
-
-    //region Farming Macro
-    @Text(name = "Left coordinates", category = FARMING_MACRO)
-    public String leftWall = "0.0";
-
-    @Text(name = "Right coordinates", category = FARMING_MACRO)
-    public String rightWall = "0.0";
-
-    @Slider(name = "Amount of ms to move forward", description = "Set 0 to move only left/right", category = FARMING_MACRO, max = 5000, step = 100, min = 0.0F)
-    public int forwardMs = 0;
-
-    @Dropdown(name = "Check X or Z", category = FARMING_MACRO, options = {"X", "Z"})
-    public int XorZindex = 0;
-
-    @Dropdown(name = "Set yaw rotation", category = FARMING_MACRO, options = {"Disable", "0", "45", "90", "135", "180", "-45", "-90", "-135", "-180"})
-    public int lookingDirection = 0;
-
-    @Checkbox(name = "Use BACK instead of RIGHT", category = FARMING_MACRO)
-    public boolean backInsteadOfRight = false;
-
-    //endregion
-
     //region Foraging Macro
 
     @Switch(name = "Use Fishing Rod", category = FORAGING_MACRO)
     public boolean foragingUseRod = false;
 
-    @Switch(name = "Use normal Bone Meal, instead of Enchanted", category = FORAGING_MACRO)
-    public boolean normalBoneMeal = false;
-
-    @Number(name = "Monkey Pet LVL", category = FORAGING_MACRO, size = 2, min = 0, max = 100)
-    public int monkeyLVL = 0;
-
     @Slider(name = "Foraging Macro Delay", category = FORAGING_MACRO, max = 500, min = 0.0F)
     public int foragingDelay = 0;
-
-    @Slider(name = "Foraging Macro Pre Rod Delay", category = FORAGING_MACRO, max = 500, min = 0.0F)
-    public int preRodDelay = 0;
-
-    @Slider(name = "Max idle", category = FORAGING_MACRO, max = 60, min = 0.0F)
-    public int maxIdleTicks = 0;
+    @Slider(name = "Stuck timeout", category = FORAGING_MACRO, max = 5000, min = 0.0F)
+    public int stuckTimeout = 0;
 
     @HUD(name = "Foraging Macro Info", category = FORAGING_MACRO)
     public ForagingHUD foragingMacroInfo = new ForagingHUD();
-
 
     //endregion
 
@@ -231,29 +186,44 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 
     //region MobKiller
 
-    @Slider(min = 1, max = 30, name = "Mob Killer scan range", category = MOB_KILLER)
+    @Slider(min = 1, max = 30, name = "Mob Killer scan range", category = COMBAT, subcategory = MOB_KILLER)
     public int mobKillerScanRange = 10;
 
-    @Slider(name = "Mob Killer camera speed in ms", category = MOB_KILLER, max = maxCameraSpeedMS, min = 0.0F)
+    @Slider(name = "Mob Killer camera speed in ms", category = COMBAT, subcategory = MOB_KILLER, max = maxCameraSpeedMS, min = 0.0F)
     public int mobKillerCameraSpeed = 120;
 
-    @Slider(name = "Delay between attacks", category = MOB_KILLER, min = 100, max = 500)
+    @Slider(name = "Delay between attacks", category = COMBAT, subcategory = MOB_KILLER, min = 100, max = 500)
     public int mobKillerAttackDelay = 250;
 
-    @Switch(name = "Use Hyperion under player", category = MOB_KILLER)
+    @Switch(name = "Use Hyperion under player", category = COMBAT, subcategory = MOB_KILLER)
     public boolean useHyperionUnderPlayer = false;
 
-    @Dropdown(name = "Button to attack with", description = "Doesn't override 'Use Hyperion under player'", category = MOB_KILLER, options = {"Left", "Right"})
+    @Dropdown(name = "Button to attack with", description = "Doesn't override 'Use Hyperion under player'", category = COMBAT, subcategory = MOB_KILLER, options = {"Left", "Right"})
     public int attackButton = 0;
 
-    @Text(name = "Custom item to kill", description = "Leave empty for default weapons", category = MOB_KILLER, size = 2)
+    @Text(name = "Custom item to kill", description = "Leave empty for default weapons", category = COMBAT, subcategory = MOB_KILLER, size = 2)
     public String customItemToKill = "";
 
-    @Text(name = "Mob's names to kill", category = MOB_KILLER, size = 2)
+    @Text(name = "Mob's names to kill", category = COMBAT, subcategory = MOB_KILLER, size = 2)
     public String mobsNames = "";
 
-    @HUD(name = "Target info", category = MOB_KILLER)
+    @HUD(name = "Target info", category = COMBAT, subcategory = MOB_KILLER)
     public MobKillerHUD mobKillerHUD = new MobKillerHUD();
+
+    @Switch(name = "Left Click", category = COMBAT, subcategory = "Auto Clicker")
+    public boolean leftClick = false;
+
+    @Switch(name = "Right Click", category = COMBAT, subcategory = "Auto Clicker")
+    public boolean rightClick = false;
+
+    @Slider(name = "Left Click Min CPS", category = COMBAT, subcategory = "Auto Clicker", min = 1, max = 20, step = 1)
+    public int leftClickMinCPS = 10;
+
+    @Slider(name = "Left Click Max CPS", category = COMBAT, subcategory = "Auto Clicker", min = 1, max = 20, step = 1)
+    public int leftClickMaxCPS = 10;
+
+    @Slider(name = "Right Click Delay", category = COMBAT, subcategory = "Auto Clicker", min = 100, max = 3000, step = 100)
+    public int rightClickDelay = 1000;
 
     //endregion
 
@@ -267,6 +237,12 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 
     @Switch(name = "Draw ESP mob names", category = ESP, size = 2)
     public boolean drawMobNames = true;
+
+    @Switch(name = "Draw ESP around player", category = ESP)
+    public boolean playerEsp = true;
+
+    @Color(name = "Player ESP color", category = ESP)
+    public OneColor playerEspColor = new OneColor(255, 0, 0, 120);
 
     @Switch(name = "Draw ESP around chests", category = ESP)
     public boolean chestEsp = true;
@@ -285,7 +261,6 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 
     @Slider(name = "ESP range", category = ESP, max = 40, min = 0.0F)
     public int espRange = 10;
-
 
     //endregion
 
@@ -306,9 +281,6 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
     //endregion
 
     //region GARDEN
-
-    @Switch(name = "Highlight desk position", subcategory = VISITORS_MACRO, category = GARDEN)
-    public boolean highlightDeskPosition = true;
 
     @HUD(name = "Visitor info", subcategory = VISITORS_MACRO, category = GARDEN)
     public NextVisitorHUD visitorHUD = new NextVisitorHUD();
@@ -354,9 +326,6 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 
     @Switch(name = "Auto Sprint", category = OTHER_OPTIONS, subcategory = "Skyblock")
     public boolean autoSprint = true;
-
-//    @HUD(name = "Looking at mob HUD", category = OTHER_OPTIONS, subcategory = "Skyblock")
-//    public LookingAtMobHUD lookingAtMobHUD = new LookingAtMobHUD();
 
     //endregion
 
