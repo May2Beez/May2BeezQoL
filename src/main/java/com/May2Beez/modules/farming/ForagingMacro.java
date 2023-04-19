@@ -164,7 +164,6 @@ public class ForagingMacro extends Module {
 
         if (!RotationUtils.done) return;
 
-
         if (stuck) {
             Vec3 closest = null;
             Vec3 player = new Vec3(mc.thePlayer.posX, mc.thePlayer.posY + mc.thePlayer.eyeHeight, mc.thePlayer.posZ);
@@ -196,6 +195,7 @@ public class ForagingMacro extends Module {
                 RotationUtils.smoothLook(RotationUtils.getRotation(closest), 125);
             } else {
                 stuck = false;
+                KeyBinding.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), false);
                 stuckTimer.reset();
             }
             return;
