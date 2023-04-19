@@ -3,16 +3,14 @@ package com.May2Beez.modules.farming;
 import com.May2Beez.May2BeezQoL;
 import com.May2Beez.modules.Module;
 import com.May2Beez.utils.*;
+import com.May2Beez.utils.Timer;
 import com.google.common.base.Splitter;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockLog;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.init.Blocks;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.EnumChatFormatting;
-import net.minecraft.util.StringUtils;
-import net.minecraft.util.Vec3;
+import net.minecraft.util.*;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
@@ -34,7 +32,7 @@ public class ForagingMacro extends Module {
 
     private enum MacroState {
         LOOK, PLACE, PLACE_BONE, BREAK, FIND_ROD, FIND_BONE, THROW_ROD, THROW_BREAK_DELAY, SWITCH
-    };
+    }
 
     private static MacroState macroState = MacroState.LOOK;
     private static MacroState lastState = null;
@@ -104,7 +102,7 @@ public class ForagingMacro extends Module {
     private static final Splitter SPACE_SPLITTER = Splitter.on("  ").omitEmptyStrings().trimResults();
     private static final Pattern SKILL_PATTERN = Pattern.compile("\\+([\\d.]+)\\s+([A-Za-z]+)\\s+\\((\\d+(\\.\\d+)?)%\\)");
 
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    @SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)
     public void onClientChatReceivedEvent(ClientChatReceivedEvent event) {
         if (!isToggled()) return;
         if (event.type != 2) return;
@@ -121,9 +119,8 @@ public class ForagingMacro extends Module {
                 String skillName = matcher.group(2);
                 String percentage = matcher.group(3);
                 if (skillName.equalsIgnoreCase("foraging")) {
-                    earnedXp += Double.parseDouble(addedXp);
+                    earnedXp += Double.parseDouble(addedXp) * 8;
                 }
-                return;
             }
         }
     }
@@ -181,32 +178,27 @@ public class ForagingMacro extends Module {
                     }
                 }
             }
-            if(closest != null) {
-                int treecapitator = SkyblockUtils.findItemInHotbar("Treecapitator");
-                if (treecapitator == -1) {
-                    LogUtils.addMessage("No Treecapitator found in hotbar!", EnumChatFormatting.RED);
-                    toggle();
-                    return;
-                }
-                mc.thePlayer.inventory.currentItem = treecapitator;
-                RotationUtils.smoothLook(RotationUtils.getRotation(closest), 125);
-                if (!RotationUtils.IsDiffLowerThan(0.1f)) {
-                    return;
-                }
-                KeyBinding.onTick(mc.gameSettings.keyBindUseItem.getKeyCode());
-            } else {
-                int treecapitator = SkyblockUtils.findItemInHotbar("Treecapitator");
-                if (treecapitator == -1) {
-                    LogUtils.addMessage("No Treecapitator found in hotbar!", EnumChatFormatting.RED);
-                    toggle();
-                    return;
-                }
-                mc.thePlayer.inventory.currentItem = treecapitator;
-                KeyBinding.onTick(mc.gameSettings.keyBindUseItem.getKeyCode());
-                stuck = false;
-                stuckTimer.reset();
+            int treecapitator = SkyblockUtils.findItemInHotbar("Treecapitator");
+            if (treecapitator == -1) {
+                LogUtils.addMessage("No Treecapitator found in hotbar!", EnumChatFormatting.RED);
+                toggle();
                 return;
             }
+
+            mc.thePlayer.inventory.currentItem = treecapitator;
+
+            MovingObjectPosition mop = mc.objectMouseOver;
+
+            boolean shouldBreak = mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK && !mc.theWorld.getBlockState(mop.getBlockPos()).getBlock().equals(Blocks.dirt);
+            KeyBinding.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), shouldBreak);
+
+            if(closest != null) {
+                RotationUtils.smoothLook(RotationUtils.getRotation(closest), 125);
+            } else {
+                stuck = false;
+                stuckTimer.reset();
+            }
+            return;
         }
 
         if (stuckTimer.hasReached(May2BeezQoL.config.stuckTimeout)) {
@@ -249,7 +241,10 @@ public class ForagingMacro extends Module {
             case PLACE_BONE:
                 boneTickCount++;
                 if(boneTickCount >= May2BeezQoL.config.foragingDelay / 20) {
-                    KeyBinding.onTick(mc.gameSettings.keyBindUseItem.getKeyCode());
+                    MovingObjectPosition mop = mc.objectMouseOver;
+                    if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK && mc.theWorld.getBlockState(mop.getBlockPos()).getBlock().equals(Blocks.sapling)) {
+                        KeyBinding.onTick(mc.gameSettings.keyBindUseItem.getKeyCode());
+                    }
                     boneTickCount = 0;
                     findRodTickCount = 0;
                     if(May2BeezQoL.config.foragingUseRod) {
