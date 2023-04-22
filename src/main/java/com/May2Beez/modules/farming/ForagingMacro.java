@@ -37,12 +37,6 @@ public class ForagingMacro extends Module {
     private static MacroState macroState = MacroState.LOOK;
     private static MacroState lastState = null;
 
-    private int boneTickCount = 0;
-    private int findRodTickCount = 0;
-    private int rodTickCound = 0;
-    private int throwBreakTickCount = 0;
-    private int cycleTickCount = 0;
-
     public static Vec3 bestDirt;
 
     public static boolean running = false;
@@ -60,11 +54,6 @@ public class ForagingMacro extends Module {
         running = true;
         bestDirt = null;
         macroState = MacroState.LOOK;
-        cycleTickCount = 0;
-        boneTickCount = 0;
-        findRodTickCount = 0;
-        rodTickCound = 0;
-        throwBreakTickCount = 0;
         startedAt = System.currentTimeMillis();
         earnedXp = 0;
         stuckTimer.reset();
@@ -81,6 +70,8 @@ public class ForagingMacro extends Module {
     }
 
     private static final Timer updateXpTimer = new Timer();
+    private static final Timer waitTimer = new Timer();
+    private static final Timer waitAfterFinishTimer = new Timer();
     private static double xpPerHour = 0;
 
     public static String[] drawFunction() {
@@ -236,18 +227,16 @@ public class ForagingMacro extends Module {
                     return;
                 }
                 mc.thePlayer.inventory.currentItem = boneMeal;
-                boneTickCount = 0;
                 macroState = MacroState.PLACE_BONE;
+                waitTimer.reset();
                 return;
             case PLACE_BONE:
-                boneTickCount++;
-                if(boneTickCount >= May2BeezQoL.config.foragingDelay / 20) {
+                if(waitTimer.hasReached(May2BeezQoL.config.foragingDelay)) {
                     MovingObjectPosition mop = mc.objectMouseOver;
                     if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK && mc.theWorld.getBlockState(mop.getBlockPos()).getBlock().equals(Blocks.sapling)) {
                         KeyBinding.onTick(mc.gameSettings.keyBindUseItem.getKeyCode());
                     }
-                    boneTickCount = 0;
-                    findRodTickCount = 0;
+                    waitTimer.reset();
                     if(May2BeezQoL.config.foragingUseRod) {
                         macroState = MacroState.FIND_ROD;
                     } else {
@@ -256,8 +245,7 @@ public class ForagingMacro extends Module {
                 }
                 return;
             case FIND_ROD:
-                findRodTickCount++;
-                if(findRodTickCount >= May2BeezQoL.config.foragingDelay / 20) {
+                if(waitTimer.hasReached(May2BeezQoL.config.foragingDelay)) {
                     int rod = InventoryUtils.findItemInHotbar("Rod");
                     if (rod == -1) {
                         LogUtils.addMessage("No Fishing Rod found in hotbar!", EnumChatFormatting.RED);
@@ -265,23 +253,20 @@ public class ForagingMacro extends Module {
                         return;
                     }
                     mc.thePlayer.inventory.currentItem = rod;
-                    rodTickCound = 0;
+                    waitTimer.reset();
                     macroState = MacroState.THROW_ROD;
                 }
                 return;
             case THROW_ROD:
-                rodTickCound++;
-                if(rodTickCound >= May2BeezQoL.config.foragingDelay / 20) {
+                if(waitTimer.hasReached(May2BeezQoL.config.foragingDelay)) {
                     KeyBinding.onTick(mc.gameSettings.keyBindUseItem.getKeyCode());
-                    rodTickCound = 0;
-                    throwBreakTickCount = 0;
+                    waitTimer.reset();
                     macroState = MacroState.THROW_BREAK_DELAY;
                 }
                 return;
             case THROW_BREAK_DELAY:
-                throwBreakTickCount++;
-                if(throwBreakTickCount >= May2BeezQoL.config.foragingDelay / 20) {
-                    throwBreakTickCount = 0;
+                if(waitTimer.hasReached(May2BeezQoL.config.foragingDelay)) {
+                    waitTimer.reset();
                     macroState = MacroState.BREAK;
                 }
                 return;
@@ -297,14 +282,12 @@ public class ForagingMacro extends Module {
                 BlockPos logPos = mc.objectMouseOver.getBlockPos();
                 if(logPos != null && !(mc.theWorld.getBlockState(logPos).getBlock() instanceof BlockLog)) {
                     KeyBinding.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), false);
-                    cycleTickCount = 0;
+                    waitAfterFinishTimer.reset();
                     macroState = MacroState.SWITCH;
                 }
                 return;
             case SWITCH:
-                cycleTickCount++;
-                if(cycleTickCount >= 25) {
-                    cycleTickCount = 0;
+                if(waitAfterFinishTimer.hasReached(May2BeezQoL.config.foragingWaitAfter)) {
                     macroState = MacroState.LOOK;
                 }
         }

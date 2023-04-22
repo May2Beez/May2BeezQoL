@@ -107,9 +107,13 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
     @Switch(name = "Use Fishing Rod", category = FORAGING_MACRO)
     public boolean foragingUseRod = false;
 
-    @Slider(name = "Foraging Macro Delay", category = FORAGING_MACRO, max = 500, min = 0.0F)
-    public int foragingDelay = 0;
-    @Slider(name = "Stuck timeout", category = FORAGING_MACRO, max = 5000, min = 0.0F)
+    @Slider(name = "Foraging Macro Delay", category = FORAGING_MACRO, max = 500, min = 0.0F, step = 10)
+    public int foragingDelay = 50;
+
+    @Slider(name = "Foraging Macro Wait After", category = FORAGING_MACRO, max = 1000, min = 0.0F, step = 20)
+    public int foragingWaitAfter = 500;
+
+    @Slider(name = "Stuck timeout", category = FORAGING_MACRO, max = 2500, min = 0.0F, step = 100)
     public int stuckTimeout = 1500;
 
     @Dropdown(name = "Fill Chest With Sapling Type", category = FORAGING_MACRO, options = {"Spruce","Jungle", "Dark Oak"})
