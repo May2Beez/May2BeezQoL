@@ -110,7 +110,7 @@ public class ForagingMacro extends Module {
                 String skillName = matcher.group(2);
                 String percentage = matcher.group(3);
                 if (skillName.equalsIgnoreCase("foraging")) {
-                    earnedXp += Double.parseDouble(addedXp) * 8;
+                    earnedXp += Double.parseDouble(addedXp) * 6.5;
                 }
             }
         }
@@ -229,7 +229,7 @@ public class ForagingMacro extends Module {
                 mc.thePlayer.inventory.currentItem = boneMeal;
                 macroState = MacroState.PLACE_BONE;
                 waitTimer.reset();
-                return;
+                break;
             case PLACE_BONE:
                 if(waitTimer.hasReached(May2BeezQoL.config.foragingDelay)) {
                     MovingObjectPosition mop = mc.objectMouseOver;
@@ -243,39 +243,39 @@ public class ForagingMacro extends Module {
                         macroState = MacroState.THROW_BREAK_DELAY;
                     }
                 }
-                return;
+                break;
             case FIND_ROD:
                 if(waitTimer.hasReached(May2BeezQoL.config.foragingDelay)) {
                     int rod = InventoryUtils.findItemInHotbar("Rod");
                     if (rod == -1) {
                         LogUtils.addMessage("No Fishing Rod found in hotbar!", EnumChatFormatting.RED);
                         toggle();
-                        return;
+                        break;
                     }
                     mc.thePlayer.inventory.currentItem = rod;
                     waitTimer.reset();
                     macroState = MacroState.THROW_ROD;
                 }
-                return;
+                break;
             case THROW_ROD:
                 if(waitTimer.hasReached(May2BeezQoL.config.foragingDelay)) {
                     KeyBinding.onTick(mc.gameSettings.keyBindUseItem.getKeyCode());
                     waitTimer.reset();
                     macroState = MacroState.THROW_BREAK_DELAY;
                 }
-                return;
+                break;
             case THROW_BREAK_DELAY:
                 if(waitTimer.hasReached(May2BeezQoL.config.foragingDelay)) {
                     waitTimer.reset();
                     macroState = MacroState.BREAK;
                 }
-                return;
+                break;
             case BREAK:
                 int treecapitator = InventoryUtils.findItemInHotbar("Treecapitator");
                 if (treecapitator == -1) {
                     LogUtils.addMessage("No Treecapitator found in hotbar!", EnumChatFormatting.RED);
                     toggle();
-                    return;
+                    break;
                 }
                 mc.thePlayer.inventory.currentItem = treecapitator;
                 KeyBinding.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), true);
@@ -285,11 +285,12 @@ public class ForagingMacro extends Module {
                     waitAfterFinishTimer.reset();
                     macroState = MacroState.SWITCH;
                 }
-                return;
+                break;
             case SWITCH:
                 if(waitAfterFinishTimer.hasReached(May2BeezQoL.config.foragingWaitAfter)) {
                     macroState = MacroState.LOOK;
                 }
+                break;
         }
 
         if (lastState != macroState) {
