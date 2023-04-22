@@ -1,6 +1,7 @@
 package com.May2Beez.modules.features;
 
 import com.May2Beez.May2BeezQoL;
+import com.May2Beez.utils.InventoryUtils;
 import com.May2Beez.utils.LogUtils;
 import com.May2Beez.utils.SkyblockUtils;
 import com.May2Beez.utils.Timer;
@@ -55,7 +56,7 @@ public class FuelFilling {
         if (!May2BeezQoL.config.refuelWithAbiphone || mc.thePlayer == null) return;
         if (currentState != states.NONE) return;
 
-        drillSlotIndex = SkyblockUtils.findItemInHotbar("Drill");
+        drillSlotIndex = InventoryUtils.findItemInHotbar("Drill");
 
         if (drillSlotIndex == -1) {
             return;
@@ -100,7 +101,7 @@ public class FuelFilling {
 
             case WAITING: {
                 if (!waitTimer.hasReached(300)) return;
-                int abiphoneIndex = SkyblockUtils.findItemInHotbar("Abiphone");
+                int abiphoneIndex = InventoryUtils.findItemInHotbar("Abiphone");
                 if (abiphoneIndex == -1) {
                     LogUtils.addMessage("Fuel Refuelling - Abiphone not found. Stopping refuel.", EnumChatFormatting.RED);
                     currentState = states.NONE;

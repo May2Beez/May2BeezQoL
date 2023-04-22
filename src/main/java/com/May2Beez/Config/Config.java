@@ -1,17 +1,20 @@
 package com.May2Beez.Config;
 
-import cc.polyfrost.oneconfig.config.annotations.Number;
 import cc.polyfrost.oneconfig.config.annotations.*;
 import cc.polyfrost.oneconfig.config.core.OneColor;
+import cc.polyfrost.oneconfig.config.core.OneKeyBind;
 import cc.polyfrost.oneconfig.config.data.Mod;
 import cc.polyfrost.oneconfig.config.data.ModType;
 import cc.polyfrost.oneconfig.config.data.PageLocation;
+import cc.polyfrost.oneconfig.libs.universal.UKeyboard;
 import com.May2Beez.May2BeezQoL;
 import com.May2Beez.gui.AOTVWaypointsPage;
 import com.May2Beez.hud.ForagingHUD;
 import com.May2Beez.hud.GemstoneProfitHUD;
 import com.May2Beez.hud.MobKillerHUD;
 import com.May2Beez.hud.NextVisitorHUD;
+import com.May2Beez.modules.Module;
+import com.May2Beez.modules.farming.FillChestWithSaplingMacro;
 
 public class Config extends cc.polyfrost.oneconfig.config.Config {
 
@@ -107,7 +110,13 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
     @Slider(name = "Foraging Macro Delay", category = FORAGING_MACRO, max = 500, min = 0.0F)
     public int foragingDelay = 0;
     @Slider(name = "Stuck timeout", category = FORAGING_MACRO, max = 5000, min = 0.0F)
-    public int stuckTimeout = 0;
+    public int stuckTimeout = 1500;
+
+    @Dropdown(name = "Fill Chest With Sapling Type", category = FORAGING_MACRO, options = {"Spruce","Jungle", "Dark Oak"})
+    public int fillChestSaplingType = 0;
+
+    @KeyBind(name = "Fill Chest With Sapling", category = FORAGING_MACRO)
+    public OneKeyBind fillChestSapling = new OneKeyBind(UKeyboard.KEY_NONE);
 
     @HUD(name = "Foraging Macro Info", category = FORAGING_MACRO)
     public ForagingHUD foragingMacroInfo = new ForagingHUD();
@@ -345,5 +354,10 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
         addDependency("holdRotationMS", "solvePowderChestServerRotation");
         addDependency("fuelThreshold", "refuelWithAbiphone");
         addDependency("fuelType", "refuelWithAbiphone");
+
+        registerKeyBind(fillChestSapling, () -> {
+            System.out.println("fillChestSapling");
+            May2BeezQoL.modules.stream().filter(module -> module instanceof FillChestWithSaplingMacro).findFirst().ifPresent(Module::toggle);
+        });
     }
 }

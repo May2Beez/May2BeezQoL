@@ -2,22 +2,22 @@ package com.May2Beez.utils;
 
 import com.mojang.realmsclient.gui.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.EntityOtherPlayerMP;
-import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.client.gui.inventory.GuiChest;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityArmorStand;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.entity.player.InventoryPlayer;
-import net.minecraft.inventory.ContainerChest;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagList;
-import net.minecraft.scoreboard.*;
-import net.minecraft.util.*;
-import org.lwjgl.Sys;
+import net.minecraft.scoreboard.Score;
+import net.minecraft.scoreboard.ScorePlayerTeam;
+import net.minecraft.scoreboard.Scoreboard;
+import net.minecraft.util.BlockPos;
+import net.minecraft.util.MovingObjectPosition;
+import net.minecraft.util.StringUtils;
+import net.minecraft.util.Vec3;
 
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -104,19 +104,6 @@ public class SkyblockUtils {
         }
     }
 
-    public static int findItemInHotbar(String ...name) {
-        InventoryPlayer inv = mc.thePlayer.inventory;
-        for (int i = 0; i < 9; i++) {
-            ItemStack curStack = inv.getStackInSlot(i);
-            if (curStack != null) {
-                if (Arrays.stream(name).anyMatch(curStack.getDisplayName()::contains)) {
-                    return i;
-                }
-            }
-        }
-        return -1;
-    }
-
     public static void swingHand(MovingObjectPosition objectMouseOver) {
         if (objectMouseOver == null) {
             objectMouseOver = mc.objectMouseOver;
@@ -124,13 +111,6 @@ public class SkyblockUtils {
         if (objectMouseOver != null && objectMouseOver.entityHit == null) {
             mc.thePlayer.swingItem();
         }
-    }
-
-    public static String getGuiName(GuiScreen gui) {
-        if(gui instanceof GuiChest) {
-            return ((ContainerChest) ((GuiChest) gui).inventorySlots).getLowerChestInventory().getDisplayName().getUnformattedText();
-        }
-        return "";
     }
 
     public static Entity getEntityCuttingOtherEntity(Entity e, Class<?> entityType) {

@@ -23,7 +23,6 @@ import org.lwjgl.input.Keyboard;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.stream.Collectors;
 
 public class FishingMacro extends Module {
 
@@ -76,7 +75,7 @@ public class FishingMacro extends Module {
         oldBobberPosY = 0.0D;
         killing = true;
         particles.clear();
-        rodSlot = SkyblockUtils.findItemInHotbar("Rod");
+        rodSlot = InventoryUtils.findItemInHotbar("Rod");
         if (rodSlot == -1) {
             LogUtils.addMessage(getName() + " - No rod found in hotbar!", EnumChatFormatting.RED);
             this.toggle();

@@ -9,7 +9,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.lwjgl.input.Keyboard;
 
-import static com.May2Beez.utils.SkyblockUtils.findItemInHotbar;
+import static com.May2Beez.utils.InventoryUtils.findItemInHotbar;
 
 public class CustomItemMacro extends Module {
     private Thread thread;
@@ -30,7 +30,7 @@ public class CustomItemMacro extends Module {
                     working = true;
                     int prevItem = Minecraft.getMinecraft().thePlayer.inventory.currentItem;
                     for (String i : UseCooldown.RCitems.keySet()) {
-                        if (milis % Math.floor(UseCooldown.RCitems.get(i)/100) == 0) {
+                        if (milis % Math.floor(UseCooldown.RCitems.get(i)/100f) == 0) {
                             int slot = findItemInHotbar(i);
                             if (slot != -1) {
                                 Minecraft.getMinecraft().thePlayer.inventory.currentItem = slot;
@@ -39,7 +39,7 @@ public class CustomItemMacro extends Module {
                         }
                     }
                     for (String i : UseCooldown.LCitems.keySet()) {
-                        if (milis % Math.floor(UseCooldown.LCitems.get(i)/100) == 0) {
+                        if (milis % Math.floor(UseCooldown.LCitems.get(i)/100f) == 0) {
                             int slot = findItemInHotbar(i);
                             if (slot != -1) {
                                 Minecraft.getMinecraft().thePlayer.inventory.currentItem = slot;

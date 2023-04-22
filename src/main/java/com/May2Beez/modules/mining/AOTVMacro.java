@@ -79,7 +79,7 @@ public class AOTVMacro extends Module {
 
         BlockPos currentPos = BlockUtils.getPlayerLoc().down();
 
-        int miningTool = SkyblockUtils.findItemInHotbar(miningTools.toArray(new String[0]));
+        int miningTool = InventoryUtils.findItemInHotbar(miningTools.toArray(new String[0]));
 
         if (miningTool == -1) {
             LogUtils.addMessage(getName() + " - You don't have a mining tool!", EnumChatFormatting.RED);
@@ -87,7 +87,7 @@ public class AOTVMacro extends Module {
             return;
         }
 
-        int voidTool = SkyblockUtils.findItemInHotbar("Void");
+        int voidTool = InventoryUtils.findItemInHotbar("Void");
 
         if (voidTool == -1) {
             LogUtils.addMessage(getName() + " - You don't have a Aspect of the Void!", EnumChatFormatting.RED);
@@ -228,7 +228,7 @@ public class AOTVMacro extends Module {
                 return;
             } else if (killing) {
                 killing = false;
-                int miningTool = SkyblockUtils.findItemInHotbar(miningTools.toArray(new String[0]));
+                int miningTool = InventoryUtils.findItemInHotbar(miningTools.toArray(new String[0]));
             }
         }
 
@@ -263,7 +263,7 @@ public class AOTVMacro extends Module {
 
                 if (target != null) {
                     currentState = State.MINING;
-                    int miningTool = SkyblockUtils.findItemInHotbar(miningTools.toArray(new String[0]));
+                    int miningTool = InventoryUtils.findItemInHotbar(miningTools.toArray(new String[0]));
 
                     if (miningTool == -1) {
                         LogUtils.addMessage(getName() + " - You don't have a mining tool!", EnumChatFormatting.RED);
@@ -295,7 +295,7 @@ public class AOTVMacro extends Module {
                 }
 
                 if (mc.thePlayer.getHeldItem() != null && miningTools.stream().noneMatch(name -> mc.thePlayer.getHeldItem().getDisplayName().contains(name))) {
-                    int miningTool = SkyblockUtils.findItemInHotbar("Drill", "Pickaxe", "Gauntlet");
+                    int miningTool = InventoryUtils.findItemInHotbar("Drill", "Pickaxe", "Gauntlet");
                     if (miningTool == -1) {
                         LogUtils.addMessage(getName() + " - You don't have a mining tool!", EnumChatFormatting.RED);
                         this.toggle();
@@ -330,7 +330,7 @@ public class AOTVMacro extends Module {
 
             case WARPING: {
 
-                int voidTool = SkyblockUtils.findItemInHotbar("Void");
+                int voidTool = InventoryUtils.findItemInHotbar("Void");
 
                 if (May2BeezQoL.config.teleportThreshold > 0) {
                     if (!firstTp && !timeBetweenLastWaypoint.hasReached((long) (May2BeezQoL.config.teleportThreshold * 1000))) {
@@ -510,7 +510,7 @@ public class AOTVMacro extends Module {
             } else if (mc.objectMouseOver != null && mc.objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
                 currentDistance = mc.objectMouseOver.getBlockPos().distanceSq(blockPos1.getPos());
             } else {
-                currentDistance = BlockUtils.getPlayerLoc().distanceSq(blockPos1.getPos());;
+                currentDistance = BlockUtils.getPlayerLoc().distanceSq(blockPos1.getPos());
             }
             if (currentDistance < distance) {
                 distance = currentDistance;

@@ -191,6 +191,7 @@ public class May2BeezQoL
         modules.add(new Debug());
         modules.add(new VisitorsMacro());
         modules.add(new AutoClicker());
+        modules.add(new FillChestWithSaplingMacro());
 
 
         for (Module m : modules)

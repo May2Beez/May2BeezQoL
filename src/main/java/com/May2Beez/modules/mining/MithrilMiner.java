@@ -62,7 +62,7 @@ public class MithrilMiner extends Module {
     @Override
     public void onEnable() {
 
-        int miningTool = SkyblockUtils.findItemInHotbar(miningTools.toArray(new String[0]));
+        int miningTool = InventoryUtils.findItemInHotbar(miningTools.toArray(new String[0]));
 
         if (miningTool == -1) {
             LogUtils.addMessage(getName() + " - You don't have a mining tool!", EnumChatFormatting.RED);
@@ -150,7 +150,7 @@ public class MithrilMiner extends Module {
                 if (target != null) {
                     currentState = State.MINING;
 
-                    int miningTool = SkyblockUtils.findItemInHotbar(miningTools.toArray(new String[0]));
+                    int miningTool = InventoryUtils.findItemInHotbar(miningTools.toArray(new String[0]));
 
                     if (miningTool == -1) {
                         LogUtils.addMessage(getName() + " - You don't have a mining tool!", EnumChatFormatting.RED);
@@ -234,7 +234,7 @@ public class MithrilMiner extends Module {
             } else if (mc.objectMouseOver != null && mc.objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
                 currentDistance = mc.objectMouseOver.getBlockPos().distanceSq(blockPos1.getPos());
             } else {
-                currentDistance = BlockUtils.getPlayerLoc().distanceSq(blockPos1.getPos());;
+                currentDistance = BlockUtils.getPlayerLoc().distanceSq(blockPos1.getPos());
             }
             if (currentDistance < distance) {
                 distance = currentDistance;

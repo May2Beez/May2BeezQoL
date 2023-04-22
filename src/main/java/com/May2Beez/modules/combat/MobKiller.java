@@ -249,7 +249,7 @@ public class MobKiller extends Module {
                 }
 
                 if (May2BeezQoL.config.useHyperionUnderPlayer) {
-                    int weapon = SkyblockUtils.findItemInHotbar("Hyperion");
+                    int weapon = InventoryUtils.findItemInHotbar("Hyperion");
 
                     if (weapon == -1) {
                         LogUtils.addMessage(getName() + " - No Hyperion found", EnumChatFormatting.RED);
@@ -280,9 +280,9 @@ public class MobKiller extends Module {
                     int weapon;
 
                     if (!May2BeezQoL.config.customItemToKill.isEmpty()) {
-                        weapon = SkyblockUtils.findItemInHotbar(May2BeezQoL.config.customItemToKill);
+                        weapon = InventoryUtils.findItemInHotbar(May2BeezQoL.config.customItemToKill);
                     } else {
-                        weapon = SkyblockUtils.findItemInHotbar("Juju", "Terminator", "Bow", "Frozen Scythe", "Glacial Scythe");
+                        weapon = InventoryUtils.findItemInHotbar("Juju", "Terminator", "Bow", "Frozen Scythe", "Glacial Scythe");
                     }
 
                     if (weapon == -1) {

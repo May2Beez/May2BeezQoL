@@ -177,7 +177,7 @@ public class ForagingMacro extends Module {
                     }
                 }
             }
-            int treecapitator = SkyblockUtils.findItemInHotbar("Treecapitator");
+            int treecapitator = InventoryUtils.findItemInHotbar("Treecapitator");
             if (treecapitator == -1) {
                 LogUtils.addMessage("No Treecapitator found in hotbar!", EnumChatFormatting.RED);
                 toggle();
@@ -195,6 +195,7 @@ public class ForagingMacro extends Module {
                 RotationUtils.smoothLook(RotationUtils.getRotation(closest), 125);
             } else {
                 stuck = false;
+                macroState = MacroState.LOOK;
                 KeyBinding.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), false);
                 stuckTimer.reset();
             }
@@ -208,7 +209,7 @@ public class ForagingMacro extends Module {
 
         switch (macroState) {
             case LOOK:
-                int saplingSlot = SkyblockUtils.findItemInHotbar("Sapling");
+                int saplingSlot = InventoryUtils.findItemInHotbar("Sapling");
                 if (saplingSlot == -1) {
                     LogUtils.addMessage("No saplings found in hotbar!", EnumChatFormatting.RED);
                     toggle();
@@ -217,7 +218,7 @@ public class ForagingMacro extends Module {
                 mc.thePlayer.inventory.currentItem = saplingSlot;
                 bestDirt = getDirt();
                 if(bestDirt != null) {
-                    RotationUtils.smoothLook(RotationUtils.getRotation(bestDirt), 125);
+                    RotationUtils.smoothLook(RotationUtils.getRotation(bestDirt), 230);
                     macroState = MacroState.PLACE;
                 } else {
                     macroState = MacroState.FIND_BONE;
@@ -228,7 +229,7 @@ public class ForagingMacro extends Module {
                 macroState = MacroState.LOOK;
                 return;
             case FIND_BONE:
-                int boneMeal = SkyblockUtils.findItemInHotbar("Bone Meal");
+                int boneMeal = InventoryUtils.findItemInHotbar("Bone Meal");
                 if (boneMeal == -1) {
                     LogUtils.addMessage("No Bone Meal found in hotbar!", EnumChatFormatting.RED);
                     toggle();
@@ -257,7 +258,7 @@ public class ForagingMacro extends Module {
             case FIND_ROD:
                 findRodTickCount++;
                 if(findRodTickCount >= May2BeezQoL.config.foragingDelay / 20) {
-                    int rod = SkyblockUtils.findItemInHotbar("Rod");
+                    int rod = InventoryUtils.findItemInHotbar("Rod");
                     if (rod == -1) {
                         LogUtils.addMessage("No Fishing Rod found in hotbar!", EnumChatFormatting.RED);
                         toggle();
@@ -285,7 +286,7 @@ public class ForagingMacro extends Module {
                 }
                 return;
             case BREAK:
-                int treecapitator = SkyblockUtils.findItemInHotbar("Treecapitator");
+                int treecapitator = InventoryUtils.findItemInHotbar("Treecapitator");
                 if (treecapitator == -1) {
                     LogUtils.addMessage("No Treecapitator found in hotbar!", EnumChatFormatting.RED);
                     toggle();
