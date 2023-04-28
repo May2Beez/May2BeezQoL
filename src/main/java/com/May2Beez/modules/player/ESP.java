@@ -88,7 +88,6 @@ public class ESP extends Module {
                 if (((EntityPlayerMP) target).ping == 1) return;
             }
 
-            System.out.println("Target: " + target.getName() + " " + (target instanceof EntityLivingBase));
             if (!(target instanceof EntityLivingBase)) return;
             EntityLivingBase living = (EntityLivingBase) target;
             if (living.getHealth() > 0) {
@@ -166,7 +165,6 @@ public class ESP extends Module {
         for (EntityPlayer player : players) {
             if (player == mc.thePlayer) continue;
             if (SkyblockUtils.isNPC(player)) continue;
-            if (player.getDistanceToEntity(mc.thePlayer) > 50) continue;
             ModelBase model = ((RendererLivingEntityAccessor) (mc.getRenderManager().getEntityRenderObject(player))).getMainModel();
 
             RenderUtils.drawEntityESP(player, model, May2BeezQoL.config.playerEspColor.toJavaColor(), event.partialTicks);
@@ -257,7 +255,7 @@ public class ESP extends Module {
             if (meta == EnumDyeColor.LIME.getMetadata()) {
                 RenderUtils.drawOutline(pos, new Color(Color.green.getRed(), Color.green.getGreen(), Color.green.getBlue(), alpha), 3);
             }
-            if (meta == EnumDyeColor.BLUE.getMetadata()) {
+            if (meta == EnumDyeColor.LIGHT_BLUE.getMetadata()) {
                 RenderUtils.drawOutline(pos, new Color(Color.blue.getRed(), Color.blue.getGreen(), Color.blue.getBlue(), alpha), 3);
             }
         }

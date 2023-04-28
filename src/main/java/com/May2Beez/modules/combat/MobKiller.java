@@ -3,24 +3,21 @@ package com.May2Beez.modules.combat;
 import com.May2Beez.May2BeezQoL;
 import com.May2Beez.modules.Module;
 import com.May2Beez.utils.*;
-import com.May2Beez.utils.Timer;
 import com.May2Beez.utils.structs.Rotation;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityArmorStand;
-import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.EnumChatFormatting;
-import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.StringUtils;
+import net.minecraft.util.Vec3;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.awt.*;
-import java.util.*;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
@@ -48,7 +45,7 @@ public class MobKiller extends Module {
     private final CopyOnWriteArrayList<Target> potentialTargets = new CopyOnWriteArrayList<>();
 
     private static class Target {
-        public EntityLivingBase entity;
+        public Entity entity;
         public EntityArmorStand stand;
         public boolean worm;
         public double distance() {
@@ -58,12 +55,12 @@ public class MobKiller extends Module {
                 return Minecraft.getMinecraft().thePlayer.getDistanceToEntity(stand);
         }
 
-        public Target(EntityLivingBase entity, EntityArmorStand stand) {
+        public Target(Entity entity, EntityArmorStand stand) {
             this.entity = entity;
             this.stand = stand;
         }
 
-        public Target(EntityLivingBase entity, EntityArmorStand stand, boolean worm) {
+        public Target(Entity entity, EntityArmorStand stand, boolean worm) {
             this.entity = entity;
             this.stand = stand;
             this.worm = worm;
@@ -161,12 +158,11 @@ public class MobKiller extends Module {
                 List<Entity> entities = mc.theWorld.loadedEntityList.stream().filter(entity -> entity instanceof EntityArmorStand).filter(entity -> mc.thePlayer.getPositionEyes(1).distanceTo(entity.getPositionVector()) <= scanRange).collect(Collectors.toList());
                 List<Entity> filtered = entities.stream().filter(v -> (!v.getName().contains(mc.thePlayer.getName()) && Arrays.stream(mobsNames).anyMatch(mobsName -> {
                     String mobsName1 = StringUtils.stripControlCodes(mobsName);
-                    String vName = StringUtils.stripControlCodes(v.getName());
                     String vCustomNameTag = StringUtils.stripControlCodes(v.getCustomNameTag());
                     if (caseSensitive) {
-                        return vName.contains(mobsName1) || vCustomNameTag.contains(mobsName1);
+                        return vCustomNameTag.contains(mobsName1);
                     } else {
-                        return vName.toLowerCase().contains(mobsName1.toLowerCase()) || vCustomNameTag.toLowerCase().contains(mobsName1.toLowerCase());
+                        return vCustomNameTag.toLowerCase().contains(mobsName1.toLowerCase());
                     }
                 }))).collect(Collectors.toList());
 
@@ -180,59 +176,34 @@ public class MobKiller extends Module {
                     double currentDistance;
                     EntityArmorStand stand = (EntityArmorStand) entity;
 
+                    Target target1;
+                    Entity target;
+
                     if (stand.getCustomNameTag().contains("Scatha") || stand.getCustomNameTag().contains("Worm")) {
-                        Target target1 = new Target(null, stand, true);
+                        target1 = new Target(null, stand, true);
+                        target = stand;
+                    } else {
+                        target = SkyblockUtils.getEntityCuttingOtherEntity(stand, null);
 
-                        if (closestTarget != null) {
-                            currentDistance = stand.getDistanceToEntity(mc.thePlayer);
-                            if (currentDistance < distance) {
-                                distance = currentDistance;
-                                closestTarget = target1;
-                            }
-                        } else {
-                            distance = stand.getDistanceToEntity(mc.thePlayer);
+                        if (target == null) continue;
+                        if (SkyblockUtils.getMobHp(stand) <= 0) continue;
+                        if (SkyblockUtils.entityIsNotVisible(target)) continue;
+
+                        target1 = new Target(target, stand, false);
+                    }
+
+                    if (closestTarget != null) {
+                        currentDistance = target.getDistanceToEntity(mc.thePlayer);
+                        if (currentDistance < distance) {
+                            distance = currentDistance;
                             closestTarget = target1;
                         }
-
-                        potentialTargets.add(target1);
-
-                        continue;
+                    } else {
+                        distance = target.getDistanceToEntity(mc.thePlayer);
+                        closestTarget = target1;
                     }
 
-                    Entity target = SkyblockUtils.getEntityCuttingOtherEntity(stand, null);
-
-                    if (target == null) continue;
-
-                    if (target instanceof EntityPlayerMP) {
-                        if (((EntityPlayerMP) target).ping == 1) continue;
-                    }
-
-                    if (SkyblockUtils.isNPC(target)) continue;
-
-                    if (SkyblockUtils.getMobHp(stand) <= 0) continue;
-
-                    Rotation rotation = RotationUtils.getRotation(target);
-                    MovingObjectPosition ray = RaytracingUtils.raytrace(rotation.yaw, rotation.pitch, scanRange + 5);
-
-                    if (ray == null || ray.typeOfHit != MovingObjectPosition.MovingObjectType.ENTITY || ray.entityHit != target) continue;
-
-                    if (target instanceof EntityLivingBase) {
-
-                        Target target1 = new Target((EntityLivingBase) target, stand);
-
-                        if (closestTarget != null) {
-                            currentDistance = target.getDistanceToEntity(mc.thePlayer);
-                            if (currentDistance < distance) {
-                                distance = currentDistance;
-                                closestTarget = target1;
-                            }
-                        } else {
-                            distance = target.getDistanceToEntity(mc.thePlayer);
-                            closestTarget = target1;
-                        }
-
-                        potentialTargets.add(target1);
-                    }
+                    potentialTargets.add(target1);
                 }
 
                 if (closestTarget != null && closestTarget.distance() < scanRange) {
@@ -242,17 +213,18 @@ public class MobKiller extends Module {
                 break;
             case ATTACKING:
 
-                if (SkyblockUtils.getMobHp(target.stand) <= 0 || target.distance() > scanRange || target.stand == null || (target.entity != null && (target.entity.isDead || target.entity.getHealth() < 0.0))) {
+                if (SkyblockUtils.getMobHp(target.entity) <= 0 || target.distance() > scanRange || target.stand == null || (target.entity != null && (target.entity.isDead))) {
                     currentState = States.KILLED;
                     afterKillDelay.reset();
                     break;
                 }
 
+
                 if (May2BeezQoL.config.useHyperionUnderPlayer) {
                     int weapon = InventoryUtils.findItemInHotbar("Hyperion");
 
                     if (weapon == -1) {
-                        LogUtils.addMessage(getName() + " - No Hyperion found", EnumChatFormatting.RED);
+                        LogUtils.addMessage("MobKiller - No Hyperion found", EnumChatFormatting.RED);
                         return;
                     }
 
@@ -260,17 +232,15 @@ public class MobKiller extends Module {
 
                     if (target.distance() > 5.5) return;
 
+                    if (!RotationUtils.done) return;
 
-                    if (RotationUtils.done)
-                        RotationUtils.smoothLook(new Rotation(mc.thePlayer.rotationYaw, 89), May2BeezQoL.config.mobKillerCameraSpeed);
+                    RotationUtils.smoothLook(new Rotation(mc.thePlayer.rotationYaw, 89), May2BeezQoL.config.mobKillerCameraSpeed);
 
-                    if (RotationUtils.IsDiffLowerThan(0.1f)) {
+                    if (RotationUtils.isDiffLowerThan(0.5f)) {
                         RotationUtils.reset();
                     }
 
-                    if (!RotationUtils.done) return;
-
-                    if (attackDelay.hasReached(May2BeezQoL.config.mobKillerAttackDelay) && target.distance() <= 6) {
+                    if (attackDelay.hasReached(May2BeezQoL.config.mobKillerAttackDelay) && target.distance() < 6) {
                         rightClick();
                         attackDelay.reset();
                     }
@@ -286,50 +256,60 @@ public class MobKiller extends Module {
                     }
 
                     if (weapon == -1) {
-                        LogUtils.addMessage(getName() + " - No weapon found", EnumChatFormatting.RED);
+                        LogUtils.addMessage("MobKiller - No weapon found", EnumChatFormatting.RED);
                         return;
                     }
 
                     mc.thePlayer.inventory.currentItem = weapon;
 
+                    boolean visible;
+                    boolean targeted;
+
                     if (target.worm) {
-                        RotationUtils.smoothLook(RotationUtils.getRotation(target.stand.getPosition()), May2BeezQoL.config.mobKillerCameraSpeed);
+                        visible = !SkyblockUtils.entityIsNotVisible(target.stand);
                     } else {
-                        RotationUtils.smoothLook(RotationUtils.getRotation(target.entity), May2BeezQoL.config.mobKillerCameraSpeed);
+                        visible = !SkyblockUtils.entityIsNotVisible(target.entity);
                     }
 
-                    if (RotationUtils.IsDiffLowerThan(0.1f)) {
-                        RotationUtils.reset();
+                    if (!visible) {
+                        LogUtils.addMessage("MobKiller - Something is blocking target, waiting for free shot...", EnumChatFormatting.RED);
+                        blockedVisionDelay.reset();
+                        currentState = States.BLOCKED_VISION;
+                    } else {
+                        targeted = SkyblockUtils.entityIsTargeted(target.entity);
+                        if (targeted) {
+                            if (attackDelay.hasReached(May2BeezQoL.config.mobKillerAttackDelay)) {
+                                if (May2BeezQoL.config.attackButton == 0) {
+                                    if (target.distance() <= 4.5) {
+                                        leftClick();
+                                    }
+                                } else {
+                                    rightClick();
+                                }
+                                attackDelay.reset();
+                            }
+                        }
                     }
 
                     if (!RotationUtils.done) return;
 
-                    Rotation rotation = RotationUtils.getRotation(target.entity != null ? target.entity : target.stand);
+                    int yawRotation;
+                    int pitchRotation;
 
-                    MovingObjectPosition ray = RaytracingUtils.raytrace(rotation.yaw, rotation.pitch, scanRange + 5);
-
-                    if (!target.worm && (ray == null || ray.typeOfHit != MovingObjectPosition.MovingObjectType.ENTITY || ray.entityHit != (target.entity != null ? target.entity : target.stand))) {
-                        LogUtils.addMessage("Something is blocking target, waiting for free shot...", EnumChatFormatting.DARK_RED);
-                        blockedVisionDelay.reset();
-                        currentState = States.BLOCKED_VISION;
+                    Rotation angles;
+                    if (target.worm) {
+                        angles = RotationUtils.getRotation(target.stand.getPositionVector().add(new Vec3(0, 0.2f, 0)));
                     } else {
-                        if (attackDelay.hasReached(May2BeezQoL.config.mobKillerAttackDelay)) {
-                            if (May2BeezQoL.config.attackButton == 0) {
-                                leftClick();
-                            } else {
-                                rightClick();
-                            }
-                            attackDelay.reset();
-                        }
+                        angles = RotationUtils.getRotation(target.entity.getPositionVector().add(new Vec3(0, target.entity.height / 2, 0)));
                     }
+                    RotationUtils.smoothLook(angles, May2BeezQoL.config.mobKillerCameraSpeed);
                 }
-
 
                 break;
             case BLOCKED_VISION:
-
-                if (SkyblockUtils.getMobHp(target.stand) <= 0 || target.distance() > May2BeezQoL.config.mobKillerScanRange) {
+                if (SkyblockUtils.getMobHp(target.entity) <= 0 || target.distance() > May2BeezQoL.config.mobKillerScanRange) {
                     currentState = States.KILLED;
+                    afterKillDelay.reset();
                     break;
                 }
 
@@ -372,7 +352,9 @@ public class MobKiller extends Module {
                 "§rName: §f" + (target != null ? SkyblockUtils.stripString(target.stand.getCustomNameTag()) : "None"),
                 "§rDistance: §f" + (target != null ? (String.format("%.2f", target.distance()) + "m") : "No target"),
                 "§rHealth: §f" + (target != null ? (SkyblockUtils.getMobHp(target.stand)) : "No target"),
-                "§rState: §f" + currentState.name()
+                "§rState: §f" + currentState.name(),
+                "§rVisible: §f" + (target != null ? (!SkyblockUtils.entityIsNotVisible(target.entity != null ? target.entity : target.stand) ? "Yes" : "No") : "No target"),
+
         };
     }
  }

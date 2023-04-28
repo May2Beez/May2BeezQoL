@@ -48,6 +48,7 @@ public class AOTVMacro extends Module {
 
     private boolean killing = false;
     private boolean refueling = false;
+
     private final ArrayList<String> miningTools = new ArrayList<String>(){{
         add("Pickaxe");
         add("Drill");
@@ -65,6 +66,9 @@ public class AOTVMacro extends Module {
     public AOTVMacro() {
         super("AOTV Macro", new KeyBinding("AOTV Macro", Keyboard.KEY_NONE, May2BeezQoL.MODID + " - Mining"));
     }
+
+    private long startedVein = 0;
+
 
     @Override
     public void onEnable() {
@@ -123,6 +127,7 @@ public class AOTVMacro extends Module {
         searchingTimer.reset();
         timeBetweenLastWaypoint.reset();
         tooFastTp = false;
+        startedVein = 0;
         super.onEnable();
     }
 
@@ -256,6 +261,8 @@ public class AOTVMacro extends Module {
 
                 if (blocksToMine.isEmpty()) {
                     blocksToMine.addAll(getBlocksToMine());
+                    if (startedVein == 0)
+                        startedVein = System.currentTimeMillis();
                 }
 
                 target = getClosestGemstone();
@@ -272,7 +279,10 @@ public class AOTVMacro extends Module {
                     }
                     mc.thePlayer.inventory.currentItem = miningTool;
                 } else {
-
+                    if (startedVein != 0) {
+                        LogUtils.addMessage("Time spent on this vine: " + (System.currentTimeMillis() - startedVein) + " ms.", EnumChatFormatting.GOLD);
+                        startedVein = 0;
+                    }
                     LogUtils.addMessage(getName() + " - No gemstones found! Going to the next waypoint.", EnumChatFormatting.GOLD);
                     if (currentWaypoint == Waypoints.size() - 1) {
                         currentWaypoint = 0;
@@ -313,7 +323,7 @@ public class AOTVMacro extends Module {
 
                 KeyBinding.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), lookingAtTarget);
 
-                if (stuckTimer.hasReached(May2BeezQoL.miningSpeedActive ? May2BeezQoL.config.aotvStuckTimeThreshold / 2 : May2BeezQoL.config.aotvStuckTimeThreshold) && RotationUtils.IsDiffLowerThan(0.1f)) {
+                if (stuckTimer.hasReached(May2BeezQoL.miningSpeedActive ? May2BeezQoL.config.aotvStuckTimeThreshold / 2 : May2BeezQoL.config.aotvStuckTimeThreshold) && RotationUtils.isDiffLowerThan(0.1f)) {
                     KeyBinding.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), false);
                     LogUtils.addMessage(getName() + " - Stuck for " + (May2BeezQoL.miningSpeedActive ? May2BeezQoL.config.aotvStuckTimeThreshold / 2f : May2BeezQoL.config.aotvStuckTimeThreshold) + " ms " + (May2BeezQoL.miningSpeedActive ? "(Faster stuck check, because of Boost active)" : "") + ", restarting.", EnumChatFormatting.DARK_RED);
                     stuckTimer.reset();
@@ -354,7 +364,7 @@ public class AOTVMacro extends Module {
                 BlockPos waypoint = new BlockPos(Waypoints.get(currentWaypoint).x, Waypoints.get(currentWaypoint).y, Waypoints.get(currentWaypoint).z);
                 RotationUtils.smoothLook(RotationUtils.getRotation(waypoint), May2BeezQoL.config.aotvWaypointTargetingTime);
 
-                if (RotationUtils.IsDiffLowerThan(May2BeezQoL.config.aotvTargetingWaypointAccuracy))
+                if (RotationUtils.isDiffLowerThan(May2BeezQoL.config.aotvTargetingWaypointAccuracy))
                     RotationUtils.reset();
 
                 if (!RotationUtils.done) return;
@@ -554,7 +564,7 @@ public class AOTVMacro extends Module {
             case LIME: {
                 return May2BeezQoL.config.aotvGemstoneType == 3;
             }
-            case BLUE: {
+            case LIGHT_BLUE: {
                 return May2BeezQoL.config.aotvGemstoneType == 4;
             }
             case ORANGE: {

@@ -3,16 +3,14 @@ package com.May2Beez.utils;
 import com.mojang.realmsclient.gui.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.scoreboard.Score;
 import net.minecraft.scoreboard.ScorePlayerTeam;
 import net.minecraft.scoreboard.Scoreboard;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.MovingObjectPosition;
-import net.minecraft.util.StringUtils;
-import net.minecraft.util.Vec3;
+import net.minecraft.util.*;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -178,45 +176,34 @@ public class SkyblockUtils {
         return validated.toString();
     }
 
-    public static int getMobHp(EntityArmorStand aStand) {
-        double mobHp = -1.0D;
-        Pattern pattern = Pattern.compile(".+?\\s([.\\d]+)[BMk]?/[.\\d]+[BMk]?.*");
-
-        String stripped = StringUtils.stripControlCodes(aStand.getName());
-        Matcher mat = pattern.matcher(stripped);
-
-        if (mat.matches()) {
-            try {
-                mobHp = Double.parseDouble(mat.group(1));
-            } catch (NumberFormatException ignored) {
-
-            }
+    public static int getMobHp(Entity entity) {
+        if (entity instanceof EntityLivingBase) {
+            return (int) ((EntityLivingBase) entity).getHealth();
         }
-
-        Pattern pattern2 = Pattern.compile(".+?\\s(\\d+)+[BMk]?.*");
-        Matcher mat2 = pattern2.matcher(stripped);
-        if (mat2.matches()) {
-            try {
-                mobHp = Double.parseDouble(mat2.group(1));
-            } catch (NumberFormatException ignored) {
-
-            }
-        }
-
-        Pattern pattern3 = Pattern.compile(".*\\s(\\d+)\\sHits");
-        Matcher mat3 = pattern3.matcher(stripped);
-        if (mat3.matches()) {
-            // Pattern for Jerry
-            try {
-                mobHp = Integer.parseInt(mat3.group(1));
-            } catch (NumberFormatException ex) {
-                ex.printStackTrace();
-            }
-        }
-        return (int)Math.ceil(mobHp);
+        return -1;
     }
 
     public static boolean hasOpenContainer() {
         return mc.currentScreen != null && !(mc.currentScreen instanceof net.minecraft.client.gui.GuiChat);
+    }
+
+    public static boolean entityIsTargeted(Entity entity) {
+        int reach = 50;
+        Vec3 eyesPos = mc.thePlayer.getPositionEyes(1.0F);
+        Vec3 lookVec = mc.thePlayer.getLook(1.0F);
+        List<Entity> entityList = mc.theWorld.getEntitiesInAABBexcluding(mc.thePlayer, mc.thePlayer.getEntityBoundingBox().addCoord(lookVec.xCoord * reach, lookVec.yCoord * reach, lookVec.zCoord * reach).expand(1.0D, 1.0D, 1.0D), Entity::canBeCollidedWith);
+        Entity entityMouseOver = null;
+        for (Entity e : entityList) {
+            AxisAlignedBB entityBoundingBox = e.getEntityBoundingBox().expand(0.3D, 0.3D, 0.3D);
+            MovingObjectPosition movingObjectPosition = entityBoundingBox.calculateIntercept(eyesPos, eyesPos.addVector(lookVec.xCoord * reach, lookVec.yCoord * reach, lookVec.zCoord * reach));
+            if (movingObjectPosition != null) {
+                double distanceToEntity = eyesPos.distanceTo(movingObjectPosition.hitVec);
+                if (distanceToEntity < reach) {
+                    entityMouseOver = e;
+                    reach = (int) distanceToEntity;
+                }
+            }
+        }
+        return entityMouseOver != null && entityMouseOver.equals(entity);
     }
 }

@@ -10,7 +10,6 @@ import net.minecraft.util.Vec3;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import org.jetbrains.annotations.NotNull;
 
 public class RotationUtils {
 
@@ -82,11 +81,11 @@ public class RotationUtils {
         return new Rotation(yaw, pitch);
     }
 
-    public static boolean IsDiffLowerThan(float diff) {
-        return IsDiffLowerThan(diff, diff);
+    public static boolean isDiffLowerThan(float diff) {
+        return isDiffLowerThan(diff, diff);
     }
 
-    public static boolean IsDiffLowerThan(float pitch, float yaw) {
+    public static boolean isDiffLowerThan(float pitch, float yaw) {
         if (neededChange == null)
             return false;
         return Math.abs(neededChange.pitch) < pitch && Math.abs(neededChange.yaw) < yaw;

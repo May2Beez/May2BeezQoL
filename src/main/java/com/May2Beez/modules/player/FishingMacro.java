@@ -118,7 +118,7 @@ public class FishingMacro extends Module {
             if (RotationUtils.done)
                 RotationUtils.smoothLook(startRotation, 200);
 
-            if (!RotationUtils.IsDiffLowerThan(0.1f))
+            if (!RotationUtils.isDiffLowerThan(0.1f))
                 return;
 
             killing = false;
