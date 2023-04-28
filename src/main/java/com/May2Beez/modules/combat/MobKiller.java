@@ -79,7 +79,7 @@ public class MobKiller extends Module {
     }
 
     public static boolean hasTarget() {
-        return currentState == States.ATTACKING && target != null;
+        return target != null;
     }
 
     @Override
@@ -238,6 +238,8 @@ public class MobKiller extends Module {
 
                     if (RotationUtils.isDiffLowerThan(0.5f)) {
                         RotationUtils.reset();
+                    } else {
+                        return;
                     }
 
                     if (attackDelay.hasReached(May2BeezQoL.config.mobKillerAttackDelay) && target.distance() < 6) {
@@ -271,6 +273,8 @@ public class MobKiller extends Module {
                         visible = !SkyblockUtils.entityIsNotVisible(target.entity);
                     }
 
+                    if (!RotationUtils.done) return;
+
                     if (!visible) {
                         LogUtils.addMessage("MobKiller - Something is blocking target, waiting for free shot...", EnumChatFormatting.RED);
                         blockedVisionDelay.reset();
@@ -290,19 +294,6 @@ public class MobKiller extends Module {
                             }
                         }
                     }
-
-                    if (!RotationUtils.done) return;
-
-                    int yawRotation;
-                    int pitchRotation;
-
-                    Rotation angles;
-                    if (target.worm) {
-                        angles = RotationUtils.getRotation(target.stand.getPositionVector().add(new Vec3(0, 0.2f, 0)));
-                    } else {
-                        angles = RotationUtils.getRotation(target.entity.getPositionVector().add(new Vec3(0, target.entity.height / 2, 0)));
-                    }
-                    RotationUtils.smoothLook(angles, May2BeezQoL.config.mobKillerCameraSpeed);
                 }
 
                 break;
@@ -342,6 +333,15 @@ public class MobKiller extends Module {
         }
 
         if (target != null) {
+            if (RotationUtils.done) {
+                Rotation angles;
+                if (target.worm) {
+                    angles = RotationUtils.getRotation(target.stand.getPositionVector().add(new Vec3(0, 0.2f, 0)));
+                } else {
+                    angles = RotationUtils.getRotation(target.entity.getPositionVector().add(new Vec3(0, target.entity.height / 2, 0)));
+                }
+                RotationUtils.smoothLook(angles, May2BeezQoL.config.mobKillerCameraSpeed);
+            }
             RenderUtils.drawEntityBox(target.worm ? target.stand : target.entity, new Color(200, 100, 100, 200), 2, event.partialTicks);
         }
     }

@@ -1,10 +1,6 @@
 package com.May2Beez.utils;
 
 
-import java.awt.*;
-import java.util.Arrays;
-import java.util.Comparator;
-
 import com.May2Beez.mixins.accessors.RenderManagerAccessor;
 import com.May2Beez.mixins.accessors.RendererLivingEntityAccessor;
 import net.minecraft.block.Block;
@@ -13,6 +9,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.model.ModelBase;
+import net.minecraft.client.model.ModelMagmaCube;
+import net.minecraft.client.model.ModelSlime;
 import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.client.renderer.entity.RenderManager;
@@ -29,8 +27,10 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.*;
 import org.lwjgl.opengl.EXTFramebufferObject;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL14;
-import org.lwjgl.opengl.GL30;
+
+import java.awt.*;
+import java.util.Arrays;
+import java.util.Comparator;
 
 public class RenderUtils {
 
@@ -72,7 +72,7 @@ public class RenderUtils {
                 modelData.age,
                 modelData.rotationYaw,
                 modelData.rotationPitch,
-                0.0625f,
+                (model instanceof ModelSlime || model instanceof ModelMagmaCube) ? 0.125f : 0.0625f,
                 partialTicks,
                 color
         );
@@ -352,7 +352,7 @@ public class RenderUtils {
     }
 
     public static void drawText(String str, double X, double Y, double Z, boolean showDistance) {
-        float lScale = 1.0f;
+        float lScale = 0.8f;
         FontRenderer fontRenderer = Minecraft.getMinecraft().fontRendererObj;
 
         double renderPosX = X - Minecraft.getMinecraft().getRenderManager().viewerPosX;

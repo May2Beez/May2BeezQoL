@@ -16,9 +16,9 @@ import org.lwjgl.input.Keyboard;
 
 public class AOTVWaypoints {
 
-    private final KeyBinding keyBinding = new KeyBinding("Open Waypoints Settings", Keyboard.KEY_NEXT, "MightyMiner - Waypoints");
-    private final KeyBinding keyBinding2 = new KeyBinding("Add current position to selected waypoint list", Keyboard.KEY_EQUALS, "MightyMiner - Waypoints");
-    private final KeyBinding keyBinding3 = new KeyBinding("Delete current position from selected waypoint list", Keyboard.KEY_MINUS, "MightyMiner - Waypoints");
+    private final KeyBinding keyBinding = new KeyBinding("Open Waypoints Settings", Keyboard.KEY_NEXT, "May2BeezQoL - Waypoints");
+    private final KeyBinding keyBinding2 = new KeyBinding("Add current position to selected waypoint list", Keyboard.KEY_EQUALS, "May2BeezQoL - Waypoints");
+    private final KeyBinding keyBinding3 = new KeyBinding("Delete current position from selected waypoint list", Keyboard.KEY_MINUS, "May2BeezQoL - Waypoints");
 
 
     public AOTVWaypoints() {

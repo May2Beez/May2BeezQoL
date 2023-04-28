@@ -37,7 +37,7 @@ public class ESP extends Module {
         super("ESP");
     }
 
-    @SubscribeEvent(receiveCanceled = true, priority = EventPriority.LOWEST)
+    @SubscribeEvent(receiveCanceled = true, priority = EventPriority.NORMAL)
     public void onRenderWorldLastCreeperESP(RenderLivingEvent.Pre<EntityLivingBase> event) {
         if (mc.theWorld == null || mc.thePlayer == null) return;
         if (!May2BeezQoL.config.showGhosts) return;
@@ -52,7 +52,7 @@ public class ESP extends Module {
         }
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)
     public void onRenderMob(RenderLivingEvent.Pre<EntityLivingBase> event) {
         if (mc.theWorld == null || mc.thePlayer == null) return;
         if (!May2BeezQoL.config.mobEsp) return;
@@ -102,60 +102,7 @@ public class ESP extends Module {
         }
     }
 
-//    @SubscribeEvent
-//    public void onRenderWorldLastMobESP(RenderWorldLastEvent event) {
-//        if (mc.theWorld == null || mc.thePlayer == null) return;
-//        if (!May2BeezQoL.config.mobEsp) return;
-//
-//        List<Entity> entities = mc.theWorld.loadedEntityList.stream().filter(entity -> entity instanceof EntityArmorStand).collect(Collectors.toList());
-//
-//        for (Entity entity : entities) {
-//            if (!entity.hasCustomName()) continue;
-//
-//            if (entity instanceof EntityArmorStand) {
-//                EntityArmorStand stand = (EntityArmorStand) entity;
-//
-//                if (stand.getCustomNameTag().contains("Scatha") || stand.getCustomNameTag().contains("Worm")) {
-//                    RenderUtils.drawBlockBox(new AxisAlignedBB(stand.posX - 0.5D,
-//                            stand.posY - 0.5D,
-//                            stand.posZ - 0.5D,
-//                            stand.posX + 0.5D,
-//                            stand.posY + 0.5D,
-//                            stand.posZ + 0.5D), May2BeezQoL.config.espColor.toJavaColor(), 2);
-//
-//                    if (SkyblockUtils.entityIsNotVisible(stand) && May2BeezQoL.config.drawMobNames) {
-//                        RenderUtils.drawText(stand.getName(), stand.posX, stand.posY + stand.height + 1, stand.posZ);
-//                    }
-//
-//                    continue;
-//                }
-//
-//                Entity target = SkyblockUtils.getEntityCuttingOtherEntity(stand, null);
-//
-//                if (target == null) continue;
-//
-//                if (target instanceof EntityPlayerMP) {
-//                    if (((EntityPlayerMP) target).ping == 1) continue;
-//                }
-//
-//                if (SkyblockUtils.isNPC(target)) continue;
-//                System.out.println("Target: " + target.getName() + " " + (target instanceof EntityLivingBase));
-//                if (!(target instanceof EntityLivingBase)) continue;
-//
-//                if (((EntityLivingBase) target).getHealth() > 0) {
-//
-//                    ModelBase model = ((RendererLivingEntityAccessor) (mc.getRenderManager().getEntityRenderObject(target))).getMainModel();
-//
-//                    RenderUtils.drawEntityESP((EntityLivingBase) target, model, May2BeezQoL.config.espColor.toJavaColor(), event.partialTicks);
-//                    if (SkyblockUtils.entityIsNotVisible(target) && May2BeezQoL.config.drawMobNames) {
-//                        RenderUtils.drawText(stand.getName(), target.posX, target.posY + target.height + 1, target.posZ);
-//                    }
-//                }
-//            }
-//        }
-//    }
-
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)
     public void onRenderWorldLastPlayerESP(RenderWorldLastEvent event) {
         if (mc.theWorld == null || mc.thePlayer == null) return;
         if(!May2BeezQoL.config.playerEsp) return;
@@ -174,7 +121,7 @@ public class ESP extends Module {
         }
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)
     public void onRenderWorldLastChestESP(RenderWorldLastEvent event) {
         if (mc.theWorld == null || mc.thePlayer == null) return;
         if (!May2BeezQoL.config.chestEsp) return;

@@ -23,6 +23,9 @@ import java.util.regex.Pattern;
 public class SkyblockUtils {
     private static final Minecraft mc = Minecraft.getMinecraft();
 
+    private static final Pattern healthPattern = Pattern.compile("(?:§8[§7Lv(\\d)§8])?\\s*(?:§c)?(.+)(?:§r)? §[ae]([\\dBMk]+)§c❤");
+    private static final Pattern healthPattern2 = Pattern.compile("(?:§8[§7Lv(\\d)§8])?\\s*(?:§c)?(.+)(?:§r)? §[ae]([\\dBMk]+)§f/§[ae]([\\dBMk]+)§c❤");
+
 
     public static boolean hasScoreboardTitle(String title) {
         if (mc.thePlayer == null || mc.thePlayer.getWorldScoreboard() == null || mc.thePlayer.getWorldScoreboard().getObjectiveInDisplaySlot(1) == null)
@@ -177,7 +180,28 @@ public class SkyblockUtils {
     }
 
     public static int getMobHp(Entity entity) {
-        if (entity instanceof EntityLivingBase) {
+        if (entity instanceof EntityArmorStand) {
+            String name = entity.getCustomNameTag();
+            if (name.contains("❤")) {
+                Matcher matcher = healthPattern.matcher(name);
+                Matcher matcher2 = healthPattern2.matcher(name);
+                System.out.println(name);
+                if (matcher.find() || matcher2.find()) {
+                    String hp = matcher.find() ? matcher.group(2) : matcher2.group(2);
+                    int modifer = 1;
+                    if (name.contains("k§c❤")) {
+                        modifer = 1000;
+                    } else if (name.contains("M§c❤")) {
+                        modifer = 1000000;
+                    } else if (name.contains("B§c❤")) {
+                        modifer = 1000000000;
+                    }
+                    System.out.println(hp);
+                    return (int) (Double.parseDouble(hp.replace("k", "").replace("M", "").replace("B", "")) * modifer);
+                }
+            }
+        } else if (entity instanceof EntityLivingBase) {
+            System.out.println(((EntityLivingBase) entity).getHealth());
             return (int) ((EntityLivingBase) entity).getHealth();
         }
         return -1;
