@@ -50,18 +50,14 @@ public class Debug extends Module {
     @Override
     public void onKeyInput(InputEvent.KeyInputEvent event) {
         if (this.keyBinding != null && this.keyBinding.isPressed()) {
-            MovingObjectPosition mop = mc.objectMouseOver;
-            if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
-                testBlock = mop.getBlockPos();
-                switch (currentState) {
-                    case FIRST_TEST:
-                        currentState = DebugState.SECOND_TEST;
-                        break;
-                    case SECOND_TEST:
-                        currentState = DebugState.FIRST_TEST;
-                        break;
+            new Thread(() -> {
+                try {
+                    Thread.sleep(1500);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
                 }
-            }
+                mc.playerController.windowClick(mc.thePlayer.openContainer.windowId, mc.thePlayer.openContainer.inventorySlots.size() - 9 + 3, 0, 1, mc.thePlayer);
+            }).start();
         }
     }
 

@@ -186,8 +186,8 @@ public class SkyblockUtils {
                 Matcher matcher = healthPattern.matcher(name);
                 Matcher matcher2 = healthPattern2.matcher(name);
                 System.out.println(name);
-                if (matcher.find() || matcher2.find()) {
-                    String hp = matcher.find() ? matcher.group(2) : matcher2.group(2);
+                if (matcher.matches() || matcher2.matches()) {
+                    String hp = matcher.matches() ? matcher.group(2) : matcher2.group(2);
                     int modifer = 1;
                     if (name.contains("k§c❤")) {
                         modifer = 1000;
