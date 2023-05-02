@@ -1,5 +1,6 @@
 package com.May2Beez.modules.mining;
 
+import com.May2Beez.mixins.accessors.RenderGlobalAccessor;
 import com.May2Beez.modules.Module;
 import com.May2Beez.May2BeezQoL;
 import com.May2Beez.events.BlockChangeEvent;
@@ -9,6 +10,8 @@ import net.minecraft.block.BlockColored;
 import net.minecraft.block.BlockStone;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.DestroyBlockProgress;
+import net.minecraft.client.renderer.RenderGlobal;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.EnumDyeColor;
@@ -22,23 +25,30 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.lwjgl.input.Keyboard;
 
 import java.awt.*;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class MithrilMiner extends Module {
 
-    private final Minecraft mc = Minecraft.getMinecraft();
-    private Structs.BlockData target = null;
-    private Structs.BlockData oldTarget = null;
+    private static final Minecraft mc = Minecraft.getMinecraft();
+    private static Structs.BlockData target = null;
+    private static Structs.BlockData oldTarget = null;
 
-    private final Timer stuckTimer = new Timer();
-    private final Timer searchingTimer = new Timer();
+    private static final Timer stuckTimer = new Timer();
+    private static final Timer searchingTimer = new Timer();
     private final Timer afterRefuelTimer = new Timer();
+    private static final Timer blockDestroyValueChange = new Timer();
+    private float preBlockDestroyValue = 0.0f;
 
-    private BlockPos blockToIgnoreBecauseOfStuck = null;
+    private static BlockPos blockToIgnoreBecauseOfStuck = null;
 
     private final ArrayList<Structs.BlockData> blocksToMine = new ArrayList<>();
+
+    public static long lastDestroyBlock = 0L;
 
     private boolean refueling = false;
 
@@ -47,9 +57,9 @@ public class MithrilMiner extends Module {
         MINING,
     }
 
-    private State currentState = State.SEARCHING;
+    private static State currentState = State.SEARCHING;
 
-    private final ArrayList<String> miningTools = new ArrayList<String>(){{
+    private final ArrayList<String> miningTools = new ArrayList<String>() {{
         add("Pickaxe");
         add("Drill");
         add("Gauntlet");
@@ -70,6 +80,7 @@ public class MithrilMiner extends Module {
             return;
         }
         searchingTimer.reset();
+        blockDestroyValueChange.reset();
         super.onEnable();
     }
 
@@ -109,8 +120,8 @@ public class MithrilMiner extends Module {
     @SubscribeEvent
     public void onTick(TickEvent.ClientTickEvent event) {
         if (event.phase == TickEvent.Phase.END) return;
-        if (!isToggled()) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
+        if (!isToggled()) return;
         if (SkyblockUtils.hasOpenContainer()) return;
 
         if (May2BeezQoL.config.refuelWithAbiphone) {
@@ -127,7 +138,6 @@ public class MithrilMiner extends Module {
                 return;
             }
         }
-
 
 
         switch (currentState) {
@@ -158,12 +168,13 @@ public class MithrilMiner extends Module {
                         return;
                     }
                     mc.thePlayer.inventory.currentItem = miningTool;
+                    blockDestroyValueChange.reset();
+                    preBlockDestroyValue = getBlockDamage(target.getPos());
                 } else {
                     if (!searchingTimer.hasReached(2000))
                         break;
 
                     blocksToMine.clear();
-
 
                     LogUtils.addMessage(getName() + " - No blocks found!", EnumChatFormatting.RED);
                     target = null;
@@ -195,19 +206,51 @@ public class MithrilMiner extends Module {
 
                 KeyBinding.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), lookingAtTarget);
 
-                if (stuckTimer.hasReached(May2BeezQoL.miningSpeedActive ? May2BeezQoL.config.maxBreakTime / 2 : May2BeezQoL.config.maxBreakTime) && RotationUtils.isDiffLowerThan(0.1f)) {
-                    KeyBinding.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), false);
-                    LogUtils.addMessage(getName() + " - Stuck for " + May2BeezQoL.config.maxBreakTime + " ms, restarting.", EnumChatFormatting.DARK_RED);
-                    stuckTimer.reset();
-                    currentState = State.SEARCHING;
-                    searchingTimer.reset();
-                    blockToIgnoreBecauseOfStuck = target.getPos();
-                    oldTarget = target;
-                    target = null;
+                long stuckTime = isTitanium(target.getPos()) ? May2BeezQoL.config.maxBreakTime * 3L :
+                        May2BeezQoL.miningSpeedActive ? May2BeezQoL.config.maxBreakTime / 2 :
+                                May2BeezQoL.config.maxBreakTime;
+
+                if (RotationUtils.isDiffLowerThan(0.1f) && blockDestroyValueChange.hasReached(1500)) {
+                    LogUtils.addMessage(getName() + " - Block's breaking progress didn't change for 1.5 seconds, restarting.", EnumChatFormatting.DARK_RED);
+                    stuckReset();
+                }
+
+                if (target != null && RotationUtils.isDiffLowerThan(0.1f) && mc.objectMouseOver != null && !mc.objectMouseOver.getBlockPos().equals(target.getPos())) {
+                    LogUtils.addMessage(getName() + " - Block is our of eye sight, restarting.", EnumChatFormatting.DARK_RED);
+                    stuckReset();
+                }
+
+                if (stuckTimer.hasReached(stuckTime) && RotationUtils.isDiffLowerThan(0.1f)) {
+                    LogUtils.addMessage(getName() + " - Stuck for " + stuckTime + " ms, restarting.", EnumChatFormatting.DARK_RED);
+                    stuckReset();
                 }
                 break;
             }
         }
+    }
+
+    @SubscribeEvent
+    public void onTickCheckProgress(TickEvent.ClientTickEvent event) {
+        if (!isToggled()) return;
+        if (mc.theWorld == null || mc.thePlayer == null) return;
+        if (target == null) return;
+        float progress = getBlockDamage(target.getPos());
+        if (progress != preBlockDestroyValue) {
+            preBlockDestroyValue = progress;
+            lastDestroyBlock = System.currentTimeMillis();
+            blockDestroyValueChange.reset();
+        }
+    }
+
+    public static void stuckReset() {
+        KeyBinding.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), false);
+        stuckTimer.reset();
+        currentState = State.SEARCHING;
+        searchingTimer.reset();
+        blockToIgnoreBecauseOfStuck = target.getPos();
+        oldTarget = target;
+        target = null;
+        blockDestroyValueChange.reset();
     }
 
     private Structs.BlockData getClosestBlock() {
@@ -220,7 +263,8 @@ public class MithrilMiner extends Module {
 
             double currentDistance;
 
-            if (mc.theWorld.getBlockState(blockPos1.getPos()) == null || mc.theWorld.isAirBlock(blockPos1.getPos()) || mc.theWorld.getBlockState(blockPos1.getPos()).getBlock() == Blocks.bedrock) continue;
+            if (mc.theWorld.getBlockState(blockPos1.getPos()) == null || mc.theWorld.isAirBlock(blockPos1.getPos()) || mc.theWorld.getBlockState(blockPos1.getPos()).getBlock() == Blocks.bedrock)
+                continue;
             if (blockPos1.getPos().equals(blockToIgnoreBecauseOfStuck)) continue;
             if (!BlockUtils.isBlockVisible(blockPos1.getPos())) continue;
 
@@ -260,12 +304,12 @@ public class MithrilMiner extends Module {
     }
 
     private boolean isTitanium(BlockPos pos) {
-        IBlockState state = this.mc.theWorld.getBlockState(pos);
+        IBlockState state = mc.theWorld.getBlockState(pos);
         return (state.getBlock() == Blocks.stone && (state.getValue(BlockStone.VARIANT)).equals(BlockStone.EnumType.DIORITE_SMOOTH));
     }
 
     private boolean BlockMatchConfig(BlockPos blockPos) {
-        IBlockState state = this.mc.theWorld.getBlockState(blockPos);
+        IBlockState state = mc.theWorld.getBlockState(blockPos);
         if (isTitanium(blockPos))
             return true;
 
@@ -358,5 +402,21 @@ public class MithrilMiner extends Module {
             RenderUtils.drawBlockBox(target.getPos(), new Color(0, 255, 0, 100), 2.5f);
             RenderUtils.miniBlockBox(target.getRandomVisibilityLine(), new Color(0, 255, 247, 166), 1.5f);
         }
+    }
+
+    public static float getBlockDamage(BlockPos target) {
+        try {
+            Map<Integer, DestroyBlockProgress> map = ((RenderGlobalAccessor) Minecraft.getMinecraft().renderGlobal).getDamagedBlocks();
+
+            for (DestroyBlockProgress destroyblockprogress : map.values()) {
+                if (destroyblockprogress.getPosition().equals(target)) {
+                    if (destroyblockprogress.getPartialBlockDamage() >= 0 && destroyblockprogress.getPartialBlockDamage() <= 10)
+                        return destroyblockprogress.getPartialBlockDamage() / 10.0F;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0F;
     }
 }

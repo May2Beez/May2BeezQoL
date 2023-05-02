@@ -19,6 +19,7 @@
     "accessors.EntityPlayerSPAccessor",
     "accessors.MinecraftAccessor",
     "accessors.RendererLivingEntityAccessor",
+    "accessors.RenderGlobalAccessor",
     "accessors.RenderManagerAccessor"
   ]
 }
