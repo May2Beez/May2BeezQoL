@@ -195,7 +195,7 @@ public class MithrilMiner extends Module {
 
                 KeyBinding.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), lookingAtTarget);
 
-                if (stuckTimer.hasReached(May2BeezQoL.miningSpeedActive ? May2BeezQoL.config.aotvStuckTimeThreshold / 2 : May2BeezQoL.config.aotvStuckTimeThreshold) && RotationUtils.isDiffLowerThan(0.1f)) {
+                if (stuckTimer.hasReached(May2BeezQoL.miningSpeedActive ? May2BeezQoL.config.maxBreakTime / 2 : May2BeezQoL.config.maxBreakTime) && RotationUtils.isDiffLowerThan(0.1f)) {
                     KeyBinding.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), false);
                     LogUtils.addMessage(getName() + " - Stuck for " + May2BeezQoL.config.maxBreakTime + " ms, restarting.", EnumChatFormatting.DARK_RED);
                     stuckTimer.reset();
