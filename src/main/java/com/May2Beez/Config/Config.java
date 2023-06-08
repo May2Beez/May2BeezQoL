@@ -82,6 +82,9 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
     @Switch(name = "Prioritize Titanium", category = MITHRIL_MINER)
     public boolean prioTitanium = false;
 
+    @Switch(name = "Hold sneak", category = MITHRIL_MINER)
+    public boolean holdSneak = false;
+
     @Slider(name = "Max Break Time", category = MITHRIL_MINER, max = 5000, min = 0.0F, step = 100)
     public int maxBreakTime = 2000;
 
@@ -237,6 +240,9 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 
     @Slider(name = "Right Click Delay", category = COMBAT, subcategory = "Auto Clicker", min = 100, max = 3000, step = 100)
     public int rightClickDelay = 1000;
+
+    @Slider(name = "FOV Detect", category = COMBAT, subcategory = "Legit Kill Aura", min = 1, max = 180, step = 1)
+    public int fovDetect = 60;
 
     //endregion
 

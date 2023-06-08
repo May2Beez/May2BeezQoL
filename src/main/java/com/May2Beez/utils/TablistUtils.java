@@ -52,6 +52,7 @@ public class TablistUtils {
     public static List<String> getTabListPlayersSkyblock() {
         List<String> tabListPlayersFormatted = getTabListPlayersUnprocessed();
         List<String> playerList = new ArrayList<>();
+        if (tabListPlayersFormatted.size() == 0) return playerList;
         tabListPlayersFormatted.remove(0); // remove "Players (x)"
         String firstPlayer = null;
         for(String s : tabListPlayersFormatted) {

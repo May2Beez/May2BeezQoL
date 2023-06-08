@@ -6,13 +6,27 @@ import cc.polyfrost.oneconfig.gui.pages.Page;
 import cc.polyfrost.oneconfig.renderer.NanoVGHelper;
 import cc.polyfrost.oneconfig.renderer.font.Fonts;
 import cc.polyfrost.oneconfig.utils.InputHandler;
+import cc.polyfrost.oneconfig.utils.Notifications;
 import cc.polyfrost.oneconfig.utils.color.ColorPalette;
 import com.May2Beez.Config.AOTVWaypointsStructs;
 import com.May2Beez.May2BeezQoL;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.annotations.Expose;
+import com.google.gson.reflect.TypeToken;
+import kotlinx.serialization.Serializable;
+import org.apache.commons.codec.binary.Base64InputStream;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Objects;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.InputStreamReader;
+import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class AOTVWaypointsPage extends Page {
@@ -24,6 +38,7 @@ public class AOTVWaypointsPage extends Page {
     private static final CopyOnWriteArrayList<TextInputField> zInputFields = new CopyOnWriteArrayList<>();
     private static final CopyOnWriteArrayList<Route> routes = new CopyOnWriteArrayList<>();
     private final BasicButton addNewList = new BasicButton(120, BasicButton.SIZE_36, "Add New List", null, null, BasicButton.ALIGNMENT_CENTER, ColorPalette.PRIMARY);
+    private final BasicButton importList = new BasicButton(120, BasicButton.SIZE_36, "Import List", null, null, BasicButton.ALIGNMENT_CENTER, ColorPalette.PRIMARY);
 
 
     public AOTVWaypointsPage() {
@@ -33,6 +48,95 @@ public class AOTVWaypointsPage extends Page {
 
             May2BeezQoL.coordsConfig.getRoutes().add(new AOTVWaypointsStructs.WaypointList("New Route", false, false, new ArrayList<>()));
             redrawRoutes();
+            AOTVWaypointsStructs.SaveWaypoints();
+        });
+        importList.setClickAction(() -> {
+            // import
+            try {
+                Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+                String data = clipboard.getData(DataFlavor.stringFlavor).toString().trim();
+                if (data.startsWith("#MightyMinerWaypoint#::")) {
+                    data = data.replace("#MightyMinerWaypoint#::", "");
+                    data = new String(Base64.getDecoder().decode(data));
+                    AOTVWaypointsStructs.WaypointList list = May2BeezQoL.gson.fromJson(data, AOTVWaypointsStructs.WaypointList.class);
+                    if (list != null) {
+                        list.enabled = false;
+                        May2BeezQoL.coordsConfig.getRoutes().add(list);
+                        Notifications.INSTANCE.send("MightyMiner", "Imported route " + list.name + " from MightyMiner successfully!");
+                        redrawRoutes();
+                    }
+                } else if (data.startsWith("<Skytils-Waypoint-Data>(V")) {
+                    data = data.replace("<Skytils-Waypoint-Data>(V", "");
+                    data = data.replace(data.substring(0, data.indexOf(")") + 2), "");
+                    System.out.println(data);
+                    GzipCompressorInputStream gzip = new GzipCompressorInputStream(new Base64InputStream(new ByteArrayInputStream(data.getBytes())));
+                    StringBuilder sb = new StringBuilder();
+                    try (BufferedReader br = new BufferedReader(new InputStreamReader(gzip))) {
+                        String line;
+                        while ((line = br.readLine()) != null) {
+                            sb.append(line);
+                        }
+                    }
+                    data = sb.toString();
+                    CategoryList categoryList = May2BeezQoL.gson.fromJson(data, CategoryList.class);
+                    HashSet<WaypointCategory> categories = new HashSet<>(categoryList.categories);
+
+                    for (WaypointCategory category : categories) {
+                        AOTVWaypointsStructs.WaypointList list = new AOTVWaypointsStructs.WaypointList(category.name, false, false, new ArrayList<>());
+                        for (Waypoint waypoint : category.waypoints) {
+                            list.waypoints.add(new AOTVWaypointsStructs.Waypoint(waypoint.name, waypoint.x, waypoint.y, waypoint.z));
+                        }
+                        May2BeezQoL.coordsConfig.getRoutes().add(list);
+                        Notifications.INSTANCE.send("MightyMiner", "Imported route " + list.name + " from Skytils successfully!");
+                    }
+
+                    redrawRoutes();
+
+                } else if (Base64.getDecoder().decode(data).length > 0) {
+                    data = new String(Base64.getDecoder().decode(data));
+                    JsonElement element = May2BeezQoL.gson.fromJson(data, JsonElement.class);
+                    if (element instanceof JsonObject) {
+                        JsonObject object = (JsonObject) element;
+                        if (object.has("routes")) {
+                            CategoryList categoryList = May2BeezQoL.gson.fromJson(data, CategoryList.class);
+                            HashSet<WaypointCategory> categories = new HashSet<>(categoryList.categories);
+
+                            for (WaypointCategory category : categories) {
+                                AOTVWaypointsStructs.WaypointList list = new AOTVWaypointsStructs.WaypointList(category.name, false, false, new ArrayList<>());
+                                for (Waypoint waypoint : category.waypoints) {
+                                    list.waypoints.add(new AOTVWaypointsStructs.Waypoint(waypoint.name, waypoint.x, waypoint.y, waypoint.z));
+                                }
+                                May2BeezQoL.coordsConfig.getRoutes().add(list);
+                                Notifications.INSTANCE.send("MightyMiner", "Imported route " + list.name + " from Skytils successfully!");
+                            }
+                            Notifications.INSTANCE.send("MightyMiner", "Imported routes from MightyMiner successfully!");
+                            redrawRoutes();
+                        }
+                    } else if (element instanceof JsonArray) {
+                        JsonArray array = (JsonArray) element;
+                        ArrayList<Waypoint> waypoints = May2BeezQoL.gson.fromJson(element, new TypeToken<ArrayList<Waypoint>>() {
+                        }.getType());
+                        AOTVWaypointsStructs.WaypointList list = new AOTVWaypointsStructs.WaypointList("Imported Route", false, false, new ArrayList<>());
+                        for (Waypoint waypoint : waypoints) {
+                            System.out.println(waypoint);
+                            list.waypoints.add(new AOTVWaypointsStructs.Waypoint(waypoint.name, waypoint.x, waypoint.y, waypoint.z));
+                        }
+                        May2BeezQoL.coordsConfig.getRoutes().add(list);
+                        Notifications.INSTANCE.send("MightyMiner", "Imported route " + list.name + " from Skytils successfully!");
+                        redrawRoutes();
+                    }
+                }
+            } catch (Exception e) {
+                Notifications.INSTANCE.send("MightyMiner", "Failed to import route!");
+                Notifications.INSTANCE.send("MightyMiner", "Error message: " + e.getMessage());
+                Notifications.INSTANCE.send("MightyMiner", "Click me to copy the message.", 5000, () -> {
+                    Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+                    StringSelection stringSelection = new StringSelection(e.toString());
+                    clipboard.setContents(stringSelection, null);
+                });
+                e.printStackTrace();
+            }
+            AOTVWaypointsStructs.SaveWaypoints();
         });
         redrawRoutes();
     }
@@ -145,6 +249,19 @@ public class AOTVWaypointsPage extends Page {
             });
             route.deleteButton = deleteButton;
 
+            BasicButton sortButton = new BasicButton(80, BasicButton.SIZE_36, "Sort", null, null, BasicButton.ALIGNMENT_CENTER, ColorPalette.PRIMARY);
+            sortButton.setClickAction(() -> {
+                list.waypoints.sort(Comparator.comparingInt(o -> {
+                    try {
+                        return Integer.parseInt(o.name);
+                    } catch (NumberFormatException e) {
+                        return 0;
+                    }
+                }));
+                redrawRoutes();
+            });
+            route.sortButton = sortButton;
+
             routes.add(route);
         }
     }
@@ -166,6 +283,8 @@ public class AOTVWaypointsPage extends Page {
             list.selected.draw(vg, iX + 16, iY + 6, inputHandler);
 
             list.nameField.draw(vg, iX + 110, iY + 6, inputHandler);
+
+            list.sortButton.draw(vg, iX + 110 + 310, iY + 6, inputHandler);
 
             list.expandButton.draw(vg, x + 1008 - 80, iY + 6, inputHandler);
 
@@ -214,6 +333,7 @@ public class AOTVWaypointsPage extends Page {
     @Override
     public int drawStatic(long vg, int x, int y, InputHandler inputHandler) {
         addNewList.draw(vg, x + 8, y + 8, inputHandler);
+        importList.draw(vg, x + 8 + 8 + 100, y + 8, inputHandler);
         return addNewList.getHeight() + 16;
     }
 
@@ -236,6 +356,7 @@ public class AOTVWaypointsPage extends Page {
             textInputField.keyTyped(key, keyCode);
             if (!textInputField.isToggled() && textInputField.getInput().length() > 0) {
                 May2BeezQoL.coordsConfig.getRoutes().get(textInputFields.indexOf(textInputField)).name = textInputField.getInput();
+                AOTVWaypointsStructs.SaveWaypoints();
                 redrawRoutes();
             }
         });
@@ -244,6 +365,7 @@ public class AOTVWaypointsPage extends Page {
             if (!textInputField.isToggled() && textInputField.getInput().length() > 0) {
                 try {
                     May2BeezQoL.coordsConfig.getRoutes().get(xInputFields.indexOf(textInputField)).waypoints.get(xInputFields.indexOf(textInputField)).x = Integer.parseInt(textInputField.getInput());
+                    AOTVWaypointsStructs.SaveWaypoints();
                     redrawRoutes();
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -255,6 +377,7 @@ public class AOTVWaypointsPage extends Page {
             if (!textInputField.isToggled() && textInputField.getInput().length() > 0) {
                 try {
                     May2BeezQoL.coordsConfig.getRoutes().get(yInputFields.indexOf(textInputField)).waypoints.get(yInputFields.indexOf(textInputField)).y = Integer.parseInt(textInputField.getInput());
+                    AOTVWaypointsStructs.SaveWaypoints();
                     redrawRoutes();
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -266,6 +389,7 @@ public class AOTVWaypointsPage extends Page {
             if (!textInputField.isToggled() && textInputField.getInput().length() > 0) {
                 try {
                     May2BeezQoL.coordsConfig.getRoutes().get(zInputFields.indexOf(textInputField)).waypoints.get(zInputFields.indexOf(textInputField)).z = Integer.parseInt(textInputField.getInput());
+                    AOTVWaypointsStructs.SaveWaypoints();
                     redrawRoutes();
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -276,6 +400,7 @@ public class AOTVWaypointsPage extends Page {
             textInputField.keyTyped(key, keyCode);
             if (!textInputField.isToggled() && textInputField.getInput().length() > 0) {
                 May2BeezQoL.coordsConfig.getRoutes().get(nameInputFields.indexOf(textInputField)).waypoints.get(nameInputFields.indexOf(textInputField)).name = textInputField.getInput();
+                AOTVWaypointsStructs.SaveWaypoints();
                 redrawRoutes();
             }
         });
@@ -302,6 +427,7 @@ public class AOTVWaypointsPage extends Page {
         public TextInputField nameField;
         public BasicButton expandButton;
         public BasicButton deleteButton;
+        public BasicButton sortButton;
 
         public Route(String name) {
             this.name = name;
@@ -338,5 +464,33 @@ public class AOTVWaypointsPage extends Page {
         public void setShowCoords(boolean showCoords) {
             this.showCoords = showCoords;
         }
+    }
+
+    // SKYTILS WAYPOINT FORMAT TO DECODE
+
+
+    private static class CategoryList {
+        @Expose
+        private ArrayList<WaypointCategory> categories = new ArrayList<>();
+    }
+
+    @Serializable
+    private static class WaypointCategory {
+        @Expose
+        private String name;
+        @Expose
+        private ArrayList<Waypoint> waypoints = new ArrayList<>();
+    }
+
+    @Serializable
+    private static class Waypoint {
+        @Expose
+        private String name;
+        @Expose
+        private int x;
+        @Expose
+        private int y;
+        @Expose
+        private int z;
     }
 }

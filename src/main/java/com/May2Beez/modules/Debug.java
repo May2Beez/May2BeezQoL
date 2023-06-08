@@ -6,6 +6,8 @@ import com.May2Beez.utils.RenderUtils;
 import com.May2Beez.utils.RotationUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiCrafting;
+import net.minecraft.client.multiplayer.ChunkProviderClient;
+import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.*;
@@ -31,8 +33,9 @@ public class Debug extends Module {
     private final Minecraft mc = Minecraft.getMinecraft();
 
     public Debug() {
-        super("Debug", new KeyBinding("Debug Key", Keyboard.KEY_H, "May2Beez - Debug"));
+        super("Debug", new KeyBinding("Debug Key", Keyboard.KEY_H, "May2BeezQoL - Debug"));
     }
+    private final static Frustum frustrum = new Frustum();
 
     @Override
     public void onEnable() {
@@ -40,24 +43,14 @@ public class Debug extends Module {
         super.onEnable();
     }
 
-    private enum DebugState {
-        FIRST_TEST,
-        SECOND_TEST
-    }
-
-    private DebugState currentState = DebugState.FIRST_TEST;
-
     @Override
     public void onKeyInput(InputEvent.KeyInputEvent event) {
         if (this.keyBinding != null && this.keyBinding.isPressed()) {
-            new Thread(() -> {
-                try {
-                    Thread.sleep(1500);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-                mc.playerController.windowClick(mc.thePlayer.openContainer.windowId, mc.thePlayer.openContainer.inventorySlots.size() - 9 + 3, 0, 1, mc.thePlayer);
-            }).start();
+            if (mc.objectMouseOver != null && mc.objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
+                testBlock = mc.objectMouseOver.getBlockPos();
+            } else {
+                testBlock = null;
+            }
         }
     }
 
@@ -66,34 +59,16 @@ public class Debug extends Module {
         if (testBlock != null) {
             RenderUtils.drawOutline(testBlock, Color.orange, 2f);
         }
-        if (!testPoints.isEmpty()) {
-            for (Vec3 pos : testPoints) {
-                RenderUtils.miniBlockBox(pos, new Color(Color.lightGray.getRed(), Color.lightGray.getGreen(), Color.lightGray.getBlue(), 50), 2f);
-            }
-        }
     }
 
-    private final CopyOnWriteArrayList<Vec3> testPoints = new CopyOnWriteArrayList<>();
 
     @SubscribeEvent
     public void onTick(TickEvent.ClientTickEvent event) {
         if (mc.theWorld == null || mc.thePlayer == null) return;
-        testPoints.clear();
         if (testBlock == null) return;
 
-        BlockPos playerLoc = BlockUtils.getPlayerLoc();
-
-        boolean lowerY = (testBlock.getY() < playerLoc.getY() && Math.abs(testBlock.getX() - playerLoc.getX()) <= 1 && Math.abs(testBlock.getZ() - playerLoc.getZ()) <= 1);
-        ArrayList<Vec3> points = BlockUtils.getAllVisibilityLines(testBlock, mc.thePlayer.getPositionVector().add(new Vec3(0, mc.thePlayer.getEyeHeight(), 0)).subtract(new Vec3(0, lowerY ? May2BeezQoL.config.miningAccuracy : 0, 0)), lowerY);
-        ArrayList<Vec3> bounding = getBoundingPoints(points);
-        switch (currentState) {
-            case FIRST_TEST:
-                testPoints.addAll(points);
-                break;
-            case SECOND_TEST:
-                testPoints.addAll(bounding);
-                break;
-        }
+        frustrum.setPosition(mc.getRenderViewEntity().posX, mc.getRenderViewEntity().posY, mc.getRenderViewEntity().posZ);
+        System.out.println("visible: " + frustrum.isBoundingBoxInFrustum(new AxisAlignedBB(testBlock.getX(), testBlock.getY(), testBlock.getZ(), testBlock.getX() + 1, testBlock.getY() + 1, testBlock.getZ() + 1)));
     }
 
     public static boolean isUngrabbed = false;

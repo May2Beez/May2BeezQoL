@@ -147,7 +147,7 @@ public class MithrilMiner extends Module {
                     break;
                 }
 
-                KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), true);
+                KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), May2BeezQoL.config.holdSneak);
                 KeyBinding.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), false);
 
                 if (blocksToMine.isEmpty()) {
@@ -199,8 +199,10 @@ public class MithrilMiner extends Module {
 
                 useMiningSpeedBoost();
 
-                if (RotationUtils.done)
+                if (RotationUtils.done) {
                     RotationUtils.smoothLook(RotationUtils.getRotation(target.getRandomVisibilityLine()), May2BeezQoL.config.cameraSpeed);
+                    return;
+                }
 
                 boolean lookingAtTarget = mc.objectMouseOver != null && mc.objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK && mc.objectMouseOver.getBlockPos().equals(target.getPos());
 
@@ -210,13 +212,13 @@ public class MithrilMiner extends Module {
                         May2BeezQoL.miningSpeedActive ? May2BeezQoL.config.maxBreakTime / 2 :
                                 May2BeezQoL.config.maxBreakTime;
 
-                if (RotationUtils.isDiffLowerThan(0.1f) && blockDestroyValueChange.hasReached(1500)) {
-                    LogUtils.addMessage(getName() + " - Block's breaking progress didn't change for 1.5 seconds, restarting.", EnumChatFormatting.DARK_RED);
+                if (RotationUtils.isDiffLowerThan(0.1f) && blockDestroyValueChange.hasReached(2500)) {
+                    LogUtils.addMessage(getName() + " - Block's breaking progress didn't change for 2.5 seconds, restarting.", EnumChatFormatting.DARK_RED);
                     stuckReset();
                 }
 
-                if (target != null && RotationUtils.isDiffLowerThan(0.1f) && mc.objectMouseOver != null && !mc.objectMouseOver.getBlockPos().equals(target.getPos())) {
-                    LogUtils.addMessage(getName() + " - Block is our of eye sight, restarting.", EnumChatFormatting.DARK_RED);
+                if (target != null && RotationUtils.isDiffLowerThan(0.1f) && mc.objectMouseOver != null && mc.objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK && !mc.objectMouseOver.getBlockPos().equals(target.getPos())) {
+                    LogUtils.addMessage(getName() + " - Block is out of eye sight, restarting.", EnumChatFormatting.DARK_RED);
                     stuckReset();
                 }
 
@@ -251,6 +253,7 @@ public class MithrilMiner extends Module {
         oldTarget = target;
         target = null;
         blockDestroyValueChange.reset();
+        RotationUtils.reset();
     }
 
     private Structs.BlockData getClosestBlock() {

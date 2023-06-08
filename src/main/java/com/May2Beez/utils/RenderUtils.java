@@ -352,7 +352,15 @@ public class RenderUtils {
     }
 
     public static void drawText(String str, double X, double Y, double Z, boolean showDistance) {
-        float lScale = 0.8f;
+        drawText(str, X, Y, Z, showDistance, 0.8f);
+    }
+
+    public static void drawText(String str, double X, double Y, double Z, float scale) {
+        drawText(str, X, Y, Z, false, scale);
+    }
+
+    public static void drawText(String str, double X, double Y, double Z, boolean showDistance, float scale) {
+        float lScale = scale;
         FontRenderer fontRenderer = Minecraft.getMinecraft().fontRendererObj;
 
         double renderPosX = X - Minecraft.getMinecraft().getRenderManager().viewerPosX;
@@ -469,6 +477,7 @@ public class RenderUtils {
     }
 
     public static void drawFilledBoundingBox(AxisAlignedBB aabb, Color color, float opacity, float lineWidth) {
+        GlStateManager.pushMatrix();
         GlStateManager.enableBlend();
         GlStateManager.disableDepth();
         GlStateManager.disableLighting();
@@ -529,6 +538,7 @@ public class RenderUtils {
         GlStateManager.enableDepth();
         GlStateManager.disableBlend();
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+        GlStateManager.popMatrix();
     }
 
     public static void renderBeacon(Vec3 location, Color color, float partialTicks) {
