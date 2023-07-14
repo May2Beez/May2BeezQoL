@@ -125,7 +125,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
     @KeyBind(name = "Fill Chest With Sapling", category = FORAGING_MACRO)
     public OneKeyBind fillChestSapling = new OneKeyBind(UKeyboard.KEY_NONE);
 
-    @Switch(name = "Mouse Ungrab", category = FISHING)
+    @Switch(name = "Mouse Ungrab", category = FORAGING_MACRO)
     public boolean mouseUngrab = true;
 
     @HUD(name = "Foraging Macro Info", category = FORAGING_MACRO)
