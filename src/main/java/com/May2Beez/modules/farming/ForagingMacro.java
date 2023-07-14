@@ -59,7 +59,8 @@ public class ForagingMacro extends Module {
         stuckTimer.reset();
         stuck = false;
         updateXpTimer.reset();
-        UngrabUtils.ungrabMouse();
+        if (May2BeezQoL.config.mouseUngrab)
+            UngrabUtils.ungrabMouse();
     }
 
     @Override
