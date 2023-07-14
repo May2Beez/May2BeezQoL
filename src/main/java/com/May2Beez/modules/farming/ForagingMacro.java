@@ -59,6 +59,7 @@ public class ForagingMacro extends Module {
         stuckTimer.reset();
         stuck = false;
         updateXpTimer.reset();
+        UngrabUtils.ungrabMouse();
     }
 
     @Override
@@ -67,6 +68,7 @@ public class ForagingMacro extends Module {
         KeyBinding.setKeyBindState(Minecraft.getMinecraft().gameSettings.keyBindAttack.getKeyCode(), false);
         KeyBinding.setKeyBindState(Minecraft.getMinecraft().gameSettings.keyBindUseItem.getKeyCode(), false);
         running = false;
+        UngrabUtils.regrabMouse();
     }
 
     private static final Timer updateXpTimer = new Timer();
