@@ -125,9 +125,6 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
     @KeyBind(name = "Fill Chest With Sapling", category = FORAGING_MACRO)
     public OneKeyBind fillChestSapling = new OneKeyBind(UKeyboard.KEY_NONE);
 
-    @Switch(name = "Mouse Ungrab", category = FORAGING_MACRO)
-    public boolean mouseUngrab = true;
-
     @HUD(name = "Foraging Macro Info", category = FORAGING_MACRO)
     public ForagingHUD foragingMacroInfo = new ForagingHUD();
 
@@ -272,6 +269,12 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
     @Color(name = "Chest ESP color", category = ESP)
     public OneColor chestEspColor = new OneColor(208, 104, 0, 120);
 
+    @Switch(name = "Draw ESP around gifts", category = ESP)
+    public boolean giftEsp = true;
+
+    @Color(name = "Gift ESP color", category = ESP)
+    public OneColor giftEspColor = new OneColor(132, 255, 0, 120);
+
     @Switch(name = "Draw ESP around gemstones", category = ESP)
     public boolean gemstoneEsp = true;
 
@@ -299,6 +302,30 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 
     @Switch(name = "Swap item check failsafe", category = FAILSAFES, subcategory = "Swap Item Check")
     public boolean stopMacrosOnSwapItemCheck = true;
+
+    @Switch(name = "Auto alt tab on mention", category = FAILSAFES, subcategory = "Chat Mention")
+    public boolean autoAltTabOnMention = false;
+
+    @Switch(name = "Popup notifications on mention", category = FAILSAFES, subcategory = "Chat Mention")
+    public boolean popUpNotificationOnMention = true;
+
+    @Switch(name = "Auto alt tab on world change", category = FAILSAFES, subcategory = "World Change")
+    public boolean autoAltTabOnWorldChange = false;
+
+    @Switch(name = "Popup notifications on world change", category = FAILSAFES, subcategory = "World Change")
+    public boolean popUpNotificationOnWorldChange = true;
+
+    @Switch(name = "Auto alt tab on item swap", category = FAILSAFES, subcategory = "Swap Item Check")
+    public boolean autoAltTabOnItemSwap = false;
+
+    @Switch(name = "Popup notifications on item swap", category = FAILSAFES, subcategory = "Swap Item Check")
+    public boolean popUpNotificationOnItemSwap = true;
+
+    @Switch(name = "Auto alt tab on rotation check", category = FAILSAFES, subcategory = "Rotation Check")
+    public boolean autoAltTabOnRotationCheck = true;
+
+    @Switch(name = "Popup notifications on rotation check", category = FAILSAFES, subcategory = "Rotation Check")
+    public boolean popUpNotificationOnRotationCheck = true;
 
     //endregion
 
@@ -348,6 +375,9 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 
     @Switch(name = "Auto Sprint", category = OTHER_OPTIONS, subcategory = "Skyblock")
     public boolean autoSprint = true;
+
+    @Switch(name = "Mouse Ungrab", category = OTHER_OPTIONS)
+    public boolean mouseUngrab = true;
 
     //endregion
 

@@ -232,8 +232,6 @@ public class MobKiller extends Module {
 
                     if (target.distance() > 5.5) return;
 
-                    if (!RotationUtils.done) return;
-
                     RotationUtils.smoothLook(new Rotation(mc.thePlayer.rotationYaw, 89), May2BeezQoL.config.mobKillerCameraSpeed);
 
                     if (RotationUtils.isDiffLowerThan(0.5f)) {
@@ -272,8 +270,6 @@ public class MobKiller extends Module {
                     } else {
                         visible = !SkyblockUtils.entityIsNotVisible(target.entity);
                     }
-
-                    if (!RotationUtils.done) return;
 
                     if (!visible) {
                         LogUtils.addMessage("MobKiller - Something is blocking target, waiting for free shot...", EnumChatFormatting.RED);
@@ -357,4 +353,4 @@ public class MobKiller extends Module {
 
         };
     }
- }
+}

@@ -72,6 +72,8 @@ public class FishingMacro extends Module {
         inWaterTimer.reset();
         attackDelay.reset();
         antiAfkTimer.reset();
+        if (May2BeezQoL.config.mouseUngrab)
+            UngrabUtils.ungrabMouse();
         oldBobberPosY = 0.0D;
         killing = true;
         particles.clear();
@@ -99,6 +101,7 @@ public class FishingMacro extends Module {
         RotationUtils.reset();
         MobKiller.ShouldScan = false;
         May2BeezQoL.mobKiller.Toggle();
+        UngrabUtils.regrabMouse();
     }
 
     @SubscribeEvent

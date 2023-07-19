@@ -7,14 +7,19 @@ import com.May2Beez.utils.LogUtils;
 import com.May2Beez.utils.RotationUtils;
 import com.May2Beez.utils.SkyblockUtils;
 import com.May2Beez.utils.structs.Rotation;
+import com.sun.jna.platform.win32.User32;
+import com.sun.jna.platform.win32.WinDef;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.network.play.server.S08PacketPlayerPosLook;
 import net.minecraft.network.play.server.S09PacketHeldItemChange;
 import net.minecraft.util.EnumChatFormatting;
+import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import org.lwjgl.opengl.Display;
 
+import java.awt.*;
 import java.util.Arrays;
 import java.util.Random;
 
@@ -22,6 +27,24 @@ public class FailSafes {
 
     private static final Minecraft mc = Minecraft.getMinecraft();
     private static final String[] teleportItems = new String[] {"Void", "Hyperion", "Aspect"};
+
+    @SubscribeEvent
+    public void onMessageReceived(ClientChatReceivedEvent event) {
+        String message = net.minecraft.util.StringUtils.stripControlCodes(event.message.getUnformattedText());
+        if (Display.isActive()) return;
+        if (message.contains(mc.thePlayer.getName())) {
+            if (May2BeezQoL.config.popUpNotificationOnMention) {
+                LogUtils.addMessage("You were mentioned in chat!", EnumChatFormatting.DARK_RED);
+                try {
+                    LogUtils.createNotification("You were mentioned in chat!", SystemTray.getSystemTray(), TrayIcon.MessageType.WARNING);
+                } catch (UnsupportedOperationException e) {
+                    LogUtils.addMessage("Notifications are not supported on this system!", EnumChatFormatting.RED);
+                }
+            }
+            if (May2BeezQoL.config.autoAltTabOnMention)
+                setFocusToWindowsApp();
+        }
+    }
 
     @SubscribeEvent
     public void onWorldChange(WorldEvent.Unload event) {
@@ -33,6 +56,16 @@ public class FailSafes {
         for (Module m : May2BeezQoL.modules) {
             if (m.isToggled()) m.toggle();
         }
+        if (May2BeezQoL.config.popUpNotificationOnWorldChange) {
+            if (Display.isActive()) return;
+            try {
+                LogUtils.createNotification("Detected World Change, Stopping All Macros", SystemTray.getSystemTray(), TrayIcon.MessageType.WARNING);
+            } catch (UnsupportedOperationException e) {
+                LogUtils.addMessage("Notifications are not supported on this system!", EnumChatFormatting.RED);
+            }
+        }
+        if (May2BeezQoL.config.autoAltTabOnWorldChange)
+            setFocusToWindowsApp();
     }
 
     @SubscribeEvent
@@ -48,6 +81,16 @@ public class FailSafes {
 
         LogUtils.addMessage("Swap item check?", EnumChatFormatting.GOLD);
         SkyblockUtils.sendPingAlert();
+        if (May2BeezQoL.config.popUpNotificationOnItemSwap) {
+            if (Display.isActive()) return;
+            try {
+                LogUtils.createNotification("Swap check failsafe triggered!", SystemTray.getSystemTray(), TrayIcon.MessageType.WARNING);
+            } catch (UnsupportedOperationException e) {
+                LogUtils.addMessage("Notifications are not supported on this system!", EnumChatFormatting.RED);
+            }
+            if (May2BeezQoL.config.autoAltTabOnItemSwap)
+                setFocusToWindowsApp();
+        }
     }
 
     @SubscribeEvent
@@ -64,6 +107,17 @@ public class FailSafes {
 
         LogUtils.addMessage("Rotation check?", EnumChatFormatting.GOLD);
         SkyblockUtils.sendPingAlert();
+
+        if (May2BeezQoL.config.popUpNotificationOnRotationCheck) {
+            if (Display.isActive()) return;
+            try {
+                LogUtils.createNotification("Rotation check failsafe triggered!", SystemTray.getSystemTray(), TrayIcon.MessageType.WARNING);
+            } catch (UnsupportedOperationException e) {
+                LogUtils.addMessage("Notifications are not supported on this system!", EnumChatFormatting.RED);
+            }
+            if (May2BeezQoL.config.autoAltTabOnRotationCheck)
+                setFocusToWindowsApp();
+        }
 
         if (May2BeezQoL.config.fakeMoveAfterRotationCheck) {
             new Thread(() -> {
@@ -105,6 +159,17 @@ public class FailSafes {
                 }
                 RotationUtils.smoothLook(new Rotation(mc.thePlayer.rotationYaw - (new Random().nextInt(30) - 15), 60 - (new Random().nextInt(10) - 5)), 450);
             }).start();
+        }
+    }
+
+    public static void setFocusToWindowsApp() {
+        User32 user32 = User32.INSTANCE;
+
+        WinDef.HWND hWnd = user32.FindWindow(null, Display.getTitle());
+        if (user32.IsWindowVisible(hWnd)) {
+            user32.ShowWindow(hWnd, User32.SW_SHOWMAXIMIZED);
+            user32.SetForegroundWindow(hWnd);
+            user32.SetFocus(hWnd);
         }
     }
 }

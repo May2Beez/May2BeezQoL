@@ -15,6 +15,7 @@ import net.minecraft.entity.monster.EntityCreeper;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
+import net.minecraft.init.Items;
 import net.minecraft.item.EnumDyeColor;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntityChest;
@@ -177,6 +178,34 @@ public class ESP extends Module {
             }
             if (meta == EnumDyeColor.LIGHT_BLUE.getMetadata()) {
                 RenderUtils.drawOutline(pos, new Color(Color.blue.getRed(), Color.blue.getGreen(), Color.blue.getBlue(), alpha), 3);
+            }
+        }
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)
+    public void onRenderWorldLastGiftESP(RenderLivingEvent.Pre<EntityLivingBase> event) {
+        if (mc.theWorld == null || mc.thePlayer == null) return;
+        if (!May2BeezQoL.config.giftEsp) return;
+        if (LocationUtils.currentIsland != LocationUtils.Island.JERRY_WORKSHOP) return;
+
+        EntityLivingBase entity = event.entity;
+
+        if (entity instanceof EntityArmorStand) {
+            if (entity.getEquipmentInSlot(4) == null) return;
+            if (entity.getEquipmentInSlot(4).getItem() != Items.skull) return;
+            if (entity.getEquipmentInSlot(4).getTagCompound() == null) return;
+            if (!entity.getEquipmentInSlot(4).getTagCompound().hasKey("SkullOwner")) return;
+            if (!entity.getEquipmentInSlot(4).getTagCompound().getCompoundTag("SkullOwner").hasKey("Properties")) return;
+            if (!entity.getEquipmentInSlot(4).getTagCompound().getCompoundTag("SkullOwner").getCompoundTag("Properties").hasKey("textures")) return;
+            if (!entity.getEquipmentInSlot(4).getTagCompound().getCompoundTag("SkullOwner").getCompoundTag("Properties").getTagList("textures", 10).getCompoundTagAt(0).hasKey("Value")) return;
+            if (entity.getEquipmentInSlot(4).getTagCompound().getCompoundTag("SkullOwner").getCompoundTag("Properties").getTagList("textures", 10).getCompoundTagAt(0).getString("Value").contains("eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMTBmNTM5ODUxMGIxYTA1YWZjNWIyMDFlYWQ4YmZjNTgzZTU3ZDcyMDJmNTE5M2IwYjc2MWZjYmQwYWUyIn19fQ==") // white gift
+            || entity.getEquipmentInSlot(4).getTagCompound().getCompoundTag("SkullOwner").getCompoundTag("Properties").getTagList("textures", 10).getCompoundTagAt(0).getString("Value").contains("eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZWQ5N2Y0ZjQ0ZTc5NmY3OWNhNDMw0TdmYWE3YjRmZTkxYzQ0NWM3NmU1YzI2YTVhZDc5NGY1ZTQ3OTgzNyJ9fX0=") // green gift
+            || entity.getEquipmentInSlot(4).getTagCompound().getCompoundTag("SkullOwner").getCompoundTag("Properties").getTagList("textures", 10).getCompoundTagAt(0).getString("Value").contains("eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYjczYTIxMTQxMzZiOGVlNDkyNmNhYTUxNzg1NDE0MD2M2YTJiNzZlNGYxNjY4Y2I4OWQ5OTcxNmM0MjEifX19") // red gift
+            ) {
+                if (SkyblockUtils.entityIsNotVisible(entity)) {
+                    RenderUtils.drawGiftBox(event.entity, May2BeezQoL.config.giftEspColor.toJavaColor(), 2, 1);
+                    RenderUtils.drawText("Gift", entity.posX, entity.posY + entity.height + 0.5, entity.posZ);
+                }
             }
         }
     }

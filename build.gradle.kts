@@ -71,6 +71,9 @@ repositories {
     maven("https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1")
 }
 
+val embed: Configuration by configurations.creating
+configurations.implementation.get().extendsFrom(embed)
+
 dependencies {
     modCompileOnly("cc.polyfrost:oneconfig-$platform:0.2.0-alpha+") // Adds the OneConfig library, so we can develop with it.
     if (platform.isLegacyForge) {
@@ -80,6 +83,8 @@ dependencies {
         modCompileOnly("org.projectlombok:lombok:1.18.26")
         annotationProcessor("org.projectlombok:lombok:1.18.26")
     }
+    runtimeOnly("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.2")
+    embed("com.dorkbox:Notify:3.7")
 }
 
 tasks.processResources {

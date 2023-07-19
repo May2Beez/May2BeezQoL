@@ -20,6 +20,7 @@ import org.lwjgl.input.Keyboard;
 
 import java.awt.*;
 import java.util.List;
+import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -212,7 +213,7 @@ public class ForagingMacro extends Module {
                 mc.thePlayer.inventory.currentItem = saplingSlot;
                 bestDirt = getDirt();
                 if(bestDirt != null) {
-                    RotationUtils.smoothLook(RotationUtils.getRotation(bestDirt), 230);
+                    RotationUtils.smoothLook(RotationUtils.getRotation(bestDirt), 150 + (new Random().nextInt(50)));
                     macroState = MacroState.PLACE;
                 } else {
                     macroState = MacroState.FIND_BONE;
