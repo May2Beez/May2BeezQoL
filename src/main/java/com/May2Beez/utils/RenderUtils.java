@@ -62,6 +62,30 @@ public class RenderUtils {
         drawFilledBoundingBox(aabb, color, 0.7f, lineWidth);
     }
 
+    public static void drawGiftBox(final Entity entity, final Color color, final int lineWidth, float partialTicks) {
+        RenderManagerAccessor rm = (RenderManagerAccessor) mc.getRenderManager();
+
+        double renderPosX = rm.getRenderPosX();
+        double renderPosY = rm.getRenderPosY();
+        double renderPosZ = rm.getRenderPosZ();
+
+        double x = entity.lastTickPosX + (entity.posX - entity.lastTickPosX) * partialTicks - renderPosX;
+        double y = entity.lastTickPosY + (entity.posY - entity.lastTickPosY) * partialTicks - renderPosY;
+        double z = entity.lastTickPosZ + (entity.posZ - entity.lastTickPosZ) * partialTicks - renderPosZ;
+
+        AxisAlignedBB bbox = entity.getEntityBoundingBox();
+        AxisAlignedBB aabb = new AxisAlignedBB(
+                bbox.minX - entity.posX + x,
+                bbox.minY - entity.posY + y + 1.5,
+                bbox.minZ - entity.posZ + z,
+                bbox.maxX - entity.posX + x,
+                bbox.maxY - entity.posY + y,
+                bbox.maxZ - entity.posZ + z
+        );
+
+        drawFilledBoundingBox(aabb, color, 0.7f, lineWidth);
+    }
+
     public static void drawEntityESP(EntityLivingBase entity, ModelBase model, Color color, float partialTicks) {
         ModelData modelData = preModelDraw(entity, model, partialTicks);
         outlineEntity(
