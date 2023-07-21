@@ -1,5 +1,5 @@
-[
-    {
+{
+    "mobs": [
         "Squid",
         "Sea Walker",
         "Night Squid",
@@ -43,6 +43,6 @@
         "Nurse Shark",
         "Rider of the Deep",
         "Sea Emperor",
-        "Tiger Shark",
-    }
-]
+        "Tiger Shark"
+    ]
+}
