@@ -28,7 +28,7 @@ public class FishingMacro extends Module {
 
     private final Minecraft mc = Minecraft.getMinecraft();
 
-    private static final List<String> fishingMobs = JsonUtils.getListFromUrl("https://gist.githubusercontent.com/Apfelmus1337/da641d3805bddf800eef170cbb0068ec/raw", "mobs");
+    private static final List<String> fishingMobs = JsonUtils.getListFromUrl("https://raw.githubusercontent.com/May2Beez/May2BeezQoL/master/sea_creatures_list.json", "mobs");
 
     private final Timer throwTimer = new Timer();
     private final Timer inWaterTimer = new Timer();
