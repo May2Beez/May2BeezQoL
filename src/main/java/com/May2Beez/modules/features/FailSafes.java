@@ -32,6 +32,7 @@ public class FailSafes {
     public void onMessageReceived(ClientChatReceivedEvent event) {
         String message = net.minecraft.util.StringUtils.stripControlCodes(event.message.getUnformattedText());
         if (Display.isActive()) return;
+        if (mc.thePlayer == null || mc.theWorld == null) return;
         if (message.contains(mc.thePlayer.getName())) {
             if (May2BeezQoL.config.popUpNotificationOnMention) {
                 LogUtils.addMessage("You were mentioned in chat!", EnumChatFormatting.DARK_RED);
@@ -49,6 +50,7 @@ public class FailSafes {
     @SubscribeEvent
     public void onWorldChange(WorldEvent.Unload event) {
         if (!May2BeezQoL.config.stopMacrosOnWorldChange) return;
+        if (mc.thePlayer == null || mc.theWorld == null) return;
 
         if (May2BeezQoL.modules.stream().anyMatch(Module::isToggled)) {
             LogUtils.addMessage("Detected World Change, Stopping All Macros", EnumChatFormatting.DARK_RED);
@@ -56,16 +58,17 @@ public class FailSafes {
         for (Module m : May2BeezQoL.modules) {
             if (m.isToggled()) m.toggle();
         }
-        if (May2BeezQoL.config.popUpNotificationOnWorldChange) {
-            if (Display.isActive()) return;
-            try {
-                LogUtils.createNotification("Detected World Change, Stopping All Macros", SystemTray.getSystemTray(), TrayIcon.MessageType.WARNING);
-            } catch (UnsupportedOperationException e) {
-                LogUtils.addMessage("Notifications are not supported on this system!", EnumChatFormatting.RED);
+        if (!Display.isActive()) {
+            if (May2BeezQoL.config.popUpNotificationOnWorldChange) {
+                try {
+                    LogUtils.createNotification("Detected World Change, Stopping All Macros", SystemTray.getSystemTray(), TrayIcon.MessageType.WARNING);
+                } catch (UnsupportedOperationException e) {
+                    LogUtils.addMessage("Notifications are not supported on this system!", EnumChatFormatting.RED);
+                }
             }
+            if (May2BeezQoL.config.autoAltTabOnWorldChange)
+                setFocusToWindowsApp();
         }
-        if (May2BeezQoL.config.autoAltTabOnWorldChange)
-            setFocusToWindowsApp();
     }
 
     @SubscribeEvent
@@ -81,12 +84,13 @@ public class FailSafes {
 
         LogUtils.addMessage("Swap item check?", EnumChatFormatting.GOLD);
         SkyblockUtils.sendPingAlert();
-        if (May2BeezQoL.config.popUpNotificationOnItemSwap) {
-            if (Display.isActive()) return;
-            try {
-                LogUtils.createNotification("Swap check failsafe triggered!", SystemTray.getSystemTray(), TrayIcon.MessageType.WARNING);
-            } catch (UnsupportedOperationException e) {
-                LogUtils.addMessage("Notifications are not supported on this system!", EnumChatFormatting.RED);
+        if (!Display.isActive()) {
+            if (May2BeezQoL.config.popUpNotificationOnItemSwap) {
+                try {
+                    LogUtils.createNotification("Swap check failsafe triggered!", SystemTray.getSystemTray(), TrayIcon.MessageType.WARNING);
+                } catch (UnsupportedOperationException e) {
+                    LogUtils.addMessage("Notifications are not supported on this system!", EnumChatFormatting.RED);
+                }
             }
             if (May2BeezQoL.config.autoAltTabOnItemSwap)
                 setFocusToWindowsApp();
@@ -107,13 +111,13 @@ public class FailSafes {
 
         LogUtils.addMessage("Rotation check?", EnumChatFormatting.GOLD);
         SkyblockUtils.sendPingAlert();
-
-        if (May2BeezQoL.config.popUpNotificationOnRotationCheck) {
-            if (Display.isActive()) return;
-            try {
-                LogUtils.createNotification("Rotation check failsafe triggered!", SystemTray.getSystemTray(), TrayIcon.MessageType.WARNING);
-            } catch (UnsupportedOperationException e) {
-                LogUtils.addMessage("Notifications are not supported on this system!", EnumChatFormatting.RED);
+        if (!Display.isActive()) {
+            if (May2BeezQoL.config.popUpNotificationOnRotationCheck) {
+                try {
+                    LogUtils.createNotification("Rotation check failsafe triggered!", SystemTray.getSystemTray(), TrayIcon.MessageType.WARNING);
+                } catch (UnsupportedOperationException e) {
+                    LogUtils.addMessage("Notifications are not supported on this system!", EnumChatFormatting.RED);
+                }
             }
             if (May2BeezQoL.config.autoAltTabOnRotationCheck)
                 setFocusToWindowsApp();
